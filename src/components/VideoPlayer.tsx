@@ -4,7 +4,7 @@ import {
   X, Play, Pause, Volume2, VolumeX, Maximize, 
   Heart, Eye, SkipBack, SkipForward, ExternalLink 
 } from 'lucide-react';
-import { Video } from '@/types/video';
+import { Video } from '@/contexts/VideoContext';
 import { useVideo } from '@/contexts/VideoContext';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -61,14 +61,14 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
 
   // Show ad every X minutes
   useEffect(() => {
-    if (currentTime > 0 && currentTime % (video.adFrequency * 60) < 1 && isPlaying) {
+    if (currentTime > 0 && currentTime % (video.ad_frequency * 60) < 1 && isPlaying) {
       setShowAd(true);
       setAdTimeRemaining(5);
       if (videoRef.current) {
         videoRef.current.pause();
       }
     }
-  }, [Math.floor(currentTime / 60), video.adFrequency, isPlaying]);
+  }, [Math.floor(currentTime / 60), video.ad_frequency, isPlaying]);
 
   // Ad countdown
   useEffect(() => {
@@ -209,21 +209,27 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
 
         {/* Video Container */}
         <div className="relative aspect-video bg-muted">
-          <video
-            ref={videoRef}
-            src={video.videoUrl}
-            className="w-full h-full object-contain"
-            onTimeUpdate={() => setCurrentTime(videoRef.current?.currentTime || 0)}
-            onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}
-            onEnded={() => setIsPlaying(false)}
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-            playsInline
-          />
+          {video.video_url ? (
+            <video
+              ref={videoRef}
+              src={video.video_url}
+              className="w-full h-full object-contain"
+              onTimeUpdate={() => setCurrentTime(videoRef.current?.currentTime || 0)}
+              onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}
+              onEnded={() => setIsPlaying(false)}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              playsInline
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <p className="text-muted-foreground">No video available</p>
+            </div>
+          )}
 
           {/* Ad Overlay */}
           <AnimatePresence>
-            {showAd && (
+            {showAd && adminSettings && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -234,7 +240,7 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
                   <p className="text-muted-foreground">Advertisement</p>
                   <div className="w-64 h-40 bg-muted rounded-lg flex items-center justify-center">
                     <iframe
-                      src={adminSettings.adCode}
+                      src={adminSettings.ad_code}
                       className="w-full h-full"
                       frameBorder="0"
                       title="Advertisement"
@@ -358,13 +364,13 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
 
         {/* Footer */}
         <div className="p-4 border-t border-border bg-card">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex-1 min-w-0">
               <h2 className="font-display font-semibold text-lg">{video.title}</h2>
               <p className="text-sm text-muted-foreground line-clamp-1">{video.description}</p>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               {/* View Count */}
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted">
                 <Eye className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
@@ -392,13 +398,13 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
               </Button>
 
               {/* CTA Link */}
-              {video.ctaLink && video.ctaText && (
+              {video.cta_link && video.cta_text && (
                 <Button
                   asChild
                   className="bg-primary pink-glow hover:bg-primary/90"
                 >
-                  <a href={video.ctaLink} target="_blank" rel="noopener noreferrer">
-                    {video.ctaText}
+                  <a href={video.cta_link} target="_blank" rel="noopener noreferrer">
+                    {video.cta_text}
                     <ExternalLink className="w-4 h-4 ml-2" />
                   </a>
                 </Button>

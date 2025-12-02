@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Copy, Check, CreditCard, Shield, Sparkles, Crown } from 'lucide-react';
+import { ArrowLeft, Copy, Check, CreditCard, Shield, Sparkles, Crown, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { useVideo } from '@/contexts/VideoContext';
 import { toast } from '@/hooks/use-toast';
 
 const Subscribe = () => {
-  const { adminSettings } = useVideo();
+  const { adminSettings, loading } = useVideo();
   const [copied, setCopied] = useState<string | null>(null);
 
   const copyToClipboard = (text: string, field: string) => {
@@ -29,6 +29,14 @@ const Subscribe = () => {
     'Exclusive behind-the-scenes',
     'Priority support',
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -129,66 +137,70 @@ const Subscribe = () => {
                   <h2 className="font-display font-semibold text-xl">Payment Details</h2>
                 </div>
 
-                <div className="space-y-4">
-                  {/* Bank Name */}
-                  <div className="p-4 rounded-lg bg-muted/50">
-                    <p className="text-sm text-muted-foreground mb-1">Bank Name</p>
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-lg">{adminSettings.bankName}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(adminSettings.bankName, 'Bank name')}
-                      >
-                        {copied === 'Bank name' ? (
-                          <Check className="w-4 h-4 text-primary" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </Button>
+                {adminSettings ? (
+                  <div className="space-y-4">
+                    {/* Bank Name */}
+                    <div className="p-4 rounded-lg bg-muted/50">
+                      <p className="text-sm text-muted-foreground mb-1">Bank Name</p>
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-lg">{adminSettings.bank_name}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(adminSettings.bank_name, 'Bank name')}
+                        >
+                          {copied === 'Bank name' ? (
+                            <Check className="w-4 h-4 text-primary" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Account Name */}
-                  <div className="p-4 rounded-lg bg-muted/50">
-                    <p className="text-sm text-muted-foreground mb-1">Account Name</p>
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-lg">{adminSettings.bankAccountName}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(adminSettings.bankAccountName, 'Account name')}
-                      >
-                        {copied === 'Account name' ? (
-                          <Check className="w-4 h-4 text-primary" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </Button>
+                    {/* Account Name */}
+                    <div className="p-4 rounded-lg bg-muted/50">
+                      <p className="text-sm text-muted-foreground mb-1">Account Name</p>
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-lg">{adminSettings.bank_account_name}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(adminSettings.bank_account_name, 'Account name')}
+                        >
+                          {copied === 'Account name' ? (
+                            <Check className="w-4 h-4 text-primary" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Account Number */}
-                  <div className="p-4 rounded-lg bg-muted/50">
-                    <p className="text-sm text-muted-foreground mb-1">Account Number</p>
-                    <div className="flex items-center justify-between">
-                      <span className="font-display font-bold text-2xl tracking-wider">
-                        {adminSettings.bankAccountNumber}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(adminSettings.bankAccountNumber, 'Account number')}
-                      >
-                        {copied === 'Account number' ? (
-                          <Check className="w-4 h-4 text-primary" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </Button>
+                    {/* Account Number */}
+                    <div className="p-4 rounded-lg bg-muted/50">
+                      <p className="text-sm text-muted-foreground mb-1">Account Number</p>
+                      <div className="flex items-center justify-between">
+                        <span className="font-display font-bold text-2xl tracking-wider">
+                          {adminSettings.bank_account_number}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(adminSettings.bank_account_number, 'Account number')}
+                        >
+                          {copied === 'Account number' ? (
+                            <Check className="w-4 h-4 text-primary" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <p className="text-muted-foreground">Payment details loading...</p>
+                )}
 
                 <div className="mt-6 p-4 rounded-lg bg-primary/10 border border-primary/20">
                   <div className="flex items-start gap-3">

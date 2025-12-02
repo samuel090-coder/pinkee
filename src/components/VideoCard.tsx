@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Lock, Eye, Heart } from 'lucide-react';
-import { Video } from '@/types/video';
+import { Play, Lock, Eye, Heart, Video as VideoIcon } from 'lucide-react';
+import { Video } from '@/contexts/VideoContext';
 import { cn } from '@/lib/utils';
 
 interface VideoCardProps {
@@ -40,34 +40,40 @@ export function VideoCard({ video, onPlay, index }: VideoCardProps) {
       <button
         onClick={() => onPlay(video)}
         className="w-full text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-lg"
-        aria-label={video.isSubscriptionOnly ? `${video.title} - Premium content, requires subscription` : `Play ${video.title}`}
+        aria-label={video.is_subscription_only ? `${video.title} - Premium content, requires subscription` : `Play ${video.title}`}
       >
         <div className="shiny-card rounded-lg overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:pink-glow-intense">
           {/* Thumbnail Container */}
           <div className="relative aspect-square overflow-hidden bg-muted">
             {/* Shimmer loading state */}
-            {!imageLoaded && (
+            {!imageLoaded && video.thumbnail_url && (
               <div className="absolute inset-0 shimmer" />
             )}
             
-            {/* Thumbnail Image */}
-            <img
-              src={video.thumbnailUrl}
-              alt={video.thumbnailAlt || video.title}
-              className={cn(
-                "w-full h-full object-cover transition-all duration-700",
-                isHovered && "scale-110 brightness-75",
-                imageLoaded ? "opacity-100" : "opacity-0"
-              )}
-              onLoad={() => setImageLoaded(true)}
-              loading="lazy"
-            />
+            {/* Thumbnail Image or Placeholder */}
+            {video.thumbnail_url ? (
+              <img
+                src={video.thumbnail_url}
+                alt={video.thumbnail_alt || video.title}
+                className={cn(
+                  "w-full h-full object-cover transition-all duration-700",
+                  isHovered && "scale-110 brightness-75",
+                  imageLoaded ? "opacity-100" : "opacity-0"
+                )}
+                onLoad={() => setImageLoaded(true)}
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-muted">
+                <VideoIcon className="w-12 h-12 text-muted-foreground" />
+              </div>
+            )}
 
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
             {/* Premium Badge */}
-            {video.isSubscriptionOnly && (
+            {video.is_subscription_only && (
               <div className="absolute top-3 right-3 z-10">
                 <motion.div
                   initial={{ scale: 0 }}
@@ -81,11 +87,13 @@ export function VideoCard({ video, onPlay, index }: VideoCardProps) {
             )}
 
             {/* Duration Badge */}
-            <div className="absolute bottom-3 right-3 z-10">
-              <span className="px-2 py-1 text-xs font-medium rounded bg-background/80 backdrop-blur-sm text-foreground">
-                {formatDuration(video.duration)}
-              </span>
-            </div>
+            {video.duration > 0 && (
+              <div className="absolute bottom-3 right-3 z-10">
+                <span className="px-2 py-1 text-xs font-medium rounded bg-background/80 backdrop-blur-sm text-foreground">
+                  {formatDuration(video.duration)}
+                </span>
+              </div>
+            )}
 
             {/* Play Button Overlay */}
             <motion.div
@@ -98,7 +106,7 @@ export function VideoCard({ video, onPlay, index }: VideoCardProps) {
               className="absolute inset-0 flex items-center justify-center"
             >
               <div className="w-16 h-16 rounded-full bg-primary/90 backdrop-blur-sm flex items-center justify-center pink-glow animate-glow-pulse">
-                {video.isSubscriptionOnly ? (
+                {video.is_subscription_only ? (
                   <Lock className="w-7 h-7 text-primary-foreground" />
                 ) : (
                   <Play className="w-7 h-7 text-primary-foreground ml-1" fill="currentColor" />
