@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Lock, Eye, EyeOff, LogOut, LayoutDashboard, Video, Settings, 
-  BarChart3, Plus, Trash2, Edit, Save, X, Upload, Calendar,
-  Download, Play, Heart, Clock, TrendingUp
+  BarChart3, Plus, Trash2, Edit, Save, X, Calendar,
+  Download, Play, Heart, Clock, TrendingUp, CreditCard, Loader2
 } from 'lucide-react';
-import { useVideo } from '@/contexts/VideoContext';
+import { useVideo, Video as VideoType } from '@/contexts/VideoContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,19 +13,20 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { Video as VideoType } from '@/types/video';
+import { FileUpload } from '@/components/FileUpload';
 import { cn } from '@/lib/utils';
 
 const Admin = () => {
   const { 
     videos, 
+    loading,
     adminSettings, 
-    setAdminSettings,
     isAdminAuthenticated, 
     setIsAdminAuthenticated,
     addVideo,
     updateVideo,
     deleteVideo,
+    updateAdminSettings,
     analytics
   } = useVideo();
 
@@ -33,23 +34,46 @@ const Admin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [editingVideo, setEditingVideo] = useState<VideoType | null>(null);
   const [isAddingVideo, setIsAddingVideo] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [newVideo, setNewVideo] = useState({
     title: '',
     description: '',
-    thumbnailUrl: '',
-    videoUrl: '',
+    thumbnail_url: '',
+    video_url: '',
     duration: 0,
-    isSubscriptionOnly: false,
-    ctaLink: '',
-    ctaText: '',
-    isPublished: true,
-    adFrequency: 5,
-    publishedAt: '',
+    is_subscription_only: false,
+    cta_link: '',
+    cta_text: '',
+    is_published: true,
+    ad_frequency: 5,
+    published_at: '',
   });
+
+  const [settingsForm, setSettingsForm] = useState({
+    bank_name: '',
+    bank_account_name: '',
+    bank_account_number: '',
+    admin_password: '',
+    ad_code: '',
+    default_ad_frequency: 5,
+  });
+
+  useEffect(() => {
+    if (adminSettings) {
+      setSettingsForm({
+        bank_name: adminSettings.bank_name || '',
+        bank_account_name: adminSettings.bank_account_name || '',
+        bank_account_number: adminSettings.bank_account_number || '',
+        admin_password: adminSettings.admin_password || '',
+        ad_code: adminSettings.ad_code || '',
+        default_ad_frequency: adminSettings.default_ad_frequency || 5,
+      });
+    }
+  }, [adminSettings]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === adminSettings.adminPassword) {
+    if (adminSettings && password === adminSettings.admin_password) {
       setIsAdminAuthenticated(true);
       toast({ title: 'Welcome!', description: 'Successfully logged in to admin panel' });
     } else {
@@ -66,48 +90,74 @@ const Admin = () => {
     setPassword('');
   };
 
-  const handleAddVideo = () => {
-    if (!newVideo.title || !newVideo.videoUrl) {
+  const handleAddVideo = async () => {
+    if (!newVideo.title) {
       toast({ 
         title: 'Error', 
-        description: 'Title and video URL are required',
+        description: 'Title is required',
         variant: 'destructive'
       });
       return;
     }
-    addVideo(newVideo);
+    if (!newVideo.video_url) {
+      toast({ 
+        title: 'Error', 
+        description: 'Please upload a video file',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    await addVideo({
+      title: newVideo.title,
+      description: newVideo.description || null,
+      thumbnail_url: newVideo.thumbnail_url || null,
+      video_url: newVideo.video_url,
+      duration: newVideo.duration,
+      is_subscription_only: newVideo.is_subscription_only,
+      cta_link: newVideo.cta_link || null,
+      cta_text: newVideo.cta_text || null,
+      is_published: newVideo.is_published,
+      ad_frequency: newVideo.ad_frequency,
+      published_at: newVideo.published_at || null,
+    });
+    
     setNewVideo({
       title: '',
       description: '',
-      thumbnailUrl: '',
-      videoUrl: '',
+      thumbnail_url: '',
+      video_url: '',
       duration: 0,
-      isSubscriptionOnly: false,
-      ctaLink: '',
-      ctaText: '',
-      isPublished: true,
-      adFrequency: 5,
-      publishedAt: '',
+      is_subscription_only: false,
+      cta_link: '',
+      cta_text: '',
+      is_published: true,
+      ad_frequency: 5,
+      published_at: '',
     });
     setIsAddingVideo(false);
-    toast({ title: 'Success', description: 'Video added successfully' });
+    setIsSaving(false);
   };
 
-  const handleUpdateVideo = () => {
+  const handleUpdateVideo = async () => {
     if (editingVideo) {
-      updateVideo(editingVideo.id, editingVideo);
+      setIsSaving(true);
+      await updateVideo(editingVideo.id, editingVideo);
       setEditingVideo(null);
+      setIsSaving(false);
       toast({ title: 'Success', description: 'Video updated successfully' });
     }
   };
 
-  const handleDeleteVideo = (id: string) => {
-    deleteVideo(id);
-    toast({ title: 'Deleted', description: 'Video deleted successfully' });
+  const handleDeleteVideo = async (id: string) => {
+    await deleteVideo(id);
   };
 
-  const handleUpdateSettings = () => {
-    toast({ title: 'Saved', description: 'Settings updated successfully' });
+  const handleUpdateSettings = async () => {
+    setIsSaving(true);
+    await updateAdminSettings(settingsForm);
+    setIsSaving(false);
   };
 
   const exportCSV = () => {
@@ -116,9 +166,9 @@ const Admin = () => {
       v.title,
       v.views,
       v.reactions,
-      Math.round(v.watchTime / 60),
-      v.isSubscriptionOnly ? 'Premium' : 'Free',
-      new Date(v.createdAt).toLocaleDateString()
+      Math.round(v.watch_time / 60),
+      v.is_subscription_only ? 'Premium' : 'Free',
+      new Date(v.created_at).toLocaleDateString()
     ]);
     
     const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
@@ -138,6 +188,15 @@ const Admin = () => {
     if (hours > 0) return `${hours}h ${mins}m`;
     return `${mins}m`;
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   // Login Screen
   if (!isAdminAuthenticated) {
@@ -210,18 +269,18 @@ const Admin = () => {
 
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="dashboard" className="space-y-8">
-          <TabsList className="glass">
+          <TabsList className="glass flex-wrap">
             <TabsTrigger value="dashboard" className="gap-2">
               <BarChart3 className="w-4 h-4" />
-              Dashboard
+              <span className="hidden sm:inline">Dashboard</span>
             </TabsTrigger>
             <TabsTrigger value="videos" className="gap-2">
               <Video className="w-4 h-4" />
-              Videos
+              <span className="hidden sm:inline">Videos</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="w-4 h-4" />
-              Settings
+              <span className="hidden sm:inline">Settings</span>
             </TabsTrigger>
           </TabsList>
 
@@ -276,7 +335,7 @@ const Admin = () => {
                       <th className="text-left p-4 text-sm font-medium text-muted-foreground">Video</th>
                       <th className="text-left p-4 text-sm font-medium text-muted-foreground">Views</th>
                       <th className="text-left p-4 text-sm font-medium text-muted-foreground">Reactions</th>
-                      <th className="text-left p-4 text-sm font-medium text-muted-foreground">Watch Time</th>
+                      <th className="text-left p-4 text-sm font-medium text-muted-foreground hidden md:table-cell">Watch Time</th>
                       <th className="text-left p-4 text-sm font-medium text-muted-foreground">Status</th>
                     </tr>
                   </thead>
@@ -285,29 +344,38 @@ const Admin = () => {
                       <tr key={video.id} className="border-b border-border hover:bg-muted/30 transition-colors">
                         <td className="p-4">
                           <div className="flex items-center gap-3">
-                            <img 
-                              src={video.thumbnailUrl} 
-                              alt="" 
-                              className="w-16 h-10 object-cover rounded"
-                            />
+                            {video.thumbnail_url && (
+                              <img 
+                                src={video.thumbnail_url} 
+                                alt="" 
+                                className="w-16 h-10 object-cover rounded"
+                              />
+                            )}
                             <span className="font-medium line-clamp-1">{video.title}</span>
                           </div>
                         </td>
                         <td className="p-4">{video.views.toLocaleString()}</td>
                         <td className="p-4">{video.reactions.toLocaleString()}</td>
-                        <td className="p-4">{formatTime(video.watchTime)}</td>
+                        <td className="p-4 hidden md:table-cell">{formatTime(video.watch_time)}</td>
                         <td className="p-4">
                           <span className={cn(
                             "px-2 py-1 rounded-full text-xs font-medium",
-                            video.isSubscriptionOnly 
+                            video.is_subscription_only 
                               ? "bg-primary/20 text-primary" 
                               : "bg-green-500/20 text-green-400"
                           )}>
-                            {video.isSubscriptionOnly ? 'Premium' : 'Free'}
+                            {video.is_subscription_only ? 'Premium' : 'Free'}
                           </span>
                         </td>
                       </tr>
                     ))}
+                    {videos.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="p-8 text-center text-muted-foreground">
+                          No videos yet. Add your first video!
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -350,22 +418,6 @@ const Admin = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Video URL *</Label>
-                      <Input
-                        value={newVideo.videoUrl}
-                        onChange={(e) => setNewVideo({ ...newVideo, videoUrl: e.target.value })}
-                        placeholder="https://..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Thumbnail URL</Label>
-                      <Input
-                        value={newVideo.thumbnailUrl}
-                        onChange={(e) => setNewVideo({ ...newVideo, thumbnailUrl: e.target.value })}
-                        placeholder="https://..."
-                      />
-                    </div>
-                    <div className="space-y-2">
                       <Label>Duration (seconds)</Label>
                       <Input
                         type="number"
@@ -373,6 +425,27 @@ const Admin = () => {
                         onChange={(e) => setNewVideo({ ...newVideo, duration: parseInt(e.target.value) || 0 })}
                       />
                     </div>
+                    
+                    {/* Video Upload */}
+                    <div className="space-y-2">
+                      <Label>Video File *</Label>
+                      <FileUpload
+                        type="video"
+                        currentUrl={newVideo.video_url}
+                        onUploadComplete={(url) => setNewVideo({ ...newVideo, video_url: url })}
+                      />
+                    </div>
+
+                    {/* Thumbnail Upload */}
+                    <div className="space-y-2">
+                      <Label>Thumbnail Image</Label>
+                      <FileUpload
+                        type="thumbnail"
+                        currentUrl={newVideo.thumbnail_url}
+                        onUploadComplete={(url) => setNewVideo({ ...newVideo, thumbnail_url: url })}
+                      />
+                    </div>
+
                     <div className="space-y-2 md:col-span-2">
                       <Label>Description</Label>
                       <Textarea
@@ -384,16 +457,16 @@ const Admin = () => {
                     <div className="space-y-2">
                       <Label>CTA Link</Label>
                       <Input
-                        value={newVideo.ctaLink}
-                        onChange={(e) => setNewVideo({ ...newVideo, ctaLink: e.target.value })}
+                        value={newVideo.cta_link}
+                        onChange={(e) => setNewVideo({ ...newVideo, cta_link: e.target.value })}
                         placeholder="https://..."
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>CTA Text</Label>
                       <Input
-                        value={newVideo.ctaText}
-                        onChange={(e) => setNewVideo({ ...newVideo, ctaText: e.target.value })}
+                        value={newVideo.cta_text}
+                        onChange={(e) => setNewVideo({ ...newVideo, cta_text: e.target.value })}
                         placeholder="Learn More"
                       />
                     </div>
@@ -401,30 +474,30 @@ const Admin = () => {
                       <Label>Scheduled Publish Date</Label>
                       <Input
                         type="datetime-local"
-                        value={newVideo.publishedAt}
-                        onChange={(e) => setNewVideo({ ...newVideo, publishedAt: e.target.value })}
+                        value={newVideo.published_at}
+                        onChange={(e) => setNewVideo({ ...newVideo, published_at: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">
                       <Label>Ad Frequency (minutes)</Label>
                       <Input
                         type="number"
-                        value={newVideo.adFrequency}
-                        onChange={(e) => setNewVideo({ ...newVideo, adFrequency: parseInt(e.target.value) || 5 })}
+                        value={newVideo.ad_frequency}
+                        onChange={(e) => setNewVideo({ ...newVideo, ad_frequency: parseInt(e.target.value) || 5 })}
                       />
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 md:col-span-2">
                       <div className="flex items-center gap-2">
                         <Switch
-                          checked={newVideo.isSubscriptionOnly}
-                          onCheckedChange={(checked) => setNewVideo({ ...newVideo, isSubscriptionOnly: checked })}
+                          checked={newVideo.is_subscription_only}
+                          onCheckedChange={(checked) => setNewVideo({ ...newVideo, is_subscription_only: checked })}
                         />
                         <Label>Premium Only</Label>
                       </div>
                       <div className="flex items-center gap-2">
                         <Switch
-                          checked={newVideo.isPublished}
-                          onCheckedChange={(checked) => setNewVideo({ ...newVideo, isPublished: checked })}
+                          checked={newVideo.is_published}
+                          onCheckedChange={(checked) => setNewVideo({ ...newVideo, is_published: checked })}
                         />
                         <Label>Published</Label>
                       </div>
@@ -433,8 +506,12 @@ const Admin = () => {
 
                   <div className="flex justify-end gap-2 pt-4">
                     <Button variant="outline" onClick={() => setIsAddingVideo(false)}>Cancel</Button>
-                    <Button onClick={handleAddVideo} className="bg-primary">
-                      <Upload className="w-4 h-4 mr-2" />
+                    <Button onClick={handleAddVideo} className="bg-primary" disabled={isSaving}>
+                      {isSaving ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Plus className="w-4 h-4 mr-2" />
+                      )}
                       Add Video
                     </Button>
                   </div>
@@ -464,20 +541,6 @@ const Admin = () => {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Video URL</Label>
-                          <Input
-                            value={editingVideo.videoUrl}
-                            onChange={(e) => setEditingVideo({ ...editingVideo, videoUrl: e.target.value })}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Thumbnail URL</Label>
-                          <Input
-                            value={editingVideo.thumbnailUrl}
-                            onChange={(e) => setEditingVideo({ ...editingVideo, thumbnailUrl: e.target.value })}
-                          />
-                        </div>
-                        <div className="space-y-2">
                           <Label>Duration</Label>
                           <Input
                             type="number"
@@ -485,10 +548,31 @@ const Admin = () => {
                             onChange={(e) => setEditingVideo({ ...editingVideo, duration: parseInt(e.target.value) || 0 })}
                           />
                         </div>
+                        
+                        {/* Video Upload */}
+                        <div className="space-y-2">
+                          <Label>Video File</Label>
+                          <FileUpload
+                            type="video"
+                            currentUrl={editingVideo.video_url || ''}
+                            onUploadComplete={(url) => setEditingVideo({ ...editingVideo, video_url: url })}
+                          />
+                        </div>
+
+                        {/* Thumbnail Upload */}
+                        <div className="space-y-2">
+                          <Label>Thumbnail Image</Label>
+                          <FileUpload
+                            type="thumbnail"
+                            currentUrl={editingVideo.thumbnail_url || ''}
+                            onUploadComplete={(url) => setEditingVideo({ ...editingVideo, thumbnail_url: url })}
+                          />
+                        </div>
+
                         <div className="space-y-2 md:col-span-2">
                           <Label>Description</Label>
                           <Textarea
-                            value={editingVideo.description}
+                            value={editingVideo.description || ''}
                             onChange={(e) => setEditingVideo({ ...editingVideo, description: e.target.value })}
                           />
                         </div>
@@ -496,22 +580,22 @@ const Admin = () => {
                           <Label>Ad Frequency (minutes)</Label>
                           <Input
                             type="number"
-                            value={editingVideo.adFrequency}
-                            onChange={(e) => setEditingVideo({ ...editingVideo, adFrequency: parseInt(e.target.value) || 5 })}
+                            value={editingVideo.ad_frequency}
+                            onChange={(e) => setEditingVideo({ ...editingVideo, ad_frequency: parseInt(e.target.value) || 5 })}
                           />
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-2">
                             <Switch
-                              checked={editingVideo.isSubscriptionOnly}
-                              onCheckedChange={(checked) => setEditingVideo({ ...editingVideo, isSubscriptionOnly: checked })}
+                              checked={editingVideo.is_subscription_only}
+                              onCheckedChange={(checked) => setEditingVideo({ ...editingVideo, is_subscription_only: checked })}
                             />
                             <Label>Premium Only</Label>
                           </div>
                           <div className="flex items-center gap-2">
                             <Switch
-                              checked={editingVideo.isPublished}
-                              onCheckedChange={(checked) => setEditingVideo({ ...editingVideo, isPublished: checked })}
+                              checked={editingVideo.is_published}
+                              onCheckedChange={(checked) => setEditingVideo({ ...editingVideo, is_published: checked })}
                             />
                             <Label>Published</Label>
                           </div>
@@ -519,8 +603,12 @@ const Admin = () => {
                       </div>
                       <div className="flex justify-end gap-2">
                         <Button variant="outline" onClick={() => setEditingVideo(null)}>Cancel</Button>
-                        <Button onClick={handleUpdateVideo} className="bg-primary">
-                          <Save className="w-4 h-4 mr-2" />
+                        <Button onClick={handleUpdateVideo} className="bg-primary" disabled={isSaving}>
+                          {isSaving ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Save className="w-4 h-4 mr-2" />
+                          )}
                           Save
                         </Button>
                       </div>
@@ -528,15 +616,21 @@ const Admin = () => {
                   ) : (
                     // View Mode
                     <div className="flex items-center gap-4">
-                      <img 
-                        src={video.thumbnailUrl} 
-                        alt="" 
-                        className="w-24 h-16 object-cover rounded-lg"
-                      />
+                      {video.thumbnail_url ? (
+                        <img 
+                          src={video.thumbnail_url} 
+                          alt="" 
+                          className="w-20 h-14 sm:w-24 sm:h-16 object-cover rounded-lg flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-20 h-14 sm:w-24 sm:h-16 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                          <Video className="w-6 h-6 text-muted-foreground" />
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <h4 className="font-semibold truncate">{video.title}</h4>
-                        <p className="text-sm text-muted-foreground line-clamp-1">{video.description}</p>
-                        <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                        <p className="text-sm text-muted-foreground line-clamp-1 hidden sm:block">{video.description}</p>
+                        <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground flex-wrap">
                           <span className="flex items-center gap-1">
                             <Eye className="w-3 h-3" /> {video.views}
                           </span>
@@ -545,20 +639,20 @@ const Admin = () => {
                           </span>
                           <span className={cn(
                             "px-2 py-0.5 rounded-full",
-                            video.isSubscriptionOnly 
+                            video.is_subscription_only 
                               ? "bg-primary/20 text-primary" 
                               : "bg-green-500/20 text-green-400"
                           )}>
-                            {video.isSubscriptionOnly ? 'Premium' : 'Free'}
+                            {video.is_subscription_only ? 'Premium' : 'Free'}
                           </span>
-                          {!video.isPublished && (
+                          {!video.is_published && (
                             <span className="px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400">
                               Draft
                             </span>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-shrink-0">
                         <Button variant="outline" size="sm" onClick={() => setEditingVideo(video)}>
                           <Edit className="w-4 h-4" />
                         </Button>
@@ -575,6 +669,13 @@ const Admin = () => {
                   )}
                 </motion.div>
               ))}
+
+              {videos.length === 0 && (
+                <div className="shiny-card rounded-xl p-8 text-center">
+                  <Video className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No videos yet. Add your first video!</p>
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -591,22 +692,22 @@ const Admin = () => {
                   <div className="space-y-2">
                     <Label>Bank Name</Label>
                     <Input
-                      value={adminSettings.bankName}
-                      onChange={(e) => setAdminSettings({ ...adminSettings, bankName: e.target.value })}
+                      value={settingsForm.bank_name}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, bank_name: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Account Name</Label>
                     <Input
-                      value={adminSettings.bankAccountName}
-                      onChange={(e) => setAdminSettings({ ...adminSettings, bankAccountName: e.target.value })}
+                      value={settingsForm.bank_account_name}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, bank_account_name: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Account Number</Label>
                     <Input
-                      value={adminSettings.bankAccountNumber}
-                      onChange={(e) => setAdminSettings({ ...adminSettings, bankAccountNumber: e.target.value })}
+                      value={settingsForm.bank_account_number}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, bank_account_number: e.target.value })}
                     />
                   </div>
                 </div>
@@ -623,8 +724,8 @@ const Admin = () => {
                     <Label>Admin Password</Label>
                     <Input
                       type="password"
-                      value={adminSettings.adminPassword}
-                      onChange={(e) => setAdminSettings({ ...adminSettings, adminPassword: e.target.value })}
+                      value={settingsForm.admin_password}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, admin_password: e.target.value })}
                     />
                   </div>
                 </div>
@@ -640,8 +741,8 @@ const Admin = () => {
                   <div className="space-y-2">
                     <Label>Ad Code URL</Label>
                     <Input
-                      value={adminSettings.adCode}
-                      onChange={(e) => setAdminSettings({ ...adminSettings, adCode: e.target.value })}
+                      value={settingsForm.ad_code}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, ad_code: e.target.value })}
                       placeholder="https://..."
                     />
                   </div>
@@ -649,8 +750,8 @@ const Admin = () => {
                     <Label>Default Ad Frequency (minutes)</Label>
                     <Input
                       type="number"
-                      value={adminSettings.defaultAdFrequency}
-                      onChange={(e) => setAdminSettings({ ...adminSettings, defaultAdFrequency: parseInt(e.target.value) || 5 })}
+                      value={settingsForm.default_ad_frequency}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, default_ad_frequency: parseInt(e.target.value) || 5 })}
                     />
                   </div>
                 </div>
@@ -658,8 +759,12 @@ const Admin = () => {
             </div>
 
             <div className="flex justify-end">
-              <Button onClick={handleUpdateSettings} className="bg-primary pink-glow">
-                <Save className="w-4 h-4 mr-2" />
+              <Button onClick={handleUpdateSettings} className="bg-primary pink-glow" disabled={isSaving}>
+                {isSaving ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
                 Save Settings
               </Button>
             </div>
@@ -669,8 +774,5 @@ const Admin = () => {
     </div>
   );
 };
-
-// Import CreditCard icon
-import { CreditCard } from 'lucide-react';
 
 export default Admin;

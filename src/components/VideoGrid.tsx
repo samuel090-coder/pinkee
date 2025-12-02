@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Video } from '@/types/video';
+import { Video } from '@/contexts/VideoContext';
 import { VideoCard } from './VideoCard';
 import { VideoPlayer } from './VideoPlayer';
 
@@ -14,14 +14,14 @@ export function VideoGrid({ videos }: VideoGridProps) {
   const navigate = useNavigate();
 
   const handlePlayVideo = (video: Video) => {
-    if (video.isSubscriptionOnly) {
+    if (video.is_subscription_only) {
       navigate('/subscribe');
     } else {
       setSelectedVideo(video);
     }
   };
 
-  const publishedVideos = videos.filter(v => v.isPublished);
+  const publishedVideos = videos.filter(v => v.is_published);
 
   return (
     <>

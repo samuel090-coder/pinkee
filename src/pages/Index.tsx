@@ -1,11 +1,19 @@
 import { motion } from 'framer-motion';
-import { Play, Sparkles } from 'lucide-react';
+import { Play, Sparkles, Loader2 } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { VideoGrid } from '@/components/VideoGrid';
 import { useVideo } from '@/contexts/VideoContext';
 
 const Index = () => {
-  const { videos } = useVideo();
+  const { videos, loading, analytics } = useVideo();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -80,8 +88,8 @@ const Index = () => {
             className="grid grid-cols-3 gap-8 max-w-2xl mx-auto mt-16"
           >
             {[
-              { value: '100+', label: 'Videos' },
-              { value: '50K+', label: 'Views' },
+              { value: `${analytics.videosCount}+`, label: 'Videos' },
+              { value: analytics.totalViews >= 1000 ? `${(analytics.totalViews / 1000).toFixed(1)}K+` : `${analytics.totalViews}+`, label: 'Views' },
               { value: '4.9', label: 'Rating' },
             ].map((stat, index) => (
               <div key={index} className="text-center">
@@ -112,7 +120,13 @@ const Index = () => {
             </p>
           </motion.div>
 
-          <VideoGrid videos={videos} />
+          {videos.length > 0 ? (
+            <VideoGrid videos={videos} />
+          ) : (
+            <div className="text-center py-16">
+              <p className="text-muted-foreground">No videos yet. Check back soon!</p>
+            </div>
+          )}
         </div>
       </section>
 
