@@ -14,7 +14,108 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      admin_settings: {
+        Row: {
+          ad_code: string | null
+          admin_password: string | null
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_name: string | null
+          created_at: string
+          default_ad_frequency: number | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          ad_code?: string | null
+          admin_password?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
+          created_at?: string
+          default_ad_frequency?: number | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          ad_code?: string | null
+          admin_password?: string | null
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
+          created_at?: string
+          default_ad_frequency?: number | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      videos: {
+        Row: {
+          ad_frequency: number | null
+          created_at: string
+          cta_link: string | null
+          cta_text: string | null
+          description: string | null
+          duration: number | null
+          id: string
+          is_published: boolean | null
+          is_subscription_only: boolean | null
+          published_at: string | null
+          reactions: number | null
+          thumbnail_alt: string | null
+          thumbnail_b: string | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          video_url: string | null
+          views: number | null
+          watch_time: number | null
+        }
+        Insert: {
+          ad_frequency?: number | null
+          created_at?: string
+          cta_link?: string | null
+          cta_text?: string | null
+          description?: string | null
+          duration?: number | null
+          id?: string
+          is_published?: boolean | null
+          is_subscription_only?: boolean | null
+          published_at?: string | null
+          reactions?: number | null
+          thumbnail_alt?: string | null
+          thumbnail_b?: string | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          video_url?: string | null
+          views?: number | null
+          watch_time?: number | null
+        }
+        Update: {
+          ad_frequency?: number | null
+          created_at?: string
+          cta_link?: string | null
+          cta_text?: string | null
+          description?: string | null
+          duration?: number | null
+          id?: string
+          is_published?: boolean | null
+          is_subscription_only?: boolean | null
+          published_at?: string | null
+          reactions?: number | null
+          thumbnail_alt?: string | null
+          thumbnail_b?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+          views?: number | null
+          watch_time?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
