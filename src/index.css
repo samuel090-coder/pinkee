@@ -2,95 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+@import '@fontsource/outfit/400.css';
+@import '@fontsource/outfit/500.css';
+@import '@fontsource/outfit/600.css';
+@import '@fontsource/outfit/700.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Dark theme with pink accents */
+    --background: 270 50% 4%;
+    --foreground: 300 20% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 270 40% 8%;
+    --card-foreground: 300 20% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 270 45% 6%;
+    --popover-foreground: 300 20% 98%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Hot pink primary */
+    --primary: 330 100% 60%;
+    --primary-foreground: 270 50% 4%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Soft pink secondary */
+    --secondary: 330 60% 20%;
+    --secondary-foreground: 330 100% 90%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 270 30% 15%;
+    --muted-foreground: 270 20% 60%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Electric pink accent */
+    --accent: 320 100% 65%;
+    --accent-foreground: 270 50% 4%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 330 40% 20%;
+    --input: 270 30% 15%;
+    --ring: 330 100% 60%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Custom pink palette */
+    --pink-glow: 330 100% 60%;
+    --pink-soft: 330 80% 80%;
+    --pink-deep: 330 80% 40%;
+    --pink-neon: 320 100% 65%;
+    
+    /* Gradients */
+    --gradient-pink: linear-gradient(135deg, hsl(330 100% 60%), hsl(320 100% 50%));
+    --gradient-card: linear-gradient(145deg, hsl(270 40% 12% / 0.8), hsl(270 50% 6% / 0.9));
+    --gradient-shine: linear-gradient(90deg, transparent, hsl(330 100% 80% / 0.3), transparent);
+    --gradient-border: linear-gradient(135deg, hsl(330 100% 60% / 0.5), hsl(320 100% 70% / 0.2), hsl(330 100% 60% / 0.5));
+    
+    /* Shadows */
+    --shadow-pink: 0 0 30px hsl(330 100% 60% / 0.3);
+    --shadow-card: 0 8px 32px hsl(270 50% 4% / 0.5);
+    --shadow-glow: 0 0 60px hsl(330 100% 60% / 0.4);
 
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 270 50% 6%;
+    --sidebar-foreground: 300 20% 98%;
+    --sidebar-primary: 330 100% 60%;
+    --sidebar-primary-foreground: 270 50% 4%;
+    --sidebar-accent: 330 60% 20%;
+    --sidebar-accent-foreground: 300 20% 98%;
+    --sidebar-border: 330 40% 20%;
+    --sidebar-ring: 330 100% 60%;
   }
 }
 
@@ -99,7 +78,163 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+@layer components {
+  /* Shiny card frame effect */
+  .shiny-card {
+    position: relative;
+    background: var(--gradient-card);
+    border: 1px solid hsl(var(--border));
+    overflow: hidden;
+  }
+
+  .shiny-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-shine);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+  }
+
+  .shiny-card:hover::before {
+    transform: translateX(100%);
+  }
+
+  .shiny-card::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background: var(--gradient-border);
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .shiny-card:hover::after {
+    opacity: 1;
+  }
+
+  /* Pink glow effect */
+  .pink-glow {
+    box-shadow: var(--shadow-pink);
+  }
+
+  .pink-glow-intense {
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Neon text effect */
+  .neon-text {
+    text-shadow: 
+      0 0 10px hsl(var(--primary)),
+      0 0 20px hsl(var(--primary) / 0.5),
+      0 0 40px hsl(var(--primary) / 0.3);
+  }
+
+  /* Animated gradient border */
+  .gradient-border {
+    position: relative;
+    background: hsl(var(--card));
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    background: var(--gradient-pink);
+    border-radius: inherit;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+  }
+
+  /* Glass effect */
+  .glass {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* Pulse animation for live indicators */
+  .pulse-pink {
+    animation: pulse-pink 2s infinite;
+  }
+
+  @keyframes pulse-pink {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsl(var(--primary) / 0.7);
+    }
+    50% {
+      box-shadow: 0 0 0 10px hsl(var(--primary) / 0);
+    }
+  }
+
+  /* Floating animation */
+  .float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  /* Shimmer loading effect */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+}
+
+@layer utilities {
+  .text-gradient-pink {
+    background: var(--gradient-pink);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
