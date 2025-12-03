@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Lock, Eye, EyeOff, LogOut, LayoutDashboard, Video, Settings, 
   BarChart3, Plus, Trash2, Edit, Save, X, Calendar,
-  Download, Play, Heart, Clock, TrendingUp, CreditCard, Loader2
+  Download, Play, Heart, Clock, TrendingUp, CreditCard, Loader2, Megaphone
 } from 'lucide-react';
-import { useVideo, Video as VideoType } from '@/contexts/VideoContext';
+import { useVideo, Video as VideoType, AdCode } from '@/contexts/VideoContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,13 +20,17 @@ const Admin = () => {
   const { 
     videos, 
     loading,
-    adminSettings, 
+    adminSettings,
+    adCodes,
     isAdminAuthenticated, 
     setIsAdminAuthenticated,
     addVideo,
     updateVideo,
     deleteVideo,
     updateAdminSettings,
+    addAdCode,
+    updateAdCode,
+    deleteAdCode,
     analytics
   } = useVideo();
 
@@ -35,6 +39,9 @@ const Admin = () => {
   const [editingVideo, setEditingVideo] = useState<VideoType | null>(null);
   const [isAddingVideo, setIsAddingVideo] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAddingAd, setIsAddingAd] = useState(false);
+  const [editingAdCode, setEditingAdCode] = useState<AdCode | null>(null);
+  const [newAdCode, setNewAdCode] = useState({ name: '', code: '', is_active: true });
   const [newVideo, setNewVideo] = useState({
     title: '',
     description: '',
@@ -55,7 +62,6 @@ const Admin = () => {
     bank_account_name: '',
     bank_account_number: '',
     admin_password: '',
-    ad_code: '',
     default_ad_frequency: 5,
   });
 
@@ -67,7 +73,6 @@ const Admin = () => {
         bank_account_name: adminSettings.bank_account_name || '',
         bank_account_number: adminSettings.bank_account_number || '',
         admin_password: adminSettings.admin_password || '',
-        ad_code: adminSettings.ad_code || '',
         default_ad_frequency: adminSettings.default_ad_frequency || 5,
       });
     }
@@ -754,25 +759,156 @@ const Admin = () => {
 
               {/* Ad Settings */}
               <div className="shiny-card rounded-xl p-6 space-y-4 md:col-span-2">
-                <h3 className="font-display font-semibold text-lg flex items-center gap-2">
-                  <Play className="w-5 h-5 text-primary" />
-                  Ad Configuration
-                </h3>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Ad Code URL</Label>
-                    <Input
-                      value={settingsForm.ad_code}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, ad_code: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-display font-semibold text-lg flex items-center gap-2">
+                    <Megaphone className="w-5 h-5 text-primary" />
+                    Ad Codes ({adCodes.filter(a => a.is_active).length} active)
+                  </h3>
+                  <Button onClick={() => setIsAddingAd(true)} size="sm" className="gap-2">
+                    <Plus className="w-4 h-4" />
+                    Add Ad
+                  </Button>
+                </div>
+
+                {/* Add Ad Form */}
+                <AnimatePresence>
+                  {isAddingAd && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="border border-border rounded-lg p-4 space-y-3 bg-muted/30"
+                    >
+                      <div className="grid md:grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label>Ad Name</Label>
+                          <Input
+                            value={newAdCode.name}
+                            onChange={(e) => setNewAdCode({ ...newAdCode, name: e.target.value })}
+                            placeholder="e.g., Banner Ad 1"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2 pt-7">
+                          <Switch
+                            checked={newAdCode.is_active}
+                            onCheckedChange={(checked) => setNewAdCode({ ...newAdCode, is_active: checked })}
+                          />
+                          <Label>Active</Label>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Ad Code (HTML/Script)</Label>
+                        <Textarea
+                          value={newAdCode.code}
+                          onChange={(e) => setNewAdCode({ ...newAdCode, code: e.target.value })}
+                          placeholder="<script>...</script> or HTML ad code"
+                          rows={4}
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => {
+                          setIsAddingAd(false);
+                          setNewAdCode({ name: '', code: '', is_active: true });
+                        }}>
+                          Cancel
+                        </Button>
+                        <Button size="sm" onClick={async () => {
+                          if (!newAdCode.code) {
+                            toast({ title: 'Error', description: 'Ad code is required', variant: 'destructive' });
+                            return;
+                          }
+                          await addAdCode(newAdCode);
+                          setNewAdCode({ name: '', code: '', is_active: true });
+                          setIsAddingAd(false);
+                        }}>
+                          <Save className="w-4 h-4 mr-2" />
+                          Save
+                        </Button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Ad Codes List */}
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {adCodes.map((ad) => (
+                    <motion.div
+                      key={ad.id}
+                      className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border"
+                    >
+                      {editingAdCode?.id === ad.id ? (
+                        <div className="flex-1 space-y-2">
+                          <div className="grid md:grid-cols-2 gap-2">
+                            <Input
+                              value={editingAdCode.name}
+                              onChange={(e) => setEditingAdCode({ ...editingAdCode, name: e.target.value })}
+                              placeholder="Ad name"
+                            />
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={editingAdCode.is_active}
+                                onCheckedChange={(checked) => setEditingAdCode({ ...editingAdCode, is_active: checked })}
+                              />
+                              <Label>Active</Label>
+                            </div>
+                          </div>
+                          <Textarea
+                            value={editingAdCode.code}
+                            onChange={(e) => setEditingAdCode({ ...editingAdCode, code: e.target.value })}
+                            rows={3}
+                          />
+                          <div className="flex justify-end gap-2">
+                            <Button variant="outline" size="sm" onClick={() => setEditingAdCode(null)}>Cancel</Button>
+                            <Button size="sm" onClick={async () => {
+                              await updateAdCode(editingAdCode.id, editingAdCode);
+                              setEditingAdCode(null);
+                            }}>Save</Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{ad.name}</span>
+                              <span className={cn(
+                                "px-2 py-0.5 rounded-full text-xs",
+                                ad.is_active ? "bg-green-500/20 text-green-400" : "bg-muted text-muted-foreground"
+                              )}>
+                                {ad.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground truncate mt-1">{ad.code.substring(0, 50)}...</p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="sm" onClick={() => setEditingAdCode(ad)}>
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-destructive"
+                              onClick={() => deleteAdCode(ad.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </motion.div>
+                  ))}
+                  {adCodes.length === 0 && (
+                    <p className="text-center text-muted-foreground py-4">No ad codes yet. Add your first ad!</p>
+                  )}
+                </div>
+
+                <div className="pt-4 border-t border-border">
                   <div className="space-y-2">
                     <Label>Default Ad Frequency (minutes)</Label>
                     <Input
                       type="number"
                       value={settingsForm.default_ad_frequency}
                       onChange={(e) => setSettingsForm({ ...settingsForm, default_ad_frequency: parseInt(e.target.value) || 5 })}
+                      className="max-w-xs"
                     />
                   </div>
                 </div>

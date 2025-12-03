@@ -34,6 +34,14 @@ export interface AdminSettings {
   default_ad_frequency: number;
 }
 
+export interface AdCode {
+  id: string;
+  name: string;
+  code: string;
+  is_active: boolean;
+  created_at: string;
+}
+
 export interface Analytics {
   totalViews: number;
   totalWatchTime: number;
@@ -45,6 +53,7 @@ interface VideoContextType {
   videos: Video[];
   loading: boolean;
   adminSettings: AdminSettings | null;
+  adCodes: AdCode[];
   analytics: Analytics;
   isAdminAuthenticated: boolean;
   setIsAdminAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
@@ -58,6 +67,11 @@ interface VideoContextType {
   refreshVideos: () => Promise<void>;
   refreshSettings: () => Promise<void>;
   uploadFile: (file: File, bucket: 'videos' | 'thumbnails') => Promise<string | null>;
+  getRandomAdCode: () => string | null;
+  addAdCode: (adCode: Partial<AdCode>) => Promise<void>;
+  updateAdCode: (id: string, updates: Partial<AdCode>) => Promise<void>;
+  deleteAdCode: (id: string) => Promise<void>;
+  refreshAdCodes: () => Promise<void>;
 }
 
 const VideoContext = createContext<VideoContextType | undefined>(undefined);
@@ -65,6 +79,7 @@ const VideoContext = createContext<VideoContextType | undefined>(undefined);
 export function VideoProvider({ children }: { children: ReactNode }) {
   const [videos, setVideos] = useState<Video[]>([]);
   const [adminSettings, setAdminSettings] = useState<AdminSettings | null>(null);
+  const [adCodes, setAdCodes] = useState<AdCode[]>([]);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -104,10 +119,24 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshAdCodes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('ad_codes')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setAdCodes(data || []);
+    } catch (error) {
+      console.error('Error fetching ad codes:', error);
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      await Promise.all([refreshVideos(), refreshSettings()]);
+      await Promise.all([refreshVideos(), refreshSettings(), refreshAdCodes()]);
       setLoading(false);
     };
     init();
@@ -141,6 +170,76 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         variant: 'destructive'
       });
       return null;
+    }
+  };
+
+  const getRandomAdCode = (): string | null => {
+    const activeAds = adCodes.filter(ad => ad.is_active);
+    if (activeAds.length === 0) return null;
+    const randomIndex = Math.floor(Math.random() * activeAds.length);
+    return activeAds[randomIndex].code;
+  };
+
+  const addAdCode = async (adCode: Partial<AdCode>) => {
+    try {
+      const { error } = await supabase
+        .from('ad_codes')
+        .insert({
+          name: adCode.name || 'Ad',
+          code: adCode.code || '',
+          is_active: adCode.is_active !== false,
+        });
+
+      if (error) throw error;
+      await refreshAdCodes();
+      toast({ title: 'Success', description: 'Ad code added successfully' });
+    } catch (error) {
+      console.error('Error adding ad code:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add ad code',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const updateAdCode = async (id: string, updates: Partial<AdCode>) => {
+    try {
+      const { error } = await supabase
+        .from('ad_codes')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw error;
+      await refreshAdCodes();
+      toast({ title: 'Saved', description: 'Ad code updated' });
+    } catch (error) {
+      console.error('Error updating ad code:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update ad code',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const deleteAdCode = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('ad_codes')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      await refreshAdCodes();
+      toast({ title: 'Deleted', description: 'Ad code removed' });
+    } catch (error) {
+      console.error('Error deleting ad code:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete ad code',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -287,6 +386,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
       videos,
       loading,
       adminSettings,
+      adCodes,
       analytics,
       isAdminAuthenticated,
       setIsAdminAuthenticated,
@@ -300,6 +400,11 @@ export function VideoProvider({ children }: { children: ReactNode }) {
       refreshVideos,
       refreshSettings,
       uploadFile,
+      getRandomAdCode,
+      addAdCode,
+      updateAdCode,
+      deleteAdCode,
+      refreshAdCodes,
     }}>
       {children}
     </VideoContext.Provider>
