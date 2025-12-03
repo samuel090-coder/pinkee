@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, Menu, X, Shield } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Play, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useVideo } from '@/contexts/VideoContext';
 
@@ -45,12 +44,6 @@ export function Header() {
             >
               Subscribe
             </Link>
-            <Link to="/admin">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Shield className="w-4 h-4" />
-                Admin
-              </Button>
-            </Link>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -87,14 +80,6 @@ export function Header() {
               className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-muted rounded-lg transition-colors"
             >
               Subscribe
-            </Link>
-            <Link 
-              to="/admin" 
-              onClick={() => setIsMenuOpen(false)}
-              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-muted rounded-lg transition-colors flex items-center gap-2"
-            >
-              <Shield className="w-4 h-4" />
-              Admin Panel
             </Link>
           </div>
         </motion.nav>

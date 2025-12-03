@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
       admin_settings: {
         Row: {
           ad_code: string | null

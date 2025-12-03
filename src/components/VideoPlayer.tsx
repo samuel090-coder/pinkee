@@ -15,10 +15,11 @@ interface VideoPlayerProps {
 }
 
 export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
-  const { incrementViews, incrementReactions, addWatchTime, adminSettings } = useVideo();
+  const { incrementViews, incrementReactions, addWatchTime, getRandomAdCode, adCodes } = useVideo();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const watchTimeRef = useRef(0);
+  const adContainerRef = useRef<HTMLDivElement>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -30,6 +31,7 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
   const [showAd, setShowAd] = useState(false);
   const [adTimeRemaining, setAdTimeRemaining] = useState(5);
   const [viewCounted, setViewCounted] = useState(false);
+  const [currentAdCode, setCurrentAdCode] = useState<string | null>(null);
 
   // Track view after 3 seconds
   useEffect(() => {
@@ -60,14 +62,37 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
 
   // Show ad every X minutes
   useEffect(() => {
-    if (currentTime > 0 && currentTime % (video.ad_frequency * 60) < 1 && isPlaying) {
-      setShowAd(true);
-      setAdTimeRemaining(5);
-      if (videoRef.current) {
-        videoRef.current.pause();
+    const adFrequencySeconds = video.ad_frequency * 60;
+    if (currentTime > 0 && Math.floor(currentTime) % adFrequencySeconds === 0 && isPlaying && !showAd) {
+      const adCode = getRandomAdCode();
+      if (adCode) {
+        setCurrentAdCode(adCode);
+        setShowAd(true);
+        setAdTimeRemaining(5);
+        if (videoRef.current) {
+          videoRef.current.pause();
+        }
       }
     }
-  }, [Math.floor(currentTime / 60), video.ad_frequency, isPlaying]);
+  }, [Math.floor(currentTime), video.ad_frequency, isPlaying, showAd, getRandomAdCode]);
+
+  // Inject ad code into container
+  useEffect(() => {
+    if (showAd && currentAdCode && adContainerRef.current) {
+      adContainerRef.current.innerHTML = currentAdCode;
+      // Execute any scripts in the ad code
+      const scripts = adContainerRef.current.querySelectorAll('script');
+      scripts.forEach(script => {
+        const newScript = document.createElement('script');
+        if (script.src) {
+          newScript.src = script.src;
+        } else {
+          newScript.textContent = script.textContent;
+        }
+        document.body.appendChild(newScript);
+      });
+    }
+  }, [showAd, currentAdCode]);
 
   // Ad countdown
   useEffect(() => {
@@ -228,7 +253,7 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
 
           {/* Ad Overlay */}
           <AnimatePresence>
-            {showAd && adminSettings && (
+            {showAd && currentAdCode && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -237,14 +262,10 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
               >
                 <div className="text-center space-y-4">
                   <p className="text-muted-foreground text-sm">Advertisement</p>
-                  <div className="w-64 h-40 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
-                    <iframe
-                      src={adminSettings.ad_code}
-                      className="w-full h-full"
-                      frameBorder="0"
-                      title="Advertisement"
-                    />
-                  </div>
+                  <div 
+                    ref={adContainerRef}
+                    className="w-72 h-48 bg-muted rounded-lg flex items-center justify-center overflow-hidden"
+                  />
                   <p className="text-xs text-muted-foreground">
                     Video resumes in {adTimeRemaining}s
                   </p>
