@@ -76,22 +76,60 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
     }
   }, [Math.floor(currentTime), video.ad_frequency, isPlaying, showAd, getRandomAdCode]);
 
-  // Inject ad code into container
+  // Inject ad code into container and execute scripts
   useEffect(() => {
     if (showAd && currentAdCode && adContainerRef.current) {
-      adContainerRef.current.innerHTML = currentAdCode;
-      // Execute any scripts in the ad code
-      const scripts = adContainerRef.current.querySelectorAll('script');
-      scripts.forEach(script => {
-        const newScript = document.createElement('script');
-        if (script.src) {
-          newScript.src = script.src;
-        } else {
-          newScript.textContent = script.textContent;
-        }
-        document.body.appendChild(newScript);
-      });
+      // Clear previous content
+      adContainerRef.current.innerHTML = '';
+      
+      // Check if it's a URL (redirect ad) or HTML/script code
+      if (currentAdCode.startsWith('http://') || currentAdCode.startsWith('https://')) {
+        // It's a URL - open in new tab when user clicks
+        const link = document.createElement('a');
+        link.href = currentAdCode;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.className = 'block w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg flex items-center justify-center text-center p-4';
+        link.innerHTML = '<span class="text-foreground">Click to view sponsored content</span>';
+        adContainerRef.current.appendChild(link);
+      } else {
+        // It's HTML/script code - need to execute it properly
+        // Create a temporary container
+        const temp = document.createElement('div');
+        temp.innerHTML = currentAdCode;
+        
+        // Move non-script elements
+        Array.from(temp.childNodes).forEach(node => {
+          if (node.nodeName !== 'SCRIPT') {
+            adContainerRef.current?.appendChild(node.cloneNode(true));
+          }
+        });
+        
+        // Execute scripts properly
+        const scripts = temp.querySelectorAll('script');
+        scripts.forEach(oldScript => {
+          const newScript = document.createElement('script');
+          
+          // Copy all attributes
+          Array.from(oldScript.attributes).forEach(attr => {
+            newScript.setAttribute(attr.name, attr.value);
+          });
+          
+          // Copy inline content
+          if (oldScript.textContent) {
+            newScript.textContent = oldScript.textContent;
+          }
+          
+          // Append to body to execute
+          document.body.appendChild(newScript);
+        });
+      }
     }
+    
+    // Cleanup scripts when ad closes
+    return () => {
+      // Scripts appended to body will persist - this is intentional for ad networks
+    };
   }, [showAd, currentAdCode]);
 
   // Ad countdown
