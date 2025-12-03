@@ -4,9 +4,14 @@ import { motion } from 'framer-motion';
 import { Play, Menu, X, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useVideo } from '@/contexts/VideoContext';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { adminSettings } = useVideo();
+  
+  const siteName = adminSettings?.site_name || 'PlayStream';
+  const [firstWord, ...rest] = siteName.split(/(?=[A-Z])|(?<=\s)/);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 glass border-b border-border">
@@ -21,8 +26,8 @@ export function Header() {
               <Play className="w-5 h-5 text-primary-foreground" fill="currentColor" />
             </motion.div>
             <span className="font-display font-bold text-xl">
-              <span className="text-gradient-pink">Play</span>
-              <span className="text-foreground">Stream</span>
+              <span className="text-gradient-pink">{firstWord}</span>
+              <span className="text-foreground">{rest.join('')}</span>
             </span>
           </Link>
 

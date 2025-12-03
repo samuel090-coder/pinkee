@@ -24,6 +24,7 @@ export type Database = {
           created_at: string
           default_ad_frequency: number | null
           id: string
+          site_name: string | null
           updated_at: string
         }
         Insert: {
@@ -35,6 +36,7 @@ export type Database = {
           created_at?: string
           default_ad_frequency?: number | null
           id?: string
+          site_name?: string | null
           updated_at?: string
         }
         Update: {
@@ -46,6 +48,7 @@ export type Database = {
           created_at?: string
           default_ad_frequency?: number | null
           id?: string
+          site_name?: string | null
           updated_at?: string
         }
         Relationships: []

@@ -50,6 +50,7 @@ const Admin = () => {
   });
 
   const [settingsForm, setSettingsForm] = useState({
+    site_name: '',
     bank_name: '',
     bank_account_name: '',
     bank_account_number: '',
@@ -61,6 +62,7 @@ const Admin = () => {
   useEffect(() => {
     if (adminSettings) {
       setSettingsForm({
+        site_name: adminSettings.site_name || 'PlayStream',
         bank_name: adminSettings.bank_name || '',
         bank_account_name: adminSettings.bank_account_name || '',
         bank_account_number: adminSettings.bank_account_number || '',
@@ -682,6 +684,25 @@ const Admin = () => {
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
+              {/* Site Settings */}
+              <div className="shiny-card rounded-xl p-6 space-y-4">
+                <h3 className="font-display font-semibold text-lg flex items-center gap-2">
+                  <LayoutDashboard className="w-5 h-5 text-primary" />
+                  Site Settings
+                </h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Site Name</Label>
+                    <Input
+                      value={settingsForm.site_name}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, site_name: e.target.value })}
+                      placeholder="PlayStream"
+                    />
+                    <p className="text-xs text-muted-foreground">Use camelCase for two-tone logo (e.g., PlayStream)</p>
+                  </div>
+                </div>
+              </div>
+
               {/* Payment Settings */}
               <div className="shiny-card rounded-xl p-6 space-y-4">
                 <h3 className="font-display font-semibold text-lg flex items-center gap-2">
