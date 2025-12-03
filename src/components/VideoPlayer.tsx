@@ -32,6 +32,7 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
   const [adTimeRemaining, setAdTimeRemaining] = useState(5);
   const [viewCounted, setViewCounted] = useState(false);
   const [currentAdCode, setCurrentAdCode] = useState<string | null>(null);
+  const [lastAdTime, setLastAdTime] = useState(-1);
 
   // Track view after 3 seconds
   useEffect(() => {
@@ -60,12 +61,23 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
     };
   }, [video.id, isPlaying, showAd, addWatchTime]);
 
-  // Show ad every X minutes
+  // Show ad every X minutes - only trigger once per interval
   useEffect(() => {
     const adFrequencySeconds = video.ad_frequency * 60;
-    if (currentTime > 0 && Math.floor(currentTime) % adFrequencySeconds === 0 && isPlaying && !showAd) {
+    const currentSecond = Math.floor(currentTime);
+    
+    // Only trigger if we've passed an ad interval and haven't shown an ad at this interval yet
+    if (
+      currentSecond > 0 && 
+      currentSecond % adFrequencySeconds === 0 && 
+      currentSecond !== lastAdTime &&
+      isPlaying && 
+      !showAd &&
+      adCodes.length > 0
+    ) {
       const adCode = getRandomAdCode();
       if (adCode) {
+        setLastAdTime(currentSecond);
         setCurrentAdCode(adCode);
         setShowAd(true);
         setAdTimeRemaining(5);
@@ -74,7 +86,7 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
         }
       }
     }
-  }, [Math.floor(currentTime), video.ad_frequency, isPlaying, showAd, getRandomAdCode]);
+  }, [Math.floor(currentTime), video.ad_frequency, isPlaying, showAd, getRandomAdCode, lastAdTime, adCodes.length]);
 
   // Inject ad code into container and execute scripts
   useEffect(() => {
@@ -298,12 +310,15 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
                 exit={{ opacity: 0 }}
                 className="absolute inset-0 bg-background/95 flex flex-col items-center justify-center z-20"
               >
-                <div className="text-center space-y-4">
-                  <p className="text-muted-foreground text-sm">Advertisement</p>
+              <div className="text-center space-y-4 w-full max-w-md mx-auto px-4">
+                  <p className="text-muted-foreground text-sm font-medium">Sponsored Content</p>
                   <div 
                     ref={adContainerRef}
-                    className="w-72 h-48 bg-muted rounded-lg flex items-center justify-center overflow-hidden"
-                  />
+                    className="w-full min-h-[250px] bg-muted/50 rounded-lg flex items-center justify-center overflow-visible"
+                    style={{ minWidth: '300px' }}
+                  >
+                    <p className="text-muted-foreground text-sm">Loading advertisement...</p>
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Video resumes in {adTimeRemaining}s
                   </p>
