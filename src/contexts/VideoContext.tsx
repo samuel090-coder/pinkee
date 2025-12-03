@@ -25,6 +25,7 @@ export interface Video {
 
 export interface AdminSettings {
   id: string;
+  site_name: string;
   bank_name: string;
   bank_account_name: string;
   bank_account_number: string;

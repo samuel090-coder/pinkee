@@ -2,11 +2,10 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, Play, Pause, Volume2, VolumeX, Maximize, 
-  Heart, Eye, SkipBack, SkipForward, ExternalLink 
+  Heart, Eye, SkipBack, SkipForward 
 } from 'lucide-react';
 import { Video } from '@/contexts/VideoContext';
 import { useVideo } from '@/contexts/VideoContext';
-import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 
@@ -182,7 +181,7 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-xl"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/98 backdrop-blur-xl"
       onClick={onClose}
       role="dialog"
       aria-label={`Playing ${video.title}`}
@@ -190,25 +189,25 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
     >
       <motion.div
         ref={containerRef}
-        initial={{ scale: 0.9, opacity: 0 }}
+        initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="relative w-full max-w-5xl mx-4 rounded-2xl overflow-hidden glass pink-glow"
+        exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ type: 'spring', damping: 30, stiffness: 400 }}
+        className="relative w-full max-w-2xl mx-4 rounded-2xl overflow-hidden bg-card border border-border shadow-2xl"
         onClick={e => e.stopPropagation()}
         onMouseMove={() => setShowControls(true)}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-30 p-2 rounded-full bg-background/50 backdrop-blur-sm hover:bg-background/80 transition-colors"
+          className="absolute top-3 right-3 z-30 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
           aria-label="Close player"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Video Container */}
-        <div className="relative aspect-video bg-muted">
+        <div className="relative aspect-video bg-black">
           {video.video_url ? (
             <video
               ref={videoRef}
@@ -237,8 +236,8 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
                 className="absolute inset-0 bg-background/95 flex flex-col items-center justify-center z-20"
               >
                 <div className="text-center space-y-4">
-                  <p className="text-muted-foreground">Advertisement</p>
-                  <div className="w-64 h-40 bg-muted rounded-lg flex items-center justify-center">
+                  <p className="text-muted-foreground text-sm">Advertisement</p>
+                  <div className="w-64 h-40 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
                     <iframe
                       src={adminSettings.ad_code}
                       className="w-full h-full"
@@ -246,8 +245,8 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
                       title="Advertisement"
                     />
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Video will resume in {adTimeRemaining} seconds
+                  <p className="text-xs text-muted-foreground">
+                    Video resumes in {adTimeRemaining}s
                   </p>
                 </div>
               </motion.div>
@@ -261,96 +260,99 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 flex items-center justify-center"
+                className="absolute inset-0 flex items-center justify-center pointer-events-none"
               >
                 <button
                   onClick={togglePlay}
-                  className="w-20 h-20 rounded-full bg-primary/80 backdrop-blur-sm flex items-center justify-center pink-glow hover:bg-primary transition-colors"
+                  className="w-16 h-16 rounded-full bg-primary/90 backdrop-blur-sm flex items-center justify-center shadow-lg hover:bg-primary transition-all pointer-events-auto"
                   aria-label={isPlaying ? 'Pause' : 'Play'}
                 >
                   {isPlaying ? (
-                    <Pause className="w-10 h-10 text-primary-foreground" fill="currentColor" />
+                    <Pause className="w-7 h-7 text-primary-foreground" fill="currentColor" />
                   ) : (
-                    <Play className="w-10 h-10 text-primary-foreground ml-1" fill="currentColor" />
+                    <Play className="w-7 h-7 text-primary-foreground ml-1" fill="currentColor" />
                   )}
                 </button>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Controls Overlay */}
+          {/* Bottom Controls */}
           <AnimatePresence>
             {showControls && !showAd && (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/50 to-transparent p-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-4 pt-8 pb-3"
               >
-                {/* Progress Bar */}
-                <div className="mb-4">
-                  <Slider
-                    value={[currentTime]}
-                    max={duration || 100}
-                    step={1}
-                    onValueChange={handleSeek}
-                    className="cursor-pointer"
-                    aria-label="Video progress"
-                  />
-                  <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                {/* Live indicator & Time */}
+                <div className="flex items-center justify-between text-xs text-white/80 mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                     <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(duration)}</span>
                   </div>
+                  <span>{formatTime(duration)}</span>
                 </div>
+
+                {/* Progress Bar */}
+                <Slider
+                  value={[currentTime]}
+                  max={duration || 100}
+                  step={0.1}
+                  onValueChange={handleSeek}
+                  className="cursor-pointer mb-3"
+                  aria-label="Video progress"
+                />
 
                 {/* Control Buttons */}
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <button
                       onClick={() => skip(-10)}
-                      className="p-2 hover:bg-muted rounded-full transition-colors"
+                      className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
                       aria-label="Skip back 10 seconds"
                     >
                       <SkipBack className="w-5 h-5" />
                     </button>
                     <button
                       onClick={togglePlay}
-                      className="p-2 hover:bg-muted rounded-full transition-colors"
+                      className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
                       aria-label={isPlaying ? 'Pause' : 'Play'}
                     >
                       {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                     </button>
                     <button
                       onClick={() => skip(10)}
-                      className="p-2 hover:bg-muted rounded-full transition-colors"
+                      className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
                       aria-label="Skip forward 10 seconds"
                     >
                       <SkipForward className="w-5 h-5" />
                     </button>
+                  </div>
 
-                    <div className="flex items-center gap-2 ml-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <button
                         onClick={toggleMute}
-                        className="p-2 hover:bg-muted rounded-full transition-colors"
+                        className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
                         aria-label={isMuted ? 'Unmute' : 'Mute'}
                       >
                         {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                       </button>
-                      <Slider
-                        value={[isMuted ? 0 : volume]}
-                        max={1}
-                        step={0.1}
-                        onValueChange={handleVolumeChange}
-                        className="w-20"
-                        aria-label="Volume"
-                      />
+                      <div className="w-20 hidden sm:block">
+                        <Slider
+                          value={[isMuted ? 0 : volume]}
+                          max={1}
+                          step={0.1}
+                          onValueChange={handleVolumeChange}
+                          aria-label="Volume"
+                        />
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-4">
                     <button
                       onClick={toggleFullscreen}
-                      className="p-2 hover:bg-muted rounded-full transition-colors"
+                      className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
                       aria-label="Toggle fullscreen"
                     >
                       <Maximize className="w-5 h-5" />
@@ -362,54 +364,35 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
           </AnimatePresence>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-border bg-card">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <h2 className="font-display font-semibold text-lg">{video.title}</h2>
-              <p className="text-sm text-muted-foreground line-clamp-1">{video.description}</p>
+        {/* Footer Info */}
+        <div className="p-4 bg-card border-t border-border">
+          <h2 className="font-display font-semibold text-lg mb-1">{video.title}</h2>
+          <p className="text-sm text-muted-foreground line-clamp-1 mb-3">{video.description}</p>
+          
+          <div className="flex items-center gap-3">
+            {/* View Count */}
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted text-sm">
+              <Eye className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+              <span>{formatViews(video.views + (viewCounted ? 1 : 0))}</span>
             </div>
 
-            <div className="flex items-center gap-4 flex-wrap">
-              {/* View Count */}
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted">
-                <Eye className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
-                <span className="font-medium" aria-label={`${video.views + (viewCounted ? 1 : 0)} views`}>
-                  {formatViews(video.views + (viewCounted ? 1 : 0))}
-                </span>
-              </div>
-
-              {/* React Button */}
-              <Button
-                variant={hasReacted ? "default" : "outline"}
-                onClick={handleReaction}
-                className={cn(
-                  "flex items-center gap-2 transition-all",
-                  hasReacted && "bg-primary pink-glow"
-                )}
-                aria-pressed={hasReacted}
-                aria-label={hasReacted ? `Loved: ${video.reactions + 1} reactions` : `Love this video: ${video.reactions} reactions`}
-              >
-                <Heart 
-                  className={cn("w-5 h-5", hasReacted && "fill-current")} 
-                  aria-hidden="true"
-                />
-                <span>{formatViews(video.reactions + (hasReacted ? 1 : 0))}</span>
-              </Button>
-
-              {/* CTA Link */}
-              {video.cta_link && video.cta_text && (
-                <Button
-                  asChild
-                  className="bg-primary pink-glow hover:bg-primary/90"
-                >
-                  <a href={video.cta_link} target="_blank" rel="noopener noreferrer">
-                    {video.cta_text}
-                    <ExternalLink className="w-4 h-4 ml-2" />
-                  </a>
-                </Button>
+            {/* React Button */}
+            <button
+              onClick={handleReaction}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all",
+                hasReacted 
+                  ? "bg-primary text-primary-foreground" 
+                  : "bg-muted hover:bg-muted/80"
               )}
-            </div>
+              aria-pressed={hasReacted}
+            >
+              <Heart 
+                className={cn("w-4 h-4", hasReacted && "fill-current")} 
+                aria-hidden="true"
+              />
+              <span>{formatViews(video.reactions + (hasReacted ? 1 : 0))}</span>
+            </button>
           </div>
         </div>
       </motion.div>
