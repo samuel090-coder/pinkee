@@ -77,6 +77,48 @@ export type Database = {
         }
         Relationships: []
       }
+      poster_profiles: {
+        Row: {
+          address: string | null
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          email: string | null
+          hobbies: string | null
+          id: string
+          name: string
+          telegram: string | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          address?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          hobbies?: string | null
+          id?: string
+          name: string
+          telegram?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          address?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          hobbies?: string | null
+          id?: string
+          name?: string
+          telegram?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       videos: {
         Row: {
           ad_frequency: number | null
@@ -88,6 +130,7 @@ export type Database = {
           id: string
           is_published: boolean | null
           is_subscription_only: boolean | null
+          poster_id: string | null
           published_at: string | null
           reactions: number | null
           thumbnail_alt: string | null
@@ -109,6 +152,7 @@ export type Database = {
           id?: string
           is_published?: boolean | null
           is_subscription_only?: boolean | null
+          poster_id?: string | null
           published_at?: string | null
           reactions?: number | null
           thumbnail_alt?: string | null
@@ -130,6 +174,7 @@ export type Database = {
           id?: string
           is_published?: boolean | null
           is_subscription_only?: boolean | null
+          poster_id?: string | null
           published_at?: string | null
           reactions?: number | null
           thumbnail_alt?: string | null
@@ -141,7 +186,15 @@ export type Database = {
           views?: number | null
           watch_time?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "videos_poster_id_fkey"
+            columns: ["poster_id"]
+            isOneToOne: false
+            referencedRelation: "poster_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

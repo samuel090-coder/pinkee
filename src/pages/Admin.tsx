@@ -3,15 +3,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Lock, Eye, EyeOff, LogOut, LayoutDashboard, Video, Settings, 
   BarChart3, Plus, Trash2, Edit, Save, X, Calendar,
-  Download, Play, Heart, Clock, TrendingUp, CreditCard, Loader2, Megaphone
+  Download, Play, Heart, Clock, TrendingUp, CreditCard, Loader2, Megaphone,
+  User, Users, MapPin, Mail, MessageCircle, Send
 } from 'lucide-react';
-import { useVideo, Video as VideoType, AdCode } from '@/contexts/VideoContext';
+import { useVideo, Video as VideoType, AdCode, PosterProfile } from '@/contexts/VideoContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { FileUpload } from '@/components/FileUpload';
 import { cn } from '@/lib/utils';
@@ -22,6 +24,7 @@ const Admin = () => {
     loading,
     adminSettings,
     adCodes,
+    posterProfiles,
     isAdminAuthenticated, 
     setIsAdminAuthenticated,
     addVideo,
@@ -31,6 +34,10 @@ const Admin = () => {
     addAdCode,
     updateAdCode,
     deleteAdCode,
+    addPosterProfile,
+    updatePosterProfile,
+    deletePosterProfile,
+    uploadFile,
     analytics
   } = useVideo();
 
@@ -42,6 +49,21 @@ const Admin = () => {
   const [isAddingAd, setIsAddingAd] = useState(false);
   const [editingAdCode, setEditingAdCode] = useState<AdCode | null>(null);
   const [newAdCode, setNewAdCode] = useState({ name: '', code: '', is_active: true });
+  
+  // Poster profile states
+  const [isAddingPoster, setIsAddingPoster] = useState(false);
+  const [editingPoster, setEditingPoster] = useState<PosterProfile | null>(null);
+  const [newPoster, setNewPoster] = useState({
+    name: '',
+    bio: '',
+    address: '',
+    hobbies: '',
+    avatar_url: '',
+    email: '',
+    whatsapp: '',
+    telegram: '',
+  });
+  
   const [newVideo, setNewVideo] = useState({
     title: '',
     description: '',
@@ -54,6 +76,7 @@ const Admin = () => {
     is_published: true,
     ad_frequency: 5,
     published_at: '',
+    poster_id: '',
   });
 
   const [settingsForm, setSettingsForm] = useState({
@@ -128,6 +151,7 @@ const Admin = () => {
       is_published: newVideo.is_published,
       ad_frequency: newVideo.ad_frequency,
       published_at: newVideo.published_at || null,
+      poster_id: newVideo.poster_id || null,
     });
     
     setNewVideo({
@@ -142,6 +166,7 @@ const Admin = () => {
       is_published: true,
       ad_frequency: 5,
       published_at: '',
+      poster_id: '',
     });
     setIsAddingVideo(false);
     setIsSaving(false);
@@ -284,6 +309,10 @@ const Admin = () => {
             <TabsTrigger value="videos" className="gap-2">
               <Video className="w-4 h-4" />
               <span className="hidden sm:inline">Videos</span>
+            </TabsTrigger>
+            <TabsTrigger value="posters" className="gap-2">
+              <Users className="w-4 h-4" />
+              <span className="hidden sm:inline">Posters</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="w-4 h-4" />
@@ -681,6 +710,158 @@ const Admin = () => {
                 <div className="shiny-card rounded-xl p-8 text-center">
                   <Video className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                   <p className="text-muted-foreground">No videos yet. Add your first video!</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Posters Tab */}
+          <TabsContent value="posters" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="font-display font-semibold text-xl">Manage Poster Profiles</h2>
+              <Button onClick={() => setIsAddingPoster(true)} className="gap-2 bg-primary pink-glow">
+                <Plus className="w-4 h-4" />
+                Add Poster
+              </Button>
+            </div>
+
+            {/* Add Poster Form */}
+            <AnimatePresence>
+              {isAddingPoster && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="shiny-card rounded-xl p-6 space-y-4"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-display font-semibold">Add New Poster Profile</h3>
+                    <Button variant="ghost" size="sm" onClick={() => setIsAddingPoster(false)}>
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Name *</Label>
+                      <Input
+                        value={newPoster.name}
+                        onChange={(e) => setNewPoster({ ...newPoster, name: e.target.value })}
+                        placeholder="Poster name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Avatar Image</Label>
+                      <FileUpload
+                        type="thumbnail"
+                        currentUrl={newPoster.avatar_url}
+                        onUploadComplete={(url) => setNewPoster({ ...newPoster, avatar_url: url })}
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Bio</Label>
+                      <Textarea
+                        value={newPoster.bio}
+                        onChange={(e) => setNewPoster({ ...newPoster, bio: e.target.value })}
+                        placeholder="Short bio about this poster..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Address</Label>
+                      <Input
+                        value={newPoster.address}
+                        onChange={(e) => setNewPoster({ ...newPoster, address: e.target.value })}
+                        placeholder="City, Country"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Hobbies (comma-separated)</Label>
+                      <Input
+                        value={newPoster.hobbies}
+                        onChange={(e) => setNewPoster({ ...newPoster, hobbies: e.target.value })}
+                        placeholder="Music, Gaming, Travel"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Email</Label>
+                      <Input
+                        type="email"
+                        value={newPoster.email}
+                        onChange={(e) => setNewPoster({ ...newPoster, email: e.target.value })}
+                        placeholder="email@example.com"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>WhatsApp</Label>
+                      <Input
+                        value={newPoster.whatsapp}
+                        onChange={(e) => setNewPoster({ ...newPoster, whatsapp: e.target.value })}
+                        placeholder="+234..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Telegram</Label>
+                      <Input
+                        value={newPoster.telegram}
+                        onChange={(e) => setNewPoster({ ...newPoster, telegram: e.target.value })}
+                        placeholder="@username"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button variant="outline" onClick={() => setIsAddingPoster(false)}>Cancel</Button>
+                    <Button onClick={async () => {
+                      if (!newPoster.name) {
+                        toast({ title: 'Error', description: 'Name is required', variant: 'destructive' });
+                        return;
+                      }
+                      setIsSaving(true);
+                      await addPosterProfile(newPoster);
+                      setNewPoster({ name: '', bio: '', address: '', hobbies: '', avatar_url: '', email: '', whatsapp: '', telegram: '' });
+                      setIsAddingPoster(false);
+                      setIsSaving(false);
+                    }} className="bg-primary" disabled={isSaving}>
+                      {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+                      Add Poster
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Posters List */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {posterProfiles.map((poster) => (
+                <motion.div key={poster.id} className="shiny-card rounded-xl p-4">
+                  <div className="flex items-start gap-4">
+                    {poster.avatar_url ? (
+                      <img src={poster.avatar_url} alt={poster.name} className="w-16 h-16 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                        <User className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold truncate">{poster.name}</h4>
+                      {poster.address && <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" />{poster.address}</p>}
+                      <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{poster.bio || 'No bio'}</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button variant="outline" size="sm" onClick={() => setEditingPoster(poster)}>
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button variant="outline" size="sm" className="text-destructive" onClick={() => deletePosterProfile(poster.id)}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </motion.div>
+              ))}
+              {posterProfiles.length === 0 && (
+                <div className="md:col-span-2 lg:col-span-3 shiny-card rounded-xl p-8 text-center">
+                  <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No poster profiles yet. Add your first poster!</p>
                 </div>
               )}
             </div>
