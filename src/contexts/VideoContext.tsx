@@ -2,6 +2,20 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+export interface PosterProfile {
+  id: string;
+  name: string;
+  bio: string | null;
+  address: string | null;
+  hobbies: string | null;
+  avatar_url: string | null;
+  email: string | null;
+  whatsapp: string | null;
+  telegram: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Video {
   id: string;
   title: string;
@@ -21,6 +35,8 @@ export interface Video {
   thumbnail_alt: string | null;
   thumbnail_b: string | null;
   ad_frequency: number;
+  poster_id: string | null;
+  poster?: PosterProfile | null;
 }
 
 export interface AdminSettings {
@@ -54,6 +70,7 @@ interface VideoContextType {
   loading: boolean;
   adminSettings: AdminSettings | null;
   adCodes: AdCode[];
+  posterProfiles: PosterProfile[];
   analytics: Analytics;
   isAdminAuthenticated: boolean;
   setIsAdminAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
@@ -66,12 +83,17 @@ interface VideoContextType {
   updateAdminSettings: (settings: Partial<AdminSettings>) => Promise<void>;
   refreshVideos: () => Promise<void>;
   refreshSettings: () => Promise<void>;
-  uploadFile: (file: File, bucket: 'videos' | 'thumbnails') => Promise<string | null>;
+  uploadFile: (file: File, bucket: 'videos' | 'thumbnails' | 'avatars') => Promise<string | null>;
   getRandomAdCode: () => string | null;
   addAdCode: (adCode: Partial<AdCode>) => Promise<void>;
   updateAdCode: (id: string, updates: Partial<AdCode>) => Promise<void>;
   deleteAdCode: (id: string) => Promise<void>;
   refreshAdCodes: () => Promise<void>;
+  addPosterProfile: (profile: Partial<PosterProfile>) => Promise<void>;
+  updatePosterProfile: (id: string, updates: Partial<PosterProfile>) => Promise<void>;
+  deletePosterProfile: (id: string) => Promise<void>;
+  refreshPosterProfiles: () => Promise<void>;
+  getPosterProfile: (id: string) => PosterProfile | undefined;
 }
 
 const VideoContext = createContext<VideoContextType | undefined>(undefined);
@@ -80,6 +102,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
   const [videos, setVideos] = useState<Video[]>([]);
   const [adminSettings, setAdminSettings] = useState<AdminSettings | null>(null);
   const [adCodes, setAdCodes] = useState<AdCode[]>([]);
+  const [posterProfiles, setPosterProfiles] = useState<PosterProfile[]>([]);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -90,6 +113,20 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     videosCount: videos.length,
   };
 
+  const refreshPosterProfiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('poster_profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setPosterProfiles(data || []);
+    } catch (error) {
+      console.error('Error fetching poster profiles:', error);
+    }
+  };
+
   const refreshVideos = async () => {
     try {
       const { data, error } = await supabase
@@ -98,7 +135,14 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setVideos(data || []);
+      
+      // Attach poster profiles to videos
+      const videosWithPosters = (data || []).map(video => ({
+        ...video,
+        poster: posterProfiles.find(p => p.id === video.poster_id) || null
+      }));
+      
+      setVideos(videosWithPosters as Video[]);
     } catch (error) {
       console.error('Error fetching videos:', error);
     }
@@ -136,13 +180,14 @@ export function VideoProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const init = async () => {
       setLoading(true);
+      await refreshPosterProfiles();
       await Promise.all([refreshVideos(), refreshSettings(), refreshAdCodes()]);
       setLoading(false);
     };
     init();
   }, []);
 
-  const uploadFile = async (file: File, bucket: 'videos' | 'thumbnails'): Promise<string | null> => {
+  const uploadFile = async (file: File, bucket: 'videos' | 'thumbnails' | 'avatars'): Promise<string | null> => {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -381,12 +426,85 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const addPosterProfile = async (profile: Partial<PosterProfile>) => {
+    try {
+      const { error } = await supabase
+        .from('poster_profiles')
+        .insert({
+          name: profile.name || 'Unnamed',
+          bio: profile.bio || null,
+          address: profile.address || null,
+          hobbies: profile.hobbies || null,
+          avatar_url: profile.avatar_url || null,
+          email: profile.email || null,
+          whatsapp: profile.whatsapp || null,
+          telegram: profile.telegram || null,
+        });
+
+      if (error) throw error;
+      await refreshPosterProfiles();
+      toast({ title: 'Success', description: 'Poster profile created' });
+    } catch (error) {
+      console.error('Error adding poster profile:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create profile',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const updatePosterProfile = async (id: string, updates: Partial<PosterProfile>) => {
+    try {
+      const { error } = await supabase
+        .from('poster_profiles')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw error;
+      await refreshPosterProfiles();
+      toast({ title: 'Saved', description: 'Profile updated' });
+    } catch (error) {
+      console.error('Error updating poster profile:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update profile',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const deletePosterProfile = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('poster_profiles')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      await refreshPosterProfiles();
+      toast({ title: 'Deleted', description: 'Profile removed' });
+    } catch (error) {
+      console.error('Error deleting poster profile:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete profile',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const getPosterProfile = (id: string) => {
+    return posterProfiles.find(p => p.id === id);
+  };
+
   return (
     <VideoContext.Provider value={{
       videos,
       loading,
       adminSettings,
       adCodes,
+      posterProfiles,
       analytics,
       isAdminAuthenticated,
       setIsAdminAuthenticated,
@@ -405,6 +523,11 @@ export function VideoProvider({ children }: { children: ReactNode }) {
       updateAdCode,
       deleteAdCode,
       refreshAdCodes,
+      addPosterProfile,
+      updatePosterProfile,
+      deletePosterProfile,
+      refreshPosterProfiles,
+      getPosterProfile,
     }}>
       {children}
     </VideoContext.Provider>

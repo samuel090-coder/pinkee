@@ -7,6 +7,7 @@ import { VideoProvider } from "@/contexts/VideoContext";
 import Index from "./pages/Index";
 import Subscribe from "./pages/Subscribe";
 import Admin from "./pages/Admin";
+import PosterProfile from "./pages/PosterProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/subscribe" element={<Subscribe />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/poster/:id" element={<PosterProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

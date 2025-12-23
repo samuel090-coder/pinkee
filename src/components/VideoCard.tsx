@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Lock, Eye, Heart, Video as VideoIcon } from 'lucide-react';
-import { Video } from '@/contexts/VideoContext';
+import { Play, Lock, Eye, Heart, Video as VideoIcon, User } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Video, useVideo } from '@/contexts/VideoContext';
 import { cn } from '@/lib/utils';
 
 interface VideoCardProps {
@@ -13,6 +14,9 @@ interface VideoCardProps {
 export function VideoCard({ video, onPlay, index }: VideoCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const { getPosterProfile } = useVideo();
+  
+  const poster = video.poster_id ? getPosterProfile(video.poster_id) : null;
 
   const formatViews = (views: number) => {
     if (views >= 1000000) return `${(views / 1000000).toFixed(1)}M`;
@@ -37,13 +41,13 @@ export function VideoCard({ video, onPlay, index }: VideoCardProps) {
       role="article"
       aria-label={`Video: ${video.title}`}
     >
-      <button
-        onClick={() => onPlay(video)}
-        className="w-full text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background rounded-lg"
-        aria-label={video.is_subscription_only ? `${video.title} - Premium content, requires subscription` : `Play ${video.title}`}
-      >
-        <div className="shiny-card rounded-lg overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:pink-glow-intense">
-          {/* Thumbnail Container */}
+      <div className="shiny-card rounded-lg overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:pink-glow-intense">
+        {/* Thumbnail Container */}
+        <button
+          onClick={() => onPlay(video)}
+          className="w-full text-left focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+          aria-label={video.is_subscription_only ? `${video.title} - Premium content, requires subscription` : `Play ${video.title}`}
+        >
           <div className="relative aspect-square overflow-hidden bg-muted">
             {/* Shimmer loading state */}
             {!imageLoaded && video.thumbnail_url && (
@@ -132,27 +136,56 @@ export function VideoCard({ video, onPlay, index }: VideoCardProps) {
               />
             </div>
           </div>
+        </button>
 
-          {/* Card Content */}
-          <div className="p-4 space-y-2">
+        {/* Card Content */}
+        <div className="p-4 space-y-3">
+          {/* Poster Info */}
+          {poster && (
+            <Link 
+              to={`/poster/${poster.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-2 group/poster"
+            >
+              {poster.avatar_url ? (
+                <img 
+                  src={poster.avatar_url} 
+                  alt={poster.name}
+                  className="w-8 h-8 rounded-full object-cover ring-2 ring-transparent group-hover/poster:ring-primary transition-all"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center group-hover/poster:ring-2 group-hover/poster:ring-primary transition-all">
+                  <User className="w-4 h-4 text-muted-foreground" />
+                </div>
+              )}
+              <span className="text-sm text-muted-foreground group-hover/poster:text-primary transition-colors">
+                {poster.name}
+              </span>
+            </Link>
+          )}
+
+          <button
+            onClick={() => onPlay(video)}
+            className="w-full text-left focus:outline-none"
+          >
             <h3 className="font-display font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
               {video.title}
             </h3>
-            
-            {/* Stats */}
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Eye className="w-4 h-4" aria-hidden="true" />
-                <span aria-label={`${video.views} views`}>{formatViews(video.views)}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Heart className="w-4 h-4 text-primary" aria-hidden="true" />
-                <span aria-label={`${video.reactions} reactions`}>{formatViews(video.reactions)}</span>
-              </div>
+          </button>
+          
+          {/* Stats */}
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Eye className="w-4 h-4" aria-hidden="true" />
+              <span aria-label={`${video.views} views`}>{formatViews(video.views)}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Heart className="w-4 h-4 text-primary" aria-hidden="true" />
+              <span aria-label={`${video.reactions} reactions`}>{formatViews(video.reactions)}</span>
             </div>
           </div>
         </div>
-      </button>
+      </div>
     </motion.article>
   );
 }
