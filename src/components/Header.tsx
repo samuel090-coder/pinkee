@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Play, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useVideo } from '@/contexts/VideoContext';
+import { NotificationBell } from './NotificationBell';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -44,6 +45,7 @@ export function Header() {
             >
               Subscribe
             </Link>
+            <NotificationBell />
           </nav>
 
           {/* Mobile Menu Button */}
