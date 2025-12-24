@@ -4,7 +4,7 @@ import {
   Lock, Eye, EyeOff, LogOut, LayoutDashboard, Video, Settings, 
   BarChart3, Plus, Trash2, Edit, Save, X, Calendar,
   Download, Play, Heart, Clock, TrendingUp, CreditCard, Loader2, Megaphone,
-  User, Users, MapPin, Mail, MessageCircle, Send
+  User, Users, MapPin, Mail, MessageCircle, Send, Bell, Image
 } from 'lucide-react';
 import { useVideo, Video as VideoType, AdCode, PosterProfile } from '@/contexts/VideoContext';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/hooks/use-toast';
 import { FileUpload } from '@/components/FileUpload';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Notification {
+  id: string;
+  title: string;
+  body: string;
+  image_url: string | null;
+  link: string | null;
+  is_sent: boolean | null;
+  sent_at: string | null;
+  created_at: string;
+}
 
 const Admin = () => {
   const { 
@@ -63,6 +75,18 @@ const Admin = () => {
     whatsapp: '',
     telegram: '',
   });
+
+  // Notification states
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isAddingNotification, setIsAddingNotification] = useState(false);
+  const [isSendingNotification, setIsSendingNotification] = useState(false);
+  const [subscriberCount, setSubscriberCount] = useState(0);
+  const [newNotification, setNewNotification] = useState({
+    title: '',
+    body: '',
+    image_url: '',
+    link: '',
+  });
   
   const [newVideo, setNewVideo] = useState({
     title: '',
@@ -100,6 +124,87 @@ const Admin = () => {
       });
     }
   }, [adminSettings]);
+
+  // Fetch notifications and subscriber count
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      const { data } = await supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (data) setNotifications(data);
+    };
+
+    const fetchSubscriberCount = async () => {
+      const { count } = await supabase
+        .from('push_subscriptions')
+        .select('*', { count: 'exact', head: true });
+      setSubscriberCount(count || 0);
+    };
+
+    if (isAdminAuthenticated) {
+      fetchNotifications();
+      fetchSubscriberCount();
+    }
+  }, [isAdminAuthenticated]);
+
+  const handleSendNotification = async () => {
+    if (!newNotification.title || !newNotification.body) {
+      toast({ title: 'Error', description: 'Title and body are required', variant: 'destructive' });
+      return;
+    }
+
+    setIsSendingNotification(true);
+    try {
+      // Save notification to database first
+      const { data: savedNotification, error: saveError } = await supabase
+        .from('notifications')
+        .insert({
+          title: newNotification.title,
+          body: newNotification.body,
+          image_url: newNotification.image_url || null,
+          link: newNotification.link || null,
+        })
+        .select()
+        .single();
+
+      if (saveError) throw saveError;
+
+      // Send push notification via edge function
+      const { error: sendError } = await supabase.functions.invoke('send-notification', {
+        body: {
+          title: newNotification.title,
+          body: newNotification.body,
+          image_url: newNotification.image_url || null,
+          link: newNotification.link || null,
+          notification_id: savedNotification.id,
+        },
+      });
+
+      if (sendError) throw sendError;
+
+      // Refresh notifications list
+      const { data: updatedNotifications } = await supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (updatedNotifications) setNotifications(updatedNotifications);
+
+      setNewNotification({ title: '', body: '', image_url: '', link: '' });
+      setIsAddingNotification(false);
+      toast({ title: 'Success', description: `Notification sent to ${subscriberCount} subscribers` });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setIsSendingNotification(false);
+    }
+  };
+
+  const handleDeleteNotification = async (id: string) => {
+    await supabase.from('notifications').delete().eq('id', id);
+    setNotifications(notifications.filter(n => n.id !== id));
+    toast({ title: 'Deleted', description: 'Notification deleted' });
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -314,6 +419,15 @@ const Admin = () => {
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Posters</span>
             </TabsTrigger>
+            <TabsTrigger value="notifications" className="gap-2 relative">
+              <Bell className="w-4 h-4" />
+              <span className="hidden sm:inline">Notifications</span>
+              {subscriberCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-[10px] text-primary-foreground rounded-full flex items-center justify-center">
+                  {subscriberCount > 99 ? '99+' : subscriberCount}
+                </span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="w-4 h-4" />
               <span className="hidden sm:inline">Settings</span>
@@ -522,6 +636,30 @@ const Admin = () => {
                         onChange={(e) => setNewVideo({ ...newVideo, ad_frequency: parseInt(e.target.value) || 5 })}
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label>Poster Profile (optional)</Label>
+                      <Select
+                        value={newVideo.poster_id}
+                        onValueChange={(value) => setNewVideo({ ...newVideo, poster_id: value === 'none' ? '' : value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a poster profile" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No poster</SelectItem>
+                          {posterProfiles.map((poster) => (
+                            <SelectItem key={poster.id} value={poster.id}>
+                              <div className="flex items-center gap-2">
+                                {poster.avatar_url && (
+                                  <img src={poster.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+                                )}
+                                {poster.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div className="flex items-center gap-4 md:col-span-2">
                       <div className="flex items-center gap-2">
                         <Switch
@@ -619,6 +757,30 @@ const Admin = () => {
                             value={editingVideo.ad_frequency}
                             onChange={(e) => setEditingVideo({ ...editingVideo, ad_frequency: parseInt(e.target.value) || 5 })}
                           />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Poster Profile</Label>
+                          <Select
+                            value={editingVideo.poster_id || 'none'}
+                            onValueChange={(value) => setEditingVideo({ ...editingVideo, poster_id: value === 'none' ? null : value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a poster" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">No poster</SelectItem>
+                              {posterProfiles.map((poster) => (
+                                <SelectItem key={poster.id} value={poster.id}>
+                                  <div className="flex items-center gap-2">
+                                    {poster.avatar_url && (
+                                      <img src={poster.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+                                    )}
+                                    {poster.name}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-2">
@@ -864,6 +1026,140 @@ const Admin = () => {
                   <p className="text-muted-foreground">No poster profiles yet. Add your first poster!</p>
                 </div>
               )}
+            </div>
+          </TabsContent>
+
+          {/* Notifications Tab */}
+          <TabsContent value="notifications" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="font-display font-semibold text-xl">Push Notifications</h2>
+                <p className="text-sm text-muted-foreground">{subscriberCount} subscriber{subscriberCount !== 1 ? 's' : ''}</p>
+              </div>
+              <Button onClick={() => setIsAddingNotification(true)} className="gap-2 bg-primary pink-glow">
+                <Plus className="w-4 h-4" />
+                Send Notification
+              </Button>
+            </div>
+
+            {/* Send Notification Form */}
+            <AnimatePresence>
+              {isAddingNotification && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="shiny-card rounded-xl p-6 space-y-4"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-display font-semibold">Send New Notification</h3>
+                    <Button variant="ghost" size="sm" onClick={() => setIsAddingNotification(false)}>
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Title *</Label>
+                      <Input
+                        value={newNotification.title}
+                        onChange={(e) => setNewNotification({ ...newNotification, title: e.target.value })}
+                        placeholder="New video alert!"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Link (optional)</Label>
+                      <Input
+                        value={newNotification.link}
+                        onChange={(e) => setNewNotification({ ...newNotification, link: e.target.value })}
+                        placeholder="https://..."
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Message *</Label>
+                      <Textarea
+                        value={newNotification.body}
+                        onChange={(e) => setNewNotification({ ...newNotification, body: e.target.value })}
+                        placeholder="Check out our latest content..."
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label>Image URL (optional)</Label>
+                      <Input
+                        value={newNotification.image_url}
+                        onChange={(e) => setNewNotification({ ...newNotification, image_url: e.target.value })}
+                        placeholder="https://example.com/image.jpg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button variant="outline" onClick={() => setIsAddingNotification(false)}>Cancel</Button>
+                    <Button onClick={handleSendNotification} className="bg-primary gap-2" disabled={isSendingNotification}>
+                      {isSendingNotification ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
+                      Send to {subscriberCount} subscriber{subscriberCount !== 1 ? 's' : ''}
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Notification History */}
+            <div className="shiny-card rounded-xl overflow-hidden">
+              <div className="p-4 border-b border-border">
+                <h3 className="font-display font-semibold">Notification History</h3>
+              </div>
+              <div className="divide-y divide-border">
+                {notifications.map((notification) => (
+                  <div key={notification.id} className="p-4 flex items-start gap-4">
+                    {notification.image_url ? (
+                      <img src={notification.image_url} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                        <Bell className="w-6 h-6 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium truncate">{notification.title}</h4>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{notification.body}</p>
+                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                        <span className={cn(
+                          "px-2 py-0.5 rounded-full",
+                          notification.is_sent ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"
+                        )}>
+                          {notification.is_sent ? 'Sent' : 'Pending'}
+                        </span>
+                        {notification.sent_at && (
+                          <span>{new Date(notification.sent_at).toLocaleString()}</span>
+                        )}
+                        {notification.link && (
+                          <a href={notification.link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                            View link
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-destructive flex-shrink-0"
+                      onClick={() => handleDeleteNotification(notification.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+                {notifications.length === 0 && (
+                  <div className="p-8 text-center text-muted-foreground">
+                    <Bell className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No notifications sent yet</p>
+                  </div>
+                )}
+              </div>
             </div>
           </TabsContent>
 
