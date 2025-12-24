@@ -83,7 +83,7 @@ interface VideoContextType {
   updateAdminSettings: (settings: Partial<AdminSettings>) => Promise<void>;
   refreshVideos: () => Promise<void>;
   refreshSettings: () => Promise<void>;
-  uploadFile: (file: File, bucket: 'videos' | 'thumbnails' | 'avatars') => Promise<string | null>;
+  uploadFile: (file: File, bucket: 'videos' | 'thumbnails' | 'avatars' | 'notification-images') => Promise<string | null>;
   getRandomAdCode: () => string | null;
   addAdCode: (adCode: Partial<AdCode>) => Promise<void>;
   updateAdCode: (id: string, updates: Partial<AdCode>) => Promise<void>;
@@ -290,7 +290,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
   const addVideo = async (video: Partial<Video>) => {
     try {
-      const { error } = await supabase
+      const { data: newVideo, error } = await supabase
         .from('videos')
         .insert({
           title: video.title || 'Untitled',
@@ -304,9 +304,46 @@ export function VideoProvider({ children }: { children: ReactNode }) {
           is_published: video.is_published !== false,
           ad_frequency: video.ad_frequency || 5,
           published_at: video.published_at,
-        });
+          poster_id: video.poster_id,
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+      
+      // Auto-send notification for new published video
+      if (video.is_published !== false && newVideo) {
+        try {
+          // Save notification to database
+          const { data: savedNotification } = await supabase
+            .from('notifications')
+            .insert({
+              title: '🎬 New Video Alert!',
+              body: `${video.title} is now live. Check it out!`,
+              image_url: video.thumbnail_url || null,
+              link: '/',
+            })
+            .select()
+            .single();
+
+          // Send push notification
+          if (savedNotification) {
+            await supabase.functions.invoke('send-notification', {
+              body: {
+                title: '🎬 New Video Alert!',
+                body: `${video.title} is now live. Check it out!`,
+                image_url: video.thumbnail_url || null,
+                link: '/',
+                notification_id: savedNotification.id,
+              },
+            });
+          }
+        } catch (notifError) {
+          console.error('Failed to send auto-notification:', notifError);
+          // Don't fail the video add if notification fails
+        }
+      }
+      
       await refreshVideos();
       toast({ title: 'Success', description: 'Video added successfully' });
     } catch (error) {

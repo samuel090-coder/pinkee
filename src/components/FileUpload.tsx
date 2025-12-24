@@ -10,9 +10,10 @@ interface FileUploadProps {
   onUploadComplete: (url: string) => void;
   currentUrl?: string;
   className?: string;
+  bucket?: 'videos' | 'thumbnails' | 'avatars' | 'notification-images';
 }
 
-export function FileUpload({ type, onUploadComplete, currentUrl, className }: FileUploadProps) {
+export function FileUpload({ type, onUploadComplete, currentUrl, className, bucket: customBucket }: FileUploadProps) {
   const { uploadFile } = useVideo();
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -24,7 +25,7 @@ export function FileUpload({ type, onUploadComplete, currentUrl, className }: Fi
     ? 'video/mp4,video/webm,video/ogg,video/*' 
     : 'image/jpeg,image/png,image/webp,image/gif,image/*';
 
-  const bucket = type === 'video' ? 'videos' : 'thumbnails';
+  const bucket = customBucket || (type === 'video' ? 'videos' : 'thumbnails');
 
   const handleFile = async (file: File) => {
     if (!file) return;
