@@ -1064,7 +1064,7 @@ const Admin = () => {
                       <Input
                         value={newNotification.title}
                         onChange={(e) => setNewNotification({ ...newNotification, title: e.target.value })}
-                        placeholder="New video alert!"
+                        placeholder="New announcement!"
                       />
                     </div>
                     <div className="space-y-2">
@@ -1080,16 +1080,18 @@ const Admin = () => {
                       <Textarea
                         value={newNotification.body}
                         onChange={(e) => setNewNotification({ ...newNotification, body: e.target.value })}
-                        placeholder="Check out our latest content..."
+                        placeholder="Check out our latest content, special offer, or important update..."
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Image URL (optional)</Label>
-                      <Input
-                        value={newNotification.image_url}
-                        onChange={(e) => setNewNotification({ ...newNotification, image_url: e.target.value })}
-                        placeholder="https://example.com/image.jpg"
+                      <Label>Notification Image (optional)</Label>
+                      <FileUpload
+                        type="thumbnail"
+                        bucket="notification-images"
+                        currentUrl={newNotification.image_url}
+                        onUploadComplete={(url) => setNewNotification({ ...newNotification, image_url: url })}
                       />
+                      <p className="text-xs text-muted-foreground">Upload an image to display in the notification</p>
                     </div>
                   </div>
 
