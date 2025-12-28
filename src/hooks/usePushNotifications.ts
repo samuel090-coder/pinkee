@@ -11,23 +11,38 @@ export const usePushNotifications = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     const checkSupport = async () => {
       const supported = 'serviceWorker' in navigator && 'PushManager' in window;
-      setIsSupported(supported);
+      if (!cancelled) setIsSupported(supported);
 
-      if (supported) {
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          const subscription = await registration.pushManager.getSubscription();
-          setIsSubscribed(!!subscription);
-        } catch (error) {
-          console.error('Error checking subscription:', error);
-        }
+      if (!supported) {
+        if (!cancelled) setIsLoading(false);
+        return;
       }
-      setIsLoading(false);
+
+      try {
+        // Ensure service worker is registered so we can safely query subscription state.
+        let registration = await navigator.serviceWorker.getRegistration();
+        if (!registration) {
+          registration = await navigator.serviceWorker.register('/sw.js');
+        }
+
+        const subscription = await registration.pushManager.getSubscription();
+        if (!cancelled) setIsSubscribed(!!subscription);
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+        if (!cancelled) setIsSupported(false);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
     };
 
     checkSupport();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const subscribe = useCallback(async () => {
@@ -39,9 +54,11 @@ export const usePushNotifications = () => {
     try {
       setIsLoading(true);
 
-      // Register service worker
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      await navigator.serviceWorker.ready;
+      // Ensure service worker is registered
+      let registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) {
+        registration = await navigator.serviceWorker.register('/sw.js');
+      }
 
       // Request notification permission
       const permission = await Notification.requestPermission();
@@ -85,8 +102,8 @@ export const usePushNotifications = () => {
   const unsubscribe = useCallback(async () => {
     try {
       setIsLoading(true);
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
+      const registration = await navigator.serviceWorker.getRegistration();
+      const subscription = registration ? await registration.pushManager.getSubscription() : null;
 
       if (subscription) {
         await subscription.unsubscribe();
