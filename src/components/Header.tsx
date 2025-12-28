@@ -83,6 +83,9 @@ export function Header() {
             >
               Subscribe
             </Link>
+            <div className="px-4 py-2">
+              <NotificationBell />
+            </div>
           </div>
         </motion.nav>
       </div>

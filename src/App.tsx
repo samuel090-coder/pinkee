@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { VideoProvider } from "@/contexts/VideoContext";
+import { NotificationPrompt } from "@/components/NotificationPrompt";
 import Index from "./pages/Index";
 import Subscribe from "./pages/Subscribe";
 import Admin from "./pages/Admin";
@@ -18,6 +19,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <NotificationPrompt />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
