@@ -2,18 +2,16 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-// Get VAPID public key from environment
-const VAPID_PUBLIC_KEY = 'BLc-89AHnBiY2nL7w7EUkN-ueIxHLCdv-R0Yz0w8YGqLHcVnZRRiGC5bRHqkVJvA3-_mME7TWrfZN8FVE8lVv-M';
-
 export const usePushNotifications = () => {
   const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [vapidPublicKey, setVapidPublicKey] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    const checkSupport = async () => {
+    const initialize = async () => {
       const supported = 'serviceWorker' in navigator && 'PushManager' in window;
       if (!cancelled) setIsSupported(supported);
 
@@ -23,7 +21,19 @@ export const usePushNotifications = () => {
       }
 
       try {
-        // Ensure service worker is registered so we can safely query subscription state.
+        // Fetch VAPID public key from server
+        const { data, error } = await supabase.functions.invoke('get-vapid-key');
+        if (error) {
+          console.error('Failed to fetch VAPID key:', error);
+          if (!cancelled) setIsLoading(false);
+          return;
+        }
+        
+        if (data?.publicKey && !cancelled) {
+          setVapidPublicKey(data.publicKey);
+        }
+
+        // Ensure service worker is registered
         let registration = await navigator.serviceWorker.getRegistration();
         if (!registration) {
           registration = await navigator.serviceWorker.register('/sw.js');
@@ -39,7 +49,7 @@ export const usePushNotifications = () => {
       }
     };
 
-    checkSupport();
+    initialize();
     return () => {
       cancelled = true;
     };
@@ -48,6 +58,11 @@ export const usePushNotifications = () => {
   const subscribe = useCallback(async () => {
     if (!isSupported) {
       toast({ title: 'Error', description: 'Push notifications not supported', variant: 'destructive' });
+      return false;
+    }
+
+    if (!vapidPublicKey) {
+      toast({ title: 'Error', description: 'Push notifications not configured', variant: 'destructive' });
       return false;
     }
 
@@ -60,6 +75,13 @@ export const usePushNotifications = () => {
         registration = await navigator.serviceWorker.register('/sw.js');
       }
 
+      // Unsubscribe from any existing subscription first (to ensure correct VAPID key)
+      const existingSub = await registration.pushManager.getSubscription();
+      if (existingSub) {
+        await existingSub.unsubscribe();
+        await supabase.from('push_subscriptions').delete().eq('endpoint', existingSub.endpoint);
+      }
+
       // Request notification permission
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
@@ -67,8 +89,8 @@ export const usePushNotifications = () => {
         return false;
       }
 
-      // Subscribe to push
-      const applicationServerKey = urlBase64ToUint8Array(VAPID_PUBLIC_KEY);
+      // Subscribe to push with server's VAPID key
+      const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: applicationServerKey as BufferSource,
@@ -97,7 +119,7 @@ export const usePushNotifications = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [isSupported]);
+  }, [isSupported, vapidPublicKey]);
 
   const unsubscribe = useCallback(async () => {
     try {
