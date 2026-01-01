@@ -8,7 +8,6 @@ self.addEventListener('push', (event) => {
   const options = {
     body: data.body,
     icon: data.icon || '/favicon.ico',
-    image: data.image,
     badge: '/favicon.ico',
     vibrate: [100, 50, 100],
     data: data.data || {},
@@ -18,6 +17,11 @@ self.addEventListener('push', (event) => {
     ],
     requireInteraction: true
   };
+
+  // Add large image if provided (shows as big notification image)
+  if (data.image) {
+    options.image = data.image;
+  }
 
   event.waitUntil(
     self.registration.showNotification(data.title, options)

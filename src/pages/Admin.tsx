@@ -1058,6 +1058,56 @@ const Admin = () => {
                     </Button>
                   </div>
                   
+                  {/* Quick Video Select */}
+                  <div className="space-y-2 p-4 rounded-lg bg-muted/50 border border-border">
+                    <Label className="flex items-center gap-2">
+                      <Video className="w-4 h-4 text-primary" />
+                      Quick: Notify about a video
+                    </Label>
+                    <Select
+                      onValueChange={(videoId) => {
+                        const video = videos.find(v => v.id === videoId);
+                        if (video) {
+                          setNewNotification({
+                            title: `🎬 New Video: ${video.title}`,
+                            body: video.description || 'Check out our latest video!',
+                            image_url: video.thumbnail_url || video.video_url || '',
+                            link: `/?video=${video.id}`,
+                          });
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a video to notify about..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {videos.map((video) => (
+                          <SelectItem key={video.id} value={video.id}>
+                            <div className="flex items-center gap-2">
+                              {video.thumbnail_url ? (
+                                <img src={video.thumbnail_url} alt="" className="w-8 h-6 rounded object-cover" />
+                              ) : (
+                                <div className="w-8 h-6 rounded bg-muted flex items-center justify-center">
+                                  <Video className="w-3 h-3" />
+                                </div>
+                              )}
+                              <span className="truncate">{video.title}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Selecting a video auto-fills title, message, image, and link below
+                    </p>
+                  </div>
+
+                  <div className="relative flex items-center gap-4 py-2">
+                    <div className="flex-1 border-t border-border"></div>
+                    <span className="text-xs text-muted-foreground uppercase">or customize</span>
+                    <div className="flex-1 border-t border-border"></div>
+                  </div>
+                  
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Title *</Label>
@@ -1072,7 +1122,7 @@ const Admin = () => {
                       <Input
                         value={newNotification.link}
                         onChange={(e) => setNewNotification({ ...newNotification, link: e.target.value })}
-                        placeholder="https://..."
+                        placeholder="/?video=... or https://..."
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
@@ -1084,14 +1134,28 @@ const Admin = () => {
                       />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <Label>Notification Image (optional)</Label>
-                      <FileUpload
-                        type="thumbnail"
-                        bucket="notification-images"
-                        currentUrl={newNotification.image_url}
-                        onUploadComplete={(url) => setNewNotification({ ...newNotification, image_url: url })}
-                      />
-                      <p className="text-xs text-muted-foreground">Upload an image to display in the notification</p>
+                      <Label>Notification Image</Label>
+                      {newNotification.image_url && (
+                        <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/50 border border-border">
+                          <img src={newNotification.image_url} alt="Preview" className="w-16 h-12 rounded object-cover" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm truncate">{newNotification.image_url.split('/').pop()}</p>
+                            <p className="text-xs text-muted-foreground">This will show as a large image in the notification</p>
+                          </div>
+                          <Button variant="ghost" size="sm" onClick={() => setNewNotification({ ...newNotification, image_url: '' })}>
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                      {!newNotification.image_url && (
+                        <FileUpload
+                          type="thumbnail"
+                          bucket="notification-images"
+                          currentUrl={newNotification.image_url}
+                          onUploadComplete={(url) => setNewNotification({ ...newNotification, image_url: url })}
+                        />
+                      )}
+                      <p className="text-xs text-muted-foreground">The image shows as a large banner in the notification (like the reference image)</p>
                     </div>
                   </div>
 
