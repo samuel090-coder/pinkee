@@ -1,8 +1,19 @@
 import { useEffect, useState } from 'react';
 import { usePushNotifications } from './usePushNotifications';
 
-const PROMPT_DELAY = 3000; // 3 seconds after page load
-const STORAGE_KEY = 'notification_prompt_shown';
+const PROMPT_DELAY = 1500; // 1.5 seconds - faster for new devices
+const DEVICE_KEY = 'notification_device_id';
+const DISMISSED_KEY = 'notification_dismissed';
+
+// Generate a unique device ID if not exists
+const getDeviceId = (): string => {
+  let deviceId = localStorage.getItem(DEVICE_KEY);
+  if (!deviceId) {
+    deviceId = `device_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    localStorage.setItem(DEVICE_KEY, deviceId);
+  }
+  return deviceId;
+};
 
 export const useNotificationPrompt = () => {
   const { isSupported, isSubscribed, isLoading, subscribe } = usePushNotifications();
@@ -15,13 +26,16 @@ export const useNotificationPrompt = () => {
       return;
     }
 
-    // Check if we've already shown the prompt
-    const hasShownPrompt = localStorage.getItem(STORAGE_KEY);
-    if (hasShownPrompt) {
+    // Get device ID - this identifies new devices
+    const deviceId = getDeviceId();
+    
+    // Check if this device has dismissed the prompt before
+    const dismissedDevices = JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]');
+    if (dismissedDevices.includes(deviceId)) {
       return;
     }
 
-    // Show prompt after a delay
+    // Show prompt after a short delay for new devices
     const timer = setTimeout(() => {
       setShowPrompt(true);
     }, PROMPT_DELAY);
@@ -30,13 +44,18 @@ export const useNotificationPrompt = () => {
   }, [isSupported, isSubscribed, isLoading]);
 
   const handleSubscribe = async () => {
-    localStorage.setItem(STORAGE_KEY, 'true');
     setShowPrompt(false);
     await subscribe();
   };
 
   const handleDismiss = () => {
-    localStorage.setItem(STORAGE_KEY, 'true');
+    // Mark this device as dismissed
+    const deviceId = getDeviceId();
+    const dismissedDevices = JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]');
+    if (!dismissedDevices.includes(deviceId)) {
+      dismissedDevices.push(deviceId);
+      localStorage.setItem(DISMISSED_KEY, JSON.stringify(dismissedDevices));
+    }
     setShowPrompt(false);
   };
 
