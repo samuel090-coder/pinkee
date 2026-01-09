@@ -4,7 +4,7 @@ import {
   Lock, Eye, EyeOff, LogOut, LayoutDashboard, Video, Settings, 
   BarChart3, Plus, Trash2, Edit, Save, X, Calendar,
   Download, Play, Heart, Clock, TrendingUp, CreditCard, Loader2, Megaphone,
-  User, Users, MapPin, Mail, MessageCircle, Send, Bell, Image
+  User, Users, MapPin, Mail, MessageCircle, Send, Bell, Image, Wand2
 } from 'lucide-react';
 import { useVideo, Video as VideoType, AdCode, PosterProfile } from '@/contexts/VideoContext';
 import { Button } from '@/components/ui/button';
@@ -58,6 +58,7 @@ const Admin = () => {
   const [editingVideo, setEditingVideo] = useState<VideoType | null>(null);
   const [isAddingVideo, setIsAddingVideo] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingThumbnail, setIsGeneratingThumbnail] = useState(false);
   const [isAddingAd, setIsAddingAd] = useState(false);
   const [editingAdCode, setEditingAdCode] = useState<AdCode | null>(null);
   const [newAdCode, setNewAdCode] = useState({ name: '', code: '', is_active: true });
@@ -295,6 +296,54 @@ const Admin = () => {
     setIsSaving(true);
     await updateAdminSettings(settingsForm);
     setIsSaving(false);
+  };
+
+  const handleGenerateThumbnail = async (
+    videoUrl: string, 
+    title: string, 
+    description: string,
+    onComplete: (url: string) => void
+  ) => {
+    if (!videoUrl && !title) {
+      toast({ title: 'Error', description: 'Add a video or title first', variant: 'destructive' });
+      return;
+    }
+
+    setIsGeneratingThumbnail(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-thumbnail', {
+        body: { video_url: videoUrl, title, description }
+      });
+
+      if (error) throw error;
+      
+      if (data?.thumbnail_base64) {
+        // Convert base64 to blob and upload to storage
+        const base64Data = data.thumbnail_base64.replace(/^data:image\/\w+;base64,/, '');
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/png' });
+        const file = new File([blob], `generated-thumb-${Date.now()}.png`, { type: 'image/png' });
+        
+        const uploadedUrl = await uploadFile(file, 'thumbnails');
+        if (uploadedUrl) {
+          onComplete(uploadedUrl);
+          toast({ title: 'Success', description: 'Thumbnail generated!' });
+        }
+      } else {
+        throw new Error('No thumbnail generated');
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate thumbnail';
+      console.error('Thumbnail generation error:', error);
+      toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
+    } finally {
+      setIsGeneratingThumbnail(false);
+    }
   };
 
   const exportCSV = () => {
@@ -594,6 +643,26 @@ const Admin = () => {
                         currentUrl={newVideo.thumbnail_url}
                         onUploadComplete={(url) => setNewVideo({ ...newVideo, thumbnail_url: url })}
                       />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleGenerateThumbnail(
+                          newVideo.video_url,
+                          newVideo.title,
+                          newVideo.description,
+                          (url) => setNewVideo({ ...newVideo, thumbnail_url: url })
+                        )}
+                        disabled={isGeneratingThumbnail || (!newVideo.video_url && !newVideo.title)}
+                        className="w-full gap-2"
+                      >
+                        {isGeneratingThumbnail ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Wand2 className="w-4 h-4" />
+                        )}
+                        Auto-Generate Thumbnail
+                      </Button>
                     </div>
 
                     <div className="space-y-2 md:col-span-2">
@@ -741,6 +810,26 @@ const Admin = () => {
                             currentUrl={editingVideo.thumbnail_url || ''}
                             onUploadComplete={(url) => setEditingVideo({ ...editingVideo, thumbnail_url: url })}
                           />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleGenerateThumbnail(
+                              editingVideo.video_url || '',
+                              editingVideo.title,
+                              editingVideo.description || '',
+                              (url) => setEditingVideo({ ...editingVideo, thumbnail_url: url })
+                            )}
+                            disabled={isGeneratingThumbnail || (!editingVideo.video_url && !editingVideo.title)}
+                            className="w-full gap-2"
+                          >
+                            {isGeneratingThumbnail ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Wand2 className="w-4 h-4" />
+                            )}
+                            Auto-Generate Thumbnail
+                          </Button>
                         </div>
 
                         <div className="space-y-2 md:col-span-2">
