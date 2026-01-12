@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, Clock, Eye, MoreVertical, ListPlus, Share2, Flag, Download } from 'lucide-react';
+import { Play, Clock, MoreVertical, ListPlus, Share2, Flag, Download } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,25 +12,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { Video } from '@/contexts/VideoContext';
 
 interface VideoCardProps {
-  video: {
-    id: string;
-    title: string;
-    thumbnail_url: string | null;
-    video_url: string | null;
-    duration: number;
-    views: number;
-    created_at: string;
-    description?: string | null;
-    category?: string | null;
-    uploader?: {
-      id: string;
-      display_name: string | null;
-      avatar_url: string | null;
-      is_verified: boolean;
-    };
-  };
+  video: Video;
   variant?: 'default' | 'horizontal' | 'compact' | 'list' | 'search';
 }
 
@@ -65,6 +50,9 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
   };
 
   const thumbnailUrl = video.thumbnail_url || video.video_url;
+  const channelName = video.poster?.name || 'Unknown Channel';
+  const channelId = video.poster?.id || video.poster_id;
+  const avatarUrl = video.poster?.avatar_url;
 
   // Horizontal/List/Search variants - similar layout
   if (variant === 'horizontal' || variant === 'list' || variant === 'search') {
@@ -106,9 +94,9 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
             </h3>
           </Link>
           <div className="mt-1 text-sm text-muted-foreground">
-            {video.uploader && (
-              <Link to={`/channel/${video.uploader.id}`} className="hover:text-foreground">
-                {video.uploader.display_name}
+            {channelId && (
+              <Link to={`/poster/${channelId}`} className="hover:text-foreground">
+                {channelName}
               </Link>
             )}
             <span className="mx-1">•</span>
@@ -186,21 +174,16 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
             <Play className="w-6 h-6 text-primary-foreground ml-1" fill="currentColor" />
           </motion.div>
         </motion.div>
-
-        {/* Progress Bar (for watch history) */}
-        {/* <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted">
-          <div className="h-full bg-primary w-1/3" />
-        </div> */}
       </Link>
 
       {/* Info */}
       <div className="flex gap-3 mt-3">
-        {video.uploader && (
-          <Link to={`/channel/${video.uploader.id}`} className="flex-shrink-0">
+        {channelId && (
+          <Link to={`/poster/${channelId}`} className="flex-shrink-0">
             <Avatar className="w-9 h-9">
-              <AvatarImage src={video.uploader.avatar_url || undefined} />
+              <AvatarImage src={avatarUrl || undefined} />
               <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                {video.uploader.display_name?.charAt(0) || 'U'}
+                {channelName.charAt(0)}
               </AvatarFallback>
             </Avatar>
           </Link>
@@ -212,15 +195,12 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
               {video.title}
             </h3>
           </Link>
-          {video.uploader && (
+          {channelId && (
             <Link 
-              to={`/channel/${video.uploader.id}`} 
+              to={`/poster/${channelId}`} 
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              {video.uploader.display_name}
-              {video.uploader.is_verified && (
-                <span className="ml-1 text-primary">✓</span>
-              )}
+              {channelName}
             </Link>
           )}
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
