@@ -37,6 +37,14 @@ export interface Video {
   ad_frequency: number;
   poster_id: string | null;
   poster?: PosterProfile | null;
+  // New fields for YouTube-like features
+  uploader_id: string | null;
+  status: string | null;
+  category: string | null;
+  tags: string[] | null;
+  likes_count: number;
+  dislikes_count: number;
+  comments_count: number;
 }
 
 export interface AdminSettings {

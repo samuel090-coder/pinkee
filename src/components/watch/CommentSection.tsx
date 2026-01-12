@@ -135,8 +135,19 @@ export const CommentSection = ({ videoId }: CommentSectionProps) => {
       setNewComment('');
       await fetchComments();
 
-      // Update video comments count
-      await supabase.rpc('increment_comments_count', { video_id: videoId });
+      // Update video comments count directly
+      const { data: video } = await supabase
+        .from('videos')
+        .select('comments_count')
+        .eq('id', videoId)
+        .single();
+      
+      if (video) {
+        await supabase
+          .from('videos')
+          .update({ comments_count: (video.comments_count || 0) + 1 })
+          .eq('id', videoId);
+      }
 
       toast({ title: 'Comment added!' });
     } catch (error) {
