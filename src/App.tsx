@@ -11,6 +11,14 @@ import Subscribe from "./pages/Subscribe";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import PosterProfile from "./pages/PosterProfile";
+import Watch from "./pages/Watch";
+import Upload from "./pages/Upload";
+import Channel from "./pages/Channel";
+import Studio from "./pages/Studio";
+import Search from "./pages/Search";
+import Settings from "./pages/Settings";
+import History from "./pages/History";
+import Subscriptions from "./pages/Subscriptions";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +38,14 @@ const App = () => (
               <Route path="/subscribe" element={<Subscribe />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/poster/:id" element={<PosterProfile />} />
+              <Route path="/watch/:id" element={<Watch />} />
+              <Route path="/upload" element={<Upload />} />
+              <Route path="/channel/:id" element={<Channel />} />
+              <Route path="/studio" element={<Studio />} />
+              <Route path="/search" element={<Search />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/subscriptions" element={<Subscriptions />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
