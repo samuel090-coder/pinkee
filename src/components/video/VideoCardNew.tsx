@@ -22,6 +22,8 @@ interface VideoCardProps {
     duration: number;
     views: number;
     created_at: string;
+    description?: string | null;
+    category?: string | null;
     uploader?: {
       id: string;
       display_name: string | null;
@@ -29,7 +31,7 @@ interface VideoCardProps {
       is_verified: boolean;
     };
   };
-  variant?: 'default' | 'horizontal' | 'compact';
+  variant?: 'default' | 'horizontal' | 'compact' | 'list' | 'search';
 }
 
 export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => {
@@ -64,7 +66,8 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
 
   const thumbnailUrl = video.thumbnail_url || video.video_url;
 
-  if (variant === 'horizontal') {
+  // Horizontal/List/Search variants - similar layout
+  if (variant === 'horizontal' || variant === 'list' || variant === 'search') {
     return (
       <motion.article
         initial={{ opacity: 0 }}
@@ -72,7 +75,10 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
         className="flex gap-4 group"
       >
         {/* Thumbnail */}
-        <Link to={`/watch/${video.id}`} className="relative flex-shrink-0 w-40 md:w-64 aspect-video rounded-xl overflow-hidden">
+        <Link to={`/watch/${video.id}`} className={cn(
+          "relative flex-shrink-0 aspect-video rounded-xl overflow-hidden",
+          variant === 'search' ? 'w-64 md:w-80' : 'w-40 md:w-64'
+        )}>
           <div className={cn('absolute inset-0 bg-muted', !imageLoaded && 'shimmer')}>
             {thumbnailUrl && (
               <img
@@ -110,6 +116,11 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
             <span className="mx-1">•</span>
             <span>{formatTimeAgo(video.created_at)}</span>
           </div>
+          {variant === 'search' && video.description && (
+            <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+              {video.description}
+            </p>
+          )}
         </div>
 
         {/* Menu */}
