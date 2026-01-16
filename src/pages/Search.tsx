@@ -1,14 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Search as SearchIcon,
-  Filter,
   SlidersHorizontal,
-  Clock,
   Calendar,
   TrendingUp,
   Loader2,
+  Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,15 +15,26 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { VideoCardNew } from '@/components/video/VideoCardNew';
 import { useVideo } from '@/contexts/VideoContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent } from '@/components/ui/card';
 
 type SortType = 'relevance' | 'date' | 'views' | 'rating';
 type DurationFilter = 'any' | 'short' | 'medium' | 'long';
+
+interface ChannelResult {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  channel_name: string | null;
+  avatar_url: string | null;
+  subscriber_count: number | null;
+}
 
 const Search = () => {
   const [searchParams] = useSearchParams();
@@ -34,7 +44,39 @@ const Search = () => {
   const [sortBy, setSortBy] = useState<SortType>('relevance');
   const [durationFilter, setDurationFilter] = useState<DurationFilter>('any');
 
-  // Filter and sort videos based on search query
+  const [channelResults, setChannelResults] = useState<ChannelResult[]>([]);
+  const [channelsLoading, setChannelsLoading] = useState(false);
+
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) {
+      setChannelResults([]);
+      return;
+    }
+
+    const run = async () => {
+      setChannelsLoading(true);
+      try {
+        const like = `%${q}%`;
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, username, display_name, channel_name, avatar_url, subscriber_count')
+          .or(`username.ilike.${like},display_name.ilike.${like},channel_name.ilike.${like}`)
+          .order('subscriber_count', { ascending: false })
+          .limit(8);
+
+        if (error) throw error;
+        setChannelResults((data || []) as ChannelResult[]);
+      } catch (e) {
+        console.error('Error searching channels:', e);
+        setChannelResults([]);
+      } finally {
+        setChannelsLoading(false);
+      }
+    };
+
+    run();
+  }, [query]);
   const searchResults = useMemo(() => {
     if (!query.trim()) return [];
 
@@ -161,8 +203,52 @@ const Search = () => {
           </div>
         </div>
 
+        {/* Channel results */}
+        {(channelsLoading || channelResults.length > 0) && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-3">
+              <Users className="w-4 h-4 text-muted-foreground" />
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                Channels
+              </h2>
+            </div>
+
+            {channelsLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {channelResults.map((c) => {
+                  const name = c.channel_name || c.display_name || c.username || 'Channel';
+                  const handle = c.username ? `@${c.username}` : '';
+                  return (
+                    <Link key={c.id} to={`/channel/${c.id}`}>
+                      <Card className="bg-card border-border hover:bg-secondary/50 transition-colors">
+                        <CardContent className="p-4 flex items-center gap-3">
+                          <Avatar className="w-10 h-10">
+                            <AvatarImage src={c.avatar_url || undefined} />
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground truncate">{name}</p>
+                            <p className="text-sm text-muted-foreground truncate">
+                              {handle}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Results */}
-        {searchResults.length > 0 ? (
           <div className="space-y-4">
             {searchResults.map((video, i) => (
               <motion.div

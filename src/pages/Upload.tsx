@@ -206,11 +206,17 @@ const Upload = () => {
       // Create video record
       await addVideo({
         title: title.trim(),
-        description: description.trim(),
+        description: description.trim() || null,
         video_url: videoUrl,
-        thumbnail_url: thumbnailUrl || undefined,
+        thumbnail_url: thumbnailUrl || null,
         duration: videoDuration,
-        category,
+        uploader_id: user.id,
+        category: category || null,
+        tags: tags
+          .split(',')
+          .map(t => t.trim())
+          .filter(Boolean),
+        status: visibility === 'public' ? 'published' : visibility,
         is_subscription_only: isSubscriptionOnly,
         is_published: visibility === 'public',
         published_at: scheduleDate || new Date().toISOString(),

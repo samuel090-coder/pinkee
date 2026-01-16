@@ -50,9 +50,22 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
   };
 
   const thumbnailUrl = video.thumbnail_url || video.video_url;
-  const channelName = video.poster?.name || 'Unknown Channel';
-  const channelId = video.poster?.id || video.poster_id;
-  const avatarUrl = video.poster?.avatar_url;
+
+  const uploader = video.uploader_profile;
+  const channelName =
+    uploader?.channel_name ||
+    uploader?.display_name ||
+    uploader?.username ||
+    video.poster?.name ||
+    'Unknown Channel';
+
+  const channelHref = uploader?.id
+    ? `/channel/${uploader.id}`
+    : video.poster?.id
+      ? `/poster/${video.poster.id}`
+      : '#';
+
+  const avatarUrl = uploader?.avatar_url || video.poster?.avatar_url;
 
   // Horizontal/List/Search variants - similar layout
   if (variant === 'horizontal' || variant === 'list' || variant === 'search') {
@@ -94,10 +107,12 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
             </h3>
           </Link>
           <div className="mt-1 text-sm text-muted-foreground">
-            {channelId && (
-              <Link to={`/poster/${channelId}`} className="hover:text-foreground">
+            {channelHref !== '#' ? (
+              <Link to={channelHref} className="hover:text-foreground">
                 {channelName}
               </Link>
+            ) : (
+              <span>{channelName}</span>
             )}
             <span className="mx-1">•</span>
             <span>{formatViews(video.views || 0)}</span>
@@ -178,8 +193,8 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
 
       {/* Info */}
       <div className="flex gap-3 mt-3">
-        {channelId && (
-          <Link to={`/poster/${channelId}`} className="flex-shrink-0">
+        {channelHref !== '#' && (
+          <Link to={channelHref} className="flex-shrink-0">
             <Avatar className="w-9 h-9">
               <AvatarImage src={avatarUrl || undefined} />
               <AvatarFallback className="bg-primary text-primary-foreground text-sm">
@@ -195,9 +210,9 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
               {video.title}
             </h3>
           </Link>
-          {channelId && (
+          {channelHref !== '#' && (
             <Link 
-              to={`/poster/${channelId}`} 
+              to={channelHref}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               {channelName}
