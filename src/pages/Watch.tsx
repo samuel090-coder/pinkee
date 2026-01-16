@@ -101,12 +101,13 @@ const Watch = () => {
         setIsDisliked(!likeData.is_like);
       }
 
-      // Check subscription (if video has uploader)
-      if (video.poster?.id) {
+      // Check subscription (if video has a channel)
+      const channelId = video.uploader_profile?.id;
+      if (channelId) {
         const { data: subData } = await supabase
           .from('subscriptions')
           .select('id')
-          .eq('channel_id', video.poster.id)
+          .eq('channel_id', channelId)
           .eq('subscriber_id', user.id)
           .maybeSingle();
 
@@ -314,20 +315,27 @@ const Watch = () => {
   };
 
   const handleSubscribe = async () => {
-    if (!user || !video?.poster?.id) {
+    const channelId = video?.uploader_profile?.id;
+    const channelName =
+      video?.uploader_profile?.channel_name ||
+      video?.uploader_profile?.display_name ||
+      video?.uploader_profile?.username ||
+      'this channel';
+
+    if (!user || !channelId) {
       toast({ title: 'Sign in required', description: 'Please sign in to subscribe' });
       return;
     }
 
     try {
       if (isSubscribed) {
-        await supabase.from('subscriptions').delete().eq('channel_id', video.poster.id).eq('subscriber_id', user.id);
+        await supabase.from('subscriptions').delete().eq('channel_id', channelId).eq('subscriber_id', user.id);
         setIsSubscribed(false);
         toast({ title: 'Unsubscribed' });
       } else {
-        await supabase.from('subscriptions').insert({ channel_id: video.poster.id, subscriber_id: user.id });
+        await supabase.from('subscriptions').insert({ channel_id: channelId, subscriber_id: user.id });
         setIsSubscribed(true);
-        toast({ title: 'Subscribed!', description: `You're now subscribed to ${video.poster.name}` });
+        toast({ title: 'Subscribed!', description: `You're now subscribed to ${channelName}` });
       }
     } catch (error) {
       console.error('Error subscribing:', error);
@@ -367,6 +375,20 @@ const Watch = () => {
       </MainLayout>
     );
   }
+
+  const uploader = video.uploader_profile;
+  const channelName =
+    uploader?.channel_name ||
+    uploader?.display_name ||
+    uploader?.username ||
+    video.poster?.name ||
+    'Unknown Channel';
+  const channelHref = uploader?.id
+    ? `/channel/${uploader.id}`
+    : video.poster?.id
+      ? `/poster/${video.poster.id}`
+      : '#';
+  const channelAvatarUrl = uploader?.avatar_url || video.poster?.avatar_url || undefined;
 
   return (
     <MainLayout>
@@ -536,40 +558,57 @@ const Watch = () => {
               <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Channel Info */}
                 <div className="flex items-center gap-4">
-                  <Link to={video.poster?.id ? `/channel/${video.poster.id}` : '#'}>
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={video.poster?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {video.poster?.name?.charAt(0) || 'C'}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Link>
-                  <div>
-                    <Link
-                      to={video.poster?.id ? `/channel/${video.poster.id}` : '#'}
-                      className="font-medium text-foreground hover:text-primary flex items-center gap-1"
-                    >
-                      {video.poster?.name || 'Unknown Channel'}
-                      <CheckCircle className="w-4 h-4 text-muted-foreground" />
+                  {channelHref !== '#' ? (
+                    <Link to={channelHref}>
+                      <Avatar className="w-10 h-10">
+                        <AvatarImage src={channelAvatarUrl} />
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          {channelName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
                     </Link>
+                  ) : (
+                    <Avatar className="w-10 h-10">
+                      <AvatarFallback className="bg-primary text-primary-foreground">C</AvatarFallback>
+                    </Avatar>
+                  )}
+
+                  <div>
+                    {channelHref !== '#' ? (
+                      <Link
+                        to={channelHref}
+                        className="font-medium text-foreground hover:text-primary flex items-center gap-1"
+                      >
+                        {channelName}
+                        <CheckCircle className="w-4 h-4 text-muted-foreground" />
+                      </Link>
+                    ) : (
+                      <div className="font-medium text-foreground flex items-center gap-1">
+                        {channelName}
+                        <CheckCircle className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                    )}
                     <p className="text-sm text-muted-foreground">
                       {formatViews(video.views)} views
                     </p>
                   </div>
-                  <Button
-                    onClick={handleSubscribe}
-                    variant={isSubscribed ? 'secondary' : 'default'}
-                    className={isSubscribed ? '' : 'bg-primary hover:bg-primary/90'}
-                  >
-                    {isSubscribed ? (
-                      <>
-                        <BellOff className="w-4 h-4 mr-2" />
-                        Subscribed
-                      </>
-                    ) : (
-                      'Subscribe'
-                    )}
-                  </Button>
+
+                  {uploader?.id && (
+                    <Button
+                      onClick={handleSubscribe}
+                      variant={isSubscribed ? 'secondary' : 'default'}
+                      className={isSubscribed ? '' : 'bg-primary hover:bg-primary/90'}
+                    >
+                      {isSubscribed ? (
+                        <>
+                          <BellOff className="w-4 h-4 mr-2" />
+                          Subscribed
+                        </>
+                      ) : (
+                        'Subscribe'
+                      )}
+                    </Button>
+                  )}
                 </div>
 
                 {/* Action Buttons */}

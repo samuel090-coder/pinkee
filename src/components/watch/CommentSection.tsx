@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ThumbsUp,
@@ -71,45 +72,59 @@ export const CommentSection = ({ videoId }: CommentSectionProps) => {
   const fetchComments = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data: topLevel, error } = await supabase
         .from('comments')
-        .select(`
-          *,
-          profiles:user_id (
-            display_name,
-            avatar_url,
-            username
-          )
-        `)
+        .select('*')
         .eq('video_id', videoId)
         .is('parent_id', null)
         .order(sortBy === 'top' ? 'likes_count' : 'created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Fetch replies for each comment
-      const commentsWithReplies = await Promise.all(
-        (data || []).map(async (comment: any) => {
-          const { data: replies } = await supabase
+      const parentIds = (topLevel || []).map((c: any) => c.id);
+      const { data: replies } = parentIds.length
+        ? await supabase
             .from('comments')
-            .select(`
-              *,
-              profiles:user_id (
-                display_name,
-                avatar_url,
-                username
-              )
-            `)
-            .eq('parent_id', comment.id)
-            .order('created_at', { ascending: true });
+            .select('*')
+            .in('parent_id', parentIds)
+            .order('created_at', { ascending: true })
+        : { data: [] as any[] };
 
-          return {
-            ...comment,
-            user: comment.profiles,
-            replies: (replies || []).map((r: any) => ({ ...r, user: r.profiles })),
-          };
-        })
+      const repliesByParent = new Map<string, any[]>();
+      (replies || []).forEach((r: any) => {
+        const list = repliesByParent.get(r.parent_id) || [];
+        list.push(r);
+        repliesByParent.set(r.parent_id, list);
+      });
+
+      const userIds = Array.from(
+        new Set([...(topLevel || []), ...(replies || [])].map((c: any) => c.user_id))
       );
+
+      const profilesMap = new Map<string, { display_name: string; avatar_url: string; username: string }>();
+      if (userIds.length) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('user_id, display_name, avatar_url, username')
+          .in('user_id', userIds);
+
+        (profilesData || []).forEach((p: any) => {
+          profilesMap.set(p.user_id, {
+            display_name: p.display_name,
+            avatar_url: p.avatar_url,
+            username: p.username,
+          });
+        });
+      }
+
+      const commentsWithReplies = (topLevel || []).map((comment: any) => ({
+        ...comment,
+        user: profilesMap.get(comment.user_id),
+        replies: (repliesByParent.get(comment.id) || []).map((r: any) => ({
+          ...r,
+          user: profilesMap.get(r.user_id),
+        })),
+      }));
 
       setComments(commentsWithReplies);
     } catch (error) {
@@ -491,9 +506,12 @@ export const CommentSection = ({ videoId }: CommentSectionProps) => {
         </div>
       ) : (
         <div className="bg-secondary rounded-xl p-4 text-center">
-          <p className="text-muted-foreground">
-            Sign in to leave a comment
-          </p>
+          <p className="text-muted-foreground">Sign in to leave a comment</p>
+          <div className="mt-3">
+            <Link to="/auth">
+              <Button size="sm" variant="secondary">Sign In</Button>
+            </Link>
+          </div>
         </div>
       )}
 

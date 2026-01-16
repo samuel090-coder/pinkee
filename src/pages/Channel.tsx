@@ -63,10 +63,9 @@ const Channel = () => {
 
   // Filter videos for this channel
   const channelVideos = videos.filter(v => {
-    if (isOwnChannel && user) {
-      return v.poster_id === channel?.id || v.uploader_id === user.id;
-    }
-    return v.poster_id === channel?.id;
+    if (!channel) return false;
+    if (isOwnChannel) return v.uploader_id === channel.user_id;
+    return v.uploader_id === channel.user_id && v.is_published;
   });
 
   useEffect(() => {

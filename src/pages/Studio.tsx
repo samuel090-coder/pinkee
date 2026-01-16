@@ -69,46 +69,75 @@ const Studio = () => {
   const [loading, setLoading] = useState(true);
 
   // Filter videos for current user
-  const myVideos = videos.filter(v => v.uploader_id === user?.id || v.poster?.id === profile?.id);
+  const myVideos = videos.filter(v => v.uploader_id === user?.id);
+
+  const fetchStats = async () => {
+    if (!user) return;
+
+    try {
+      // Get subscriber count
+      const { count: subscriberCount } = await supabase
+        .from('subscriptions')
+        .select('*', { count: 'exact', head: true })
+        .eq('channel_id', profile?.id);
+
+      // Calculate totals from videos
+      const totals = myVideos.reduce(
+        (acc, v) => ({
+          views: acc.views + (v.views || 0),
+          watchTime: acc.watchTime + (v.watch_time || 0),
+          likes: acc.likes + (v.likes_count || 0),
+          comments: acc.comments + (v.comments_count || 0),
+        }),
+        { views: 0, watchTime: 0, likes: 0, comments: 0 }
+      );
+
+      setStats({
+        totalViews: totals.views,
+        totalWatchTime: totals.watchTime,
+        totalSubscribers: subscriberCount || 0,
+        totalLikes: totals.likes,
+        totalComments: totals.comments,
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
-
-    const fetchStats = async () => {
-      try {
-        // Get subscriber count
-        const { count: subscriberCount } = await supabase
-          .from('subscriptions')
-          .select('*', { count: 'exact', head: true })
-          .eq('channel_id', profile?.id);
-
-        // Calculate totals from videos
-        const totals = myVideos.reduce(
-          (acc, v) => ({
-            views: acc.views + (v.views || 0),
-            watchTime: acc.watchTime + (v.watch_time || 0),
-            likes: acc.likes + (v.likes_count || 0),
-            comments: acc.comments + (v.comments_count || 0),
-          }),
-          { views: 0, watchTime: 0, likes: 0, comments: 0 }
-        );
-
-        setStats({
-          totalViews: totals.views,
-          totalWatchTime: totals.watchTime,
-          totalSubscribers: subscriberCount || 0,
-          totalLikes: totals.likes,
-          totalComments: totals.comments,
-        });
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
+    setLoading(true);
     fetchStats();
-  }, [user, profile, myVideos]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, profile?.id, myVideos]);
+
+  // Realtime: refresh subscriber count immediately when someone subscribes/unsubscribes
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    const channel = supabase
+      .channel(`studio-subs:${profile.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'subscriptions',
+          filter: `channel_id=eq.${profile.id}`,
+        },
+        () => {
+          fetchStats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id]);
 
   const formatWatchTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);

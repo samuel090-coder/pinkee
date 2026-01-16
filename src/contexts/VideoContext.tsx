@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -12,6 +12,23 @@ export interface PosterProfile {
   email: string | null;
   whatsapp: string | null;
   telegram: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserProfile {
+  id: string;
+  user_id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  banner_url: string | null;
+  bio: string | null;
+  channel_name: string | null;
+  channel_description: string | null;
+  is_verified: boolean | null;
+  subscriber_count: number | null;
+  total_views: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -37,6 +54,7 @@ export interface Video {
   ad_frequency: number;
   poster_id: string | null;
   poster?: PosterProfile | null;
+  uploader_profile?: UserProfile | null;
   // New fields for YouTube-like features
   uploader_id: string | null;
   status: string | null;
@@ -111,8 +129,20 @@ export function VideoProvider({ children }: { children: ReactNode }) {
   const [adminSettings, setAdminSettings] = useState<AdminSettings | null>(null);
   const [adCodes, setAdCodes] = useState<AdCode[]>([]);
   const [posterProfiles, setPosterProfiles] = useState<PosterProfile[]>([]);
+  const [userProfiles, setUserProfiles] = useState<UserProfile[]>([]);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const posterProfilesRef = useRef<PosterProfile[]>([]);
+  const userProfilesRef = useRef<UserProfile[]>([]);
+
+  useEffect(() => {
+    posterProfilesRef.current = posterProfiles;
+  }, [posterProfiles]);
+
+  useEffect(() => {
+    userProfilesRef.current = userProfiles;
+  }, [userProfiles]);
 
   const analytics: Analytics = {
     totalViews: videos.reduce((sum, v) => sum + v.views, 0),
@@ -121,81 +151,120 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     videosCount: videos.length,
   };
 
-  const refreshPosterProfiles = async () => {
+  const refreshPosterProfiles = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('poster_profiles')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
-      setPosterProfiles(data || []);
+      const next = (data || []) as PosterProfile[];
+      posterProfilesRef.current = next;
+      setPosterProfiles(next);
     } catch (error) {
       console.error('Error fetching poster profiles:', error);
     }
-  };
+  }, []);
 
-  const refreshVideos = async () => {
+  const refreshUserProfiles = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      const next = (data || []) as UserProfile[];
+      userProfilesRef.current = next;
+      setUserProfiles(next);
+    } catch (error) {
+      console.error('Error fetching user profiles:', error);
+    }
+  }, []);
+
+  const refreshVideos = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('videos')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
-      
-      // Attach poster profiles to videos
-      const videosWithPosters = (data || []).map(video => ({
+
+      const posters = posterProfilesRef.current;
+      const profiles = userProfilesRef.current;
+
+      const videosWithOwners = (data || []).map((video: any) => ({
         ...video,
-        poster: posterProfiles.find(p => p.id === video.poster_id) || null
+        poster: posters.find(p => p.id === video.poster_id) || null,
+        uploader_profile: profiles.find(p => p.user_id === video.uploader_id) || null,
       }));
-      
-      setVideos(videosWithPosters as Video[]);
+
+      setVideos(videosWithOwners as Video[]);
     } catch (error) {
       console.error('Error fetching videos:', error);
     }
-  };
+  }, []);
 
-  const refreshSettings = async () => {
+  const refreshSettings = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('admin_settings')
         .select('*')
         .limit(1)
         .maybeSingle();
-      
+
       if (error) throw error;
       setAdminSettings(data);
     } catch (error) {
       console.error('Error fetching admin settings:', error);
     }
-  };
+  }, []);
 
-  const refreshAdCodes = async () => {
+  const refreshAdCodes = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('ad_codes')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       setAdCodes(data || []);
     } catch (error) {
       console.error('Error fetching ad codes:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const init = async () => {
       setLoading(true);
-      await refreshPosterProfiles();
-      await Promise.all([refreshVideos(), refreshSettings(), refreshAdCodes()]);
+      await Promise.all([refreshPosterProfiles(), refreshUserProfiles(), refreshSettings(), refreshAdCodes()]);
+      await refreshVideos();
       setLoading(false);
     };
     init();
-  }, []);
+  }, [refreshPosterProfiles, refreshUserProfiles, refreshSettings, refreshAdCodes, refreshVideos]);
 
-  const uploadFile = async (file: File, bucket: 'videos' | 'thumbnails' | 'avatars'): Promise<string | null> => {
+  // Realtime: keep in-memory videos fresh for Studio + feeds
+  useEffect(() => {
+    const channel = supabase
+      .channel('realtime:videos')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'videos' },
+        () => {
+          refreshVideos();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refreshVideos]);
+
+  const uploadFile = async (file: File, bucket: 'videos' | 'thumbnails' | 'avatars' | 'notification-images'): Promise<string | null> => {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -302,17 +371,21 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         .from('videos')
         .insert({
           title: video.title || 'Untitled',
-          description: video.description,
-          thumbnail_url: video.thumbnail_url,
-          video_url: video.video_url,
+          description: video.description ?? null,
+          thumbnail_url: video.thumbnail_url ?? null,
+          video_url: video.video_url ?? null,
           duration: video.duration || 0,
           is_subscription_only: video.is_subscription_only || false,
-          cta_link: video.cta_link,
-          cta_text: video.cta_text,
+          cta_link: video.cta_link ?? null,
+          cta_text: video.cta_text ?? null,
           is_published: video.is_published !== false,
           ad_frequency: video.ad_frequency || 5,
-          published_at: video.published_at,
-          poster_id: video.poster_id,
+          published_at: video.published_at ?? null,
+          poster_id: video.poster_id ?? null,
+          uploader_id: video.uploader_id ?? null,
+          category: video.category ?? null,
+          tags: video.tags ?? null,
+          status: video.status ?? 'published',
         })
         .select()
         .single();

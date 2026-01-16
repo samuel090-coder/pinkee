@@ -7,6 +7,9 @@ import { VideoProvider } from "@/contexts/VideoContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationPrompt } from "@/components/NotificationPrompt";
 import Index from "./pages/Index";
+import Explore from "./pages/Explore";
+import ExploreCategory from "./pages/ExploreCategory";
+import Shorts from "./pages/Shorts";
 import Subscribe from "./pages/Subscribe";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
@@ -18,7 +21,13 @@ import Studio from "./pages/Studio";
 import Search from "./pages/Search";
 import Settings from "./pages/Settings";
 import History from "./pages/History";
+import Playlists from "./pages/Playlists";
+import PlaylistDetail from "./pages/PlaylistDetail";
+import WatchLater from "./pages/WatchLater";
+import LikedVideos from "./pages/LikedVideos";
 import Subscriptions from "./pages/Subscriptions";
+import Report from "./pages/Report";
+import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,7 +44,26 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+
+              <Route path="/explore" element={<Explore />} />
+              <Route path="/shorts" element={<Shorts />} />
+              <Route path="/trending" element={<ExploreCategory title="Trending" sort="views" />} />
+              <Route path="/music" element={<ExploreCategory title="Music" category="Music" />} />
+              <Route path="/gaming" element={<ExploreCategory title="Gaming" category="Gaming" />} />
+              <Route path="/news" element={<ExploreCategory title="News" category="News & Politics" />} />
+              <Route path="/sports" element={<ExploreCategory title="Sports" category="Sports" />} />
+              <Route path="/learning" element={<ExploreCategory title="Learning" category="Education" />} />
+              <Route path="/podcasts" element={<ExploreCategory title="Podcasts" category="Podcasts" />} />
+
               <Route path="/subscribe" element={<Subscribe />} />
+              <Route path="/subscriptions" element={<Subscriptions />} />
+              <Route path="/history" element={<History />} />
+
+              <Route path="/playlists" element={<Playlists />} />
+              <Route path="/playlists/:id" element={<PlaylistDetail />} />
+              <Route path="/watch-later" element={<WatchLater />} />
+              <Route path="/liked" element={<LikedVideos />} />
+
               <Route path="/admin" element={<Admin />} />
               <Route path="/poster/:id" element={<PosterProfile />} />
               <Route path="/watch/:id" element={<Watch />} />
@@ -44,8 +72,9 @@ const App = () => (
               <Route path="/studio" element={<Studio />} />
               <Route path="/search" element={<Search />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/history" element={<History />} />
-              <Route path="/subscriptions" element={<Subscriptions />} />
+              <Route path="/report" element={<Report />} />
+              <Route path="/help" element={<Help />} />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
