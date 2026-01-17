@@ -249,6 +249,7 @@ const Search = () => {
         )}
 
         {/* Results */}
+        {searchResults.length > 0 ? (
           <div className="space-y-4">
             {searchResults.map((video, i) => (
               <motion.div
@@ -261,7 +262,7 @@ const Search = () => {
               </motion.div>
             ))}
           </div>
-        ) : (
+        ) : query.trim() ? (
           <div className="text-center py-16">
             <SearchIcon className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-foreground mb-2">No results found</h2>
@@ -269,7 +270,7 @@ const Search = () => {
               Try different keywords or remove search filters
             </p>
           </div>
-        )}
+        ) : null}
       </div>
     </MainLayout>
   );

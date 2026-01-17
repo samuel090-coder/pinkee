@@ -67,6 +67,22 @@ export const CommentSection = ({ videoId }: CommentSectionProps) => {
 
   useEffect(() => {
     fetchComments();
+
+    // Realtime subscription for new comments
+    const channel = supabase
+      .channel(`comments:${videoId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'comments', filter: `video_id=eq.${videoId}` },
+        () => {
+          fetchComments();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [videoId, sortBy]);
 
   const fetchComments = async () => {

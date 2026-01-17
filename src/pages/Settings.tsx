@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -14,6 +14,8 @@ import {
   Loader2,
   Check,
   Save,
+  Star,
+  Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,15 +32,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVideo } from '@/contexts/VideoContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+interface CreatorRequest {
+  id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reason: string;
+  created_at: string;
+  admin_notes?: string;
+}
+
 const Settings = () => {
   const navigate = useNavigate();
-  const { user, profile, updateProfile, signOut, refreshProfile } = useAuth();
+  const { user, profile, updateProfile, signOut, refreshProfile, isCreator, isAdmin } = useAuth();
   const { uploadFile } = useVideo();
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -61,6 +72,29 @@ const Settings = () => {
   const [autoplay, setAutoplay] = useState(true);
   const [restrictedMode, setRestrictedMode] = useState(false);
   const [showWatchHistory, setShowWatchHistory] = useState(true);
+
+  // Creator request
+  const [creatorRequest, setCreatorRequest] = useState<CreatorRequest | null>(null);
+  const [requestReason, setRequestReason] = useState('');
+  const [portfolioUrl, setPortfolioUrl] = useState('');
+  const [submittingRequest, setSubmittingRequest] = useState(false);
+
+  useEffect(() => {
+    const fetchCreatorRequest = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('creator_requests')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      setCreatorRequest(data as CreatorRequest | null);
+    };
+
+    fetchCreatorRequest();
+  }, [user]);
 
   if (!user) {
     navigate('/auth');
@@ -149,15 +183,43 @@ const Settings = () => {
     navigate('/');
   };
 
+  const handleCreatorRequest = async () => {
+    if (!requestReason.trim()) {
+      toast({ title: 'Please provide a reason', variant: 'destructive' });
+      return;
+    }
+
+    setSubmittingRequest(true);
+    try {
+      const { data, error } = await supabase.from('creator_requests').insert({
+        user_id: user.id,
+        reason: requestReason.trim(),
+        portfolio_url: portfolioUrl.trim() || null,
+      }).select().single();
+
+      if (error) throw error;
+      setCreatorRequest(data as CreatorRequest);
+      setRequestReason('');
+      setPortfolioUrl('');
+      toast({ title: 'Request submitted!', description: 'We will review your application soon.' });
+    } catch (e: any) {
+      console.error('Error submitting request:', e);
+      toast({ title: 'Error', description: e?.message || 'Failed to submit request', variant: 'destructive' });
+    } finally {
+      setSubmittingRequest(false);
+    }
+  };
+
   return (
     <MainLayout>
       <div className="container max-w-4xl mx-auto px-4 py-6">
         <h1 className="text-2xl font-bold text-foreground mb-6">Settings</h1>
 
         <Tabs defaultValue="account" className="space-y-6">
-          <TabsList className="bg-secondary">
+          <TabsList className="bg-secondary flex-wrap">
             <TabsTrigger value="account">Account</TabsTrigger>
             <TabsTrigger value="channel">Channel</TabsTrigger>
+            <TabsTrigger value="creator">Creator</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="playback">Playback</TabsTrigger>
             <TabsTrigger value="privacy">Privacy</TabsTrigger>
@@ -348,6 +410,94 @@ const Settings = () => {
                   )}
                   Save Channel Settings
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Creator Access */}
+          <TabsContent value="creator">
+            <Card className="bg-card border-border">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="w-5 h-5" />
+                  Creator Access
+                </CardTitle>
+                <CardDescription>
+                  Become a creator to upload videos and sell music
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {isCreator ? (
+                  <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                    <Check className="w-6 h-6 text-green-500" />
+                    <div>
+                      <p className="font-medium text-foreground">You're a Creator!</p>
+                      <p className="text-sm text-muted-foreground">
+                        You can upload videos and sell music on the marketplace.
+                      </p>
+                    </div>
+                  </div>
+                ) : creatorRequest?.status === 'pending' ? (
+                  <div className="flex items-center gap-3 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                    <Clock className="w-6 h-6 text-yellow-500" />
+                    <div>
+                      <p className="font-medium text-foreground">Request Pending</p>
+                      <p className="text-sm text-muted-foreground">
+                        Your creator access request is being reviewed.
+                      </p>
+                    </div>
+                  </div>
+                ) : creatorRequest?.status === 'rejected' ? (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                      <p className="font-medium text-foreground">Request Declined</p>
+                      {creatorRequest.admin_notes && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Reason: {creatorRequest.admin_notes}
+                        </p>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      You can submit a new request below.
+                    </p>
+                  </div>
+                ) : null}
+
+                {!isCreator && creatorRequest?.status !== 'pending' && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="reason">Why do you want to become a creator? *</Label>
+                      <Textarea
+                        id="reason"
+                        value={requestReason}
+                        onChange={(e) => setRequestReason(e.target.value)}
+                        className="bg-input border-border min-h-[120px]"
+                        placeholder="Tell us about yourself and what kind of content you plan to create..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="portfolio">Portfolio URL (optional)</Label>
+                      <Input
+                        id="portfolio"
+                        value={portfolioUrl}
+                        onChange={(e) => setPortfolioUrl(e.target.value)}
+                        className="bg-input border-border"
+                        placeholder="https://your-portfolio.com"
+                      />
+                    </div>
+                    <Button
+                      onClick={handleCreatorRequest}
+                      disabled={submittingRequest || !requestReason.trim()}
+                    >
+                      {submittingRequest ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <Star className="w-4 h-4 mr-2" />
+                      )}
+                      Submit Request
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

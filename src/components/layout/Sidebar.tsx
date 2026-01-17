@@ -177,7 +177,8 @@ export const Sidebar = ({ isExpanded, onToggle }: SidebarProps) => {
             {/* Explore Section */}
             <SectionTitle title="Explore" isExpanded={isExpanded} />
             <NavItem to="/trending" icon={<Flame className="w-full h-full" />} label="Trending" isExpanded={isExpanded} />
-            <NavItem to="/music" icon={<Music2 className="w-full h-full" />} label="Music" isExpanded={isExpanded} />
+            <NavItem to="/channels" icon={<Users className="w-full h-full" />} label="Channels" isExpanded={isExpanded} />
+            <NavItem to="/music-marketplace" icon={<Music2 className="w-full h-full" />} label="Music Store" isExpanded={isExpanded} />
             <NavItem to="/gaming" icon={<Gamepad2 className="w-full h-full" />} label="Gaming" isExpanded={isExpanded} />
             <NavItem to="/news" icon={<Newspaper className="w-full h-full" />} label="News" isExpanded={isExpanded} />
             <NavItem to="/sports" icon={<Trophy className="w-full h-full" />} label="Sports" isExpanded={isExpanded} />

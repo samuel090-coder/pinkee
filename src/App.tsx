@@ -17,6 +17,7 @@ import PosterProfile from "./pages/PosterProfile";
 import Watch from "./pages/Watch";
 import Upload from "./pages/Upload";
 import Channel from "./pages/Channel";
+import Channels from "./pages/Channels";
 import Studio from "./pages/Studio";
 import Search from "./pages/Search";
 import Settings from "./pages/Settings";
@@ -28,6 +29,8 @@ import LikedVideos from "./pages/LikedVideos";
 import Subscriptions from "./pages/Subscriptions";
 import Report from "./pages/Report";
 import Help from "./pages/Help";
+import MusicMarketplace from "./pages/MusicMarketplace";
+import MusicUpload from "./pages/MusicUpload";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -69,11 +72,16 @@ const App = () => (
               <Route path="/watch/:id" element={<Watch />} />
               <Route path="/upload" element={<Upload />} />
               <Route path="/channel/:id" element={<Channel />} />
+              <Route path="/channels" element={<Channels />} />
               <Route path="/studio" element={<Studio />} />
               <Route path="/search" element={<Search />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/report" element={<Report />} />
               <Route path="/help" element={<Help />} />
+
+              {/* Music Marketplace */}
+              <Route path="/music-marketplace" element={<MusicMarketplace />} />
+              <Route path="/music/upload" element={<MusicUpload />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

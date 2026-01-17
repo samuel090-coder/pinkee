@@ -207,6 +207,143 @@ export type Database = {
           },
         ]
       }
+      creator_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          id: string
+          portfolio_url: string | null
+          reason: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          portfolio_url?: string | null
+          reason: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          portfolio_url?: string | null
+          reason?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      music_licenses: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          id: string
+          license_type: string
+          price_paid: number
+          track_id: string
+          transaction_id: string | null
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          id?: string
+          license_type: string
+          price_paid: number
+          track_id: string
+          transaction_id?: string | null
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          license_type?: string
+          price_paid?: number
+          track_id?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "music_licenses_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "music_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      music_tracks: {
+        Row: {
+          artist_name: string | null
+          audio_url: string
+          bpm: number | null
+          cover_url: string | null
+          created_at: string
+          creator_id: string
+          description: string | null
+          downloads_count: number | null
+          duration: number | null
+          genre: string | null
+          id: string
+          is_published: boolean | null
+          key: string | null
+          license_type: string
+          price: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          artist_name?: string | null
+          audio_url: string
+          bpm?: number | null
+          cover_url?: string | null
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          downloads_count?: number | null
+          duration?: number | null
+          genre?: string | null
+          id?: string
+          is_published?: boolean | null
+          key?: string | null
+          license_type?: string
+          price?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          artist_name?: string | null
+          audio_url?: string
+          bpm?: number | null
+          cover_url?: string | null
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          downloads_count?: number | null
+          duration?: number | null
+          genre?: string | null
+          id?: string
+          is_published?: boolean | null
+          key?: string | null
+          license_type?: string
+          price?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string
