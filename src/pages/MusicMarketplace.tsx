@@ -40,7 +40,7 @@ interface MusicTrack {
 }
 
 const MusicMarketplace = () => {
-  const { user, isCreator } = useAuth();
+  const { user } = useAuth();
   const [tracks, setTracks] = useState<MusicTrack[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -174,7 +174,7 @@ const MusicMarketplace = () => {
               <Music className="w-5 h-5 text-muted-foreground" />
               <h1 className="text-2xl font-bold text-foreground">Music Marketplace</h1>
             </div>
-            {isCreator && (
+            {user && (
               <Link to="/music/upload">
                 <Button>
                   <Plus className="w-4 h-4 mr-2" />
