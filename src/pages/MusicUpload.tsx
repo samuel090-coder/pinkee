@@ -172,20 +172,7 @@ const MusicUpload = () => {
     );
   }
 
-  if (!isCreator) {
-    return (
-      <MainLayout>
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-          <Music className="w-16 h-16 text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-semibold text-foreground mb-2">Creator Access Required</h2>
-          <p className="text-muted-foreground mb-6">You need creator privileges to sell music</p>
-          <Button onClick={() => navigate('/settings')} variant="secondary">
-            Request Creator Access
-          </Button>
-        </div>
-      </MainLayout>
-    );
-  }
+  // No restrictions - all users can upload music
 
   return (
     <MainLayout>

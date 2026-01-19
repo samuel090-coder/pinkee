@@ -15,7 +15,6 @@ import {
   Newspaper,
   Trophy,
   Lightbulb,
-  ShoppingBag,
   Film,
   Radio,
   Settings,
@@ -26,6 +25,7 @@ import {
   Upload,
   Users,
   Shield,
+  DollarSign,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -95,7 +95,7 @@ const SectionTitle = ({ title, isExpanded }: { title: string; isExpanded: boolea
 );
 
 export const Sidebar = ({ isExpanded, onToggle }: SidebarProps) => {
-  const { user, profile, isAdmin, isModerator, isCreator } = useAuth();
+  const { user, isModerator } = useAuth();
 
   return (
     <>
@@ -153,14 +153,11 @@ export const Sidebar = ({ isExpanded, onToggle }: SidebarProps) => {
                 <NavItem to="/watch-later" icon={<Clock className="w-full h-full" />} label="Watch Later" isExpanded={isExpanded} />
                 <NavItem to="/liked" icon={<ThumbsUp className="w-full h-full" />} label="Liked Videos" isExpanded={isExpanded} />
 
-                {(isCreator || isAdmin) && (
-                  <>
-                    {isExpanded && <Separator className="my-4 bg-border" />}
-                    <SectionTitle title="Creator" isExpanded={isExpanded} />
-                    <NavItem to="/upload" icon={<Upload className="w-full h-full" />} label="Upload" isExpanded={isExpanded} />
-                    <NavItem to="/studio" icon={<Film className="w-full h-full" />} label="Studio" isExpanded={isExpanded} />
-                  </>
-                )}
+                {isExpanded && <Separator className="my-4 bg-border" />}
+                <SectionTitle title="Creator" isExpanded={isExpanded} />
+                <NavItem to="/upload" icon={<Upload className="w-full h-full" />} label="Upload" isExpanded={isExpanded} />
+                <NavItem to="/studio" icon={<Film className="w-full h-full" />} label="Studio" isExpanded={isExpanded} />
+                <NavItem to="/studio/music" icon={<DollarSign className="w-full h-full" />} label="Music Earnings" isExpanded={isExpanded} />
 
                 {isModerator && (
                   <>

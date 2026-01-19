@@ -291,9 +291,7 @@ export const CommentSection = ({ videoId }: CommentSectionProps) => {
   };
 
   const CommentCard = ({ comment, isReply = false }: { comment: Comment; isReply?: boolean }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       className={`flex gap-3 ${isReply ? 'ml-12' : ''}`}
     >
       <Avatar className="w-10 h-10 flex-shrink-0">
@@ -464,7 +462,7 @@ export const CommentSection = ({ videoId }: CommentSectionProps) => {
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 
   return (

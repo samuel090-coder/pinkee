@@ -77,6 +77,50 @@ export type Database = {
         }
         Relationships: []
       }
+      artist_earnings: {
+        Row: {
+          artist_id: string
+          created_at: string
+          id: string
+          last_payout_at: string | null
+          pending_withdrawal: number
+          total_earned: number
+          track_id: string
+          updated_at: string
+          usage_count: number
+        }
+        Insert: {
+          artist_id: string
+          created_at?: string
+          id?: string
+          last_payout_at?: string | null
+          pending_withdrawal?: number
+          total_earned?: number
+          track_id: string
+          updated_at?: string
+          usage_count?: number
+        }
+        Update: {
+          artist_id?: string
+          created_at?: string
+          id?: string
+          last_payout_at?: string | null
+          pending_withdrawal?: number
+          total_earned?: number
+          track_id?: string
+          updated_at?: string
+          usage_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_earnings_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "music_tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comment_likes: {
         Row: {
           comment_id: string
@@ -654,6 +698,45 @@ export type Database = {
           },
         ]
       }
+      sound_usages: {
+        Row: {
+          created_at: string
+          creator_id: string
+          id: string
+          track_id: string
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          id?: string
+          track_id: string
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          id?: string
+          track_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sound_usages_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "music_tracks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sound_usages_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           channel_id: string
@@ -707,6 +790,42 @@ export type Database = {
           id?: string
           user_id?: string
           weight?: number | null
+        }
+        Relationships: []
+      }
+      user_notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_read: boolean
+          link: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_read?: boolean
+          link?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_read?: boolean
+          link?: string | null
+          title?: string
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -949,6 +1068,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      withdrawal_requests: {
+        Row: {
+          account_name: string | null
+          account_number: string | null
+          admin_notes: string | null
+          amount: number
+          artist_id: string
+          bank_name: string | null
+          created_at: string
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_name?: string | null
+          account_number?: string | null
+          admin_notes?: string | null
+          amount: number
+          artist_id: string
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string | null
+          account_number?: string | null
+          admin_notes?: string | null
+          amount?: number
+          artist_id?: string
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {
