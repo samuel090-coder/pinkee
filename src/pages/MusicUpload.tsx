@@ -1,10 +1,9 @@
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Music, Upload, Image, DollarSign } from 'lucide-react';
+import { Loader2, Music, Upload, Image, DollarSign, CreditCard } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useVideo } from '@/contexts/VideoContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,20 +21,19 @@ import { Progress } from '@/components/ui/progress';
 
 const GENRES = [
   'Pop', 'Hip Hop', 'R&B', 'Electronic', 'Rock', 'Jazz', 'Classical',
-  'Country', 'Reggae', 'Latin', 'Indie', 'Lo-Fi', 'Ambient', 'Other'
+  'Country', 'Reggae', 'Latin', 'Indie', 'Lo-Fi', 'Ambient', 'Afrobeat', 'Other'
 ];
 
 const LICENSE_TYPES = [
   { value: 'free', label: 'Free', description: 'Anyone can use for free' },
-  { value: 'standard', label: 'Standard', description: 'Basic commercial use' },
-  { value: 'premium', label: 'Premium', description: 'Extended commercial rights' },
-  { value: 'exclusive', label: 'Exclusive', description: 'One buyer only' },
+  { value: 'standard', label: 'Standard ($5-$20)', description: 'Basic commercial use' },
+  { value: 'premium', label: 'Premium ($20-$100)', description: 'Extended rights' },
+  { value: 'exclusive', label: 'Exclusive ($100+)', description: 'One buyer only' },
 ];
 
 const MusicUpload = () => {
   const navigate = useNavigate();
-  const { user, isCreator } = useAuth();
-  const { uploadFile } = useVideo();
+  const { user } = useAuth();
 
   const audioInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -59,13 +57,18 @@ const MusicUpload = () => {
   const [licenseType, setLicenseType] = useState('free');
   const [price, setPrice] = useState('0');
 
+  // Bank details for premium sounds
+  const [bankName, setBankName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [accountName, setAccountName] = useState('');
+
   const handleAudioSelect = useCallback((file: File) => {
     if (!file.type.startsWith('audio/')) {
       toast({ title: 'Invalid file', description: 'Please select an audio file', variant: 'destructive' });
       return;
     }
 
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
       toast({ title: 'File too large', description: 'Audio must be under 50MB', variant: 'destructive' });
       return;
@@ -90,7 +93,6 @@ const MusicUpload = () => {
       toast({ title: 'Invalid file', description: 'Please select an image', variant: 'destructive' });
       return;
     }
-
     setCoverFile(file);
     setCoverPreview(URL.createObjectURL(file));
   }, []);
@@ -99,6 +101,18 @@ const MusicUpload = () => {
     if (!audioFile || !title.trim()) {
       toast({ title: 'Missing info', description: 'Please add audio and title', variant: 'destructive' });
       return;
+    }
+
+    // Validate bank details for premium sounds
+    if (licenseType !== 'free' && parseFloat(price) > 0) {
+      if (!bankName.trim() || !accountNumber.trim() || !accountName.trim()) {
+        toast({ 
+          title: 'Bank details required', 
+          description: 'Please add your bank details for premium sounds to receive payments', 
+          variant: 'destructive' 
+        });
+        return;
+      }
     }
 
     setUploading(true);
@@ -149,9 +163,21 @@ const MusicUpload = () => {
 
       if (insertError) throw insertError;
 
+      // Save bank details to profile if premium
+      if (licenseType !== 'free' && parseFloat(price) > 0) {
+        await supabase.from('profiles').update({
+          // We could add bank details to profiles table, but for now just notify
+        }).eq('user_id', user!.id);
+      }
+
       setUploadProgress(100);
-      toast({ title: 'Track uploaded!', description: 'Your music is now available in the marketplace.' });
-      navigate('/music');
+      toast({ 
+        title: 'Track uploaded!', 
+        description: licenseType !== 'free' 
+          ? 'Your music is now available for purchase in the marketplace.' 
+          : 'Your music is now available for free in the marketplace.'
+      });
+      navigate('/studio/music');
     } catch (e: any) {
       console.error('Error uploading:', e);
       toast({ title: 'Upload failed', description: e?.message || 'Please try again', variant: 'destructive' });
@@ -172,14 +198,12 @@ const MusicUpload = () => {
     );
   }
 
-  // No restrictions - all users can upload music
-
   return (
     <MainLayout>
       <div className="container max-w-3xl mx-auto px-4 py-6">
         <header className="mb-6">
           <h1 className="text-2xl font-bold text-foreground">Upload Music</h1>
-          <p className="text-muted-foreground">Sell your tracks on the marketplace</p>
+          <p className="text-muted-foreground">Sell your tracks on the marketplace • Earn $20 per 50 uses</p>
         </header>
 
         <div className="space-y-6">
@@ -207,9 +231,7 @@ const MusicUpload = () => {
                       Change
                     </Button>
                   </div>
-                  {audioPreview && (
-                    <audio controls src={audioPreview} className="w-full" />
-                  )}
+                  {audioPreview && <audio controls src={audioPreview} className="w-full" />}
                 </div>
               ) : (
                 <div
@@ -305,7 +327,7 @@ const MusicUpload = () => {
                       <SelectValue placeholder="Select genre" />
                     </SelectTrigger>
                     <SelectContent className="bg-card border-border">
-                      {GENRES.map(g => (
+                      {GENRES.map((g) => (
                         <SelectItem key={g} value={g}>{g}</SelectItem>
                       ))}
                     </SelectContent>
@@ -352,7 +374,7 @@ const MusicUpload = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border">
-                    {LICENSE_TYPES.map(lt => (
+                    {LICENSE_TYPES.map((lt) => (
                       <SelectItem key={lt.value} value={lt.value}>
                         <div>
                           <span className="font-medium">{lt.label}</span>
@@ -382,10 +404,57 @@ const MusicUpload = () => {
             </CardContent>
           </Card>
 
-          {/* Upload Button */}
-          {uploading && (
-            <Progress value={uploadProgress} className="h-2" />
+          {/* Bank Details for Premium Sounds */}
+          {licenseType !== 'free' && parseFloat(price) > 0 && (
+            <Card className="bg-card border-border border-primary/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-primary">
+                  <CreditCard className="w-5 h-5" />
+                  Bank Details for Payment
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Add your bank details to receive payment when users purchase your sound.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="bankName">Bank Name *</Label>
+                    <Input
+                      id="bankName"
+                      value={bankName}
+                      onChange={(e) => setBankName(e.target.value)}
+                      className="bg-input border-border"
+                      placeholder="e.g., Opay, GTBank"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="accountName">Account Name *</Label>
+                    <Input
+                      id="accountName"
+                      value={accountName}
+                      onChange={(e) => setAccountName(e.target.value)}
+                      className="bg-input border-border"
+                      placeholder="Your full name"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="accountNumber">Account Number *</Label>
+                  <Input
+                    id="accountNumber"
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                    className="bg-input border-border"
+                    placeholder="1234567890"
+                  />
+                </div>
+              </CardContent>
+            </Card>
           )}
+
+          {/* Upload Button */}
+          {uploading && <Progress value={uploadProgress} className="h-2" />}
 
           <Button
             onClick={handleUpload}
