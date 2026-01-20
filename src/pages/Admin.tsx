@@ -4,7 +4,8 @@ import {
   Lock, Eye, EyeOff, LogOut, LayoutDashboard, Video, Settings, 
   BarChart3, Plus, Trash2, Edit, Save, X, Calendar,
   Download, Play, Heart, Clock, TrendingUp, CreditCard, Loader2, Megaphone,
-  User, Users, MapPin, Mail, MessageCircle, Send, Bell, Image, Wand2
+  User, Users, MapPin, Mail, MessageCircle, Send, Bell, Image, Wand2,
+  Wallet, CheckCircle, AlertCircle, Ban
 } from 'lucide-react';
 import { useVideo, Video as VideoType, AdCode, PosterProfile } from '@/contexts/VideoContext';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,8 @@ import { toast } from '@/hooks/use-toast';
 import { FileUpload } from '@/components/FileUpload';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { Badge } from '@/components/ui/badge';
+import { formatDistanceToNow } from 'date-fns';
 
 interface Notification {
   id: string;
@@ -88,6 +91,23 @@ const Admin = () => {
     image_url: '',
     link: '',
   });
+
+  // Withdrawal states
+  interface WithdrawalRequest {
+    id: string;
+    artist_id: string;
+    amount: number;
+    status: string;
+    bank_name: string | null;
+    account_number: string | null;
+    account_name: string | null;
+    admin_notes: string | null;
+    created_at: string;
+    artist_profile?: { display_name: string | null; username: string | null; avatar_url: string | null };
+  }
+  const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
+  const [loadingWithdrawals, setLoadingWithdrawals] = useState(false);
+  const [processingWithdrawal, setProcessingWithdrawal] = useState<string | null>(null);
   
   const [newVideo, setNewVideo] = useState({
     title: '',
@@ -126,7 +146,7 @@ const Admin = () => {
     }
   }, [adminSettings]);
 
-  // Fetch notifications and subscriber count
+  // Fetch notifications, subscriber count, and withdrawals
   useEffect(() => {
     const fetchNotifications = async () => {
       const { data } = await supabase
@@ -143,11 +163,146 @@ const Admin = () => {
       setSubscriberCount(count || 0);
     };
 
+    const fetchWithdrawals = async () => {
+      setLoadingWithdrawals(true);
+      try {
+        const { data, error } = await supabase
+          .from('withdrawal_requests')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Get artist profiles
+        const artistIds = [...new Set((data || []).map((w: any) => w.artist_id))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, display_name, username, avatar_url')
+          .in('user_id', artistIds);
+
+        const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
+        
+        setWithdrawals((data || []).map((w: any) => ({
+          ...w,
+          artist_profile: profileMap.get(w.artist_id),
+        })));
+      } catch (e) {
+        console.error('Error fetching withdrawals:', e);
+      } finally {
+        setLoadingWithdrawals(false);
+      }
+    };
+
     if (isAdminAuthenticated) {
       fetchNotifications();
       fetchSubscriberCount();
+      fetchWithdrawals();
     }
   }, [isAdminAuthenticated]);
+
+  const handleApproveWithdrawal = async (id: string) => {
+    setProcessingWithdrawal(id);
+    try {
+      const { error } = await supabase
+        .from('withdrawal_requests')
+        .update({ status: 'approved', reviewed_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setWithdrawals(prev => prev.map(w => 
+        w.id === id ? { ...w, status: 'approved' } : w
+      ));
+
+      toast({ title: 'Approved', description: 'Withdrawal request approved. Process the payment.' });
+    } catch (e: any) {
+      toast({ title: 'Error', description: e?.message, variant: 'destructive' });
+    } finally {
+      setProcessingWithdrawal(null);
+    }
+  };
+
+  const handleCompleteWithdrawal = async (id: string) => {
+    setProcessingWithdrawal(id);
+    try {
+      const { error } = await supabase
+        .from('withdrawal_requests')
+        .update({ status: 'completed', reviewed_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setWithdrawals(prev => prev.map(w => 
+        w.id === id ? { ...w, status: 'completed' } : w
+      ));
+
+      // Send notification to artist
+      const withdrawal = withdrawals.find(w => w.id === id);
+      if (withdrawal) {
+        await supabase.from('user_notifications').insert({
+          user_id: withdrawal.artist_id,
+          type: 'withdrawal',
+          title: 'Withdrawal Complete! 💰',
+          body: `Your withdrawal of $${withdrawal.amount.toFixed(2)} has been processed and sent to your bank.`,
+        });
+      }
+
+      toast({ title: 'Completed', description: 'Withdrawal marked as completed. Artist notified.' });
+    } catch (e: any) {
+      toast({ title: 'Error', description: e?.message, variant: 'destructive' });
+    } finally {
+      setProcessingWithdrawal(null);
+    }
+  };
+
+  const handleRejectWithdrawal = async (id: string) => {
+    setProcessingWithdrawal(id);
+    try {
+      const { error } = await supabase
+        .from('withdrawal_requests')
+        .update({ status: 'rejected', reviewed_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Refund the pending amount back to artist
+      const withdrawal = withdrawals.find(w => w.id === id);
+      if (withdrawal) {
+        // Update artist earnings to refund the amount
+        const { data: earnings } = await supabase
+          .from('artist_earnings')
+          .select('id, pending_withdrawal')
+          .eq('artist_id', withdrawal.artist_id)
+          .limit(1)
+          .single();
+
+        if (earnings) {
+          await supabase
+            .from('artist_earnings')
+            .update({ pending_withdrawal: earnings.pending_withdrawal + withdrawal.amount })
+            .eq('id', earnings.id);
+        }
+
+        // Notify artist
+        await supabase.from('user_notifications').insert({
+          user_id: withdrawal.artist_id,
+          type: 'withdrawal',
+          title: 'Withdrawal Rejected',
+          body: `Your withdrawal request of $${withdrawal.amount.toFixed(2)} was rejected. The amount has been refunded to your balance.`,
+        });
+      }
+
+      setWithdrawals(prev => prev.map(w => 
+        w.id === id ? { ...w, status: 'rejected' } : w
+      ));
+
+      toast({ title: 'Rejected', description: 'Withdrawal rejected. Amount refunded to artist.' });
+    } catch (e: any) {
+      toast({ title: 'Error', description: e?.message, variant: 'destructive' });
+    } finally {
+      setProcessingWithdrawal(null);
+    }
+  };
 
   const handleSendNotification = async () => {
     if (!newNotification.title || !newNotification.body) {
@@ -467,6 +622,15 @@ const Admin = () => {
             <TabsTrigger value="posters" className="gap-2">
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Posters</span>
+            </TabsTrigger>
+            <TabsTrigger value="withdrawals" className="gap-2 relative">
+              <Wallet className="w-4 h-4" />
+              <span className="hidden sm:inline">Withdrawals</span>
+              {withdrawals.filter(w => w.status === 'pending').length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-[10px] text-destructive-foreground rounded-full flex items-center justify-center">
+                  {withdrawals.filter(w => w.status === 'pending').length}
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger value="notifications" className="gap-2 relative">
               <Bell className="w-4 h-4" />
@@ -1116,6 +1280,98 @@ const Admin = () => {
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          {/* Withdrawals Tab */}
+          <TabsContent value="withdrawals" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="font-display font-semibold text-xl">Artist Withdrawals</h2>
+                <p className="text-sm text-muted-foreground">
+                  {withdrawals.filter(w => w.status === 'pending').length} pending requests
+                </p>
+              </div>
+            </div>
+
+            {loadingWithdrawals ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : withdrawals.length === 0 ? (
+              <div className="shiny-card rounded-xl p-8 text-center">
+                <Wallet className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No withdrawal requests yet</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {withdrawals.map((w) => (
+                  <motion.div key={w.id} className="shiny-card rounded-xl p-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                        {w.artist_profile?.avatar_url ? (
+                          <img src={w.artist_profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          <User className="w-6 h-6 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">{w.artist_profile?.display_name || w.artist_profile?.username || 'Artist'}</span>
+                          <Badge variant={
+                            w.status === 'pending' ? 'secondary' :
+                            w.status === 'approved' ? 'default' :
+                            w.status === 'completed' ? 'default' : 'destructive'
+                          } className={w.status === 'completed' ? 'bg-green-500' : ''}>
+                            {w.status}
+                          </Badge>
+                        </div>
+                        <p className="text-2xl font-bold text-primary mt-1">${w.amount.toFixed(2)}</p>
+                        <div className="mt-2 text-sm text-muted-foreground space-y-1">
+                          <p><strong>Bank:</strong> {w.bank_name}</p>
+                          <p><strong>Account:</strong> {w.account_number}</p>
+                          <p><strong>Name:</strong> {w.account_name}</p>
+                          <p><strong>Requested:</strong> {formatDistanceToNow(new Date(w.created_at), { addSuffix: true })}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        {w.status === 'pending' && (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => handleApproveWithdrawal(w.id)}
+                              disabled={processingWithdrawal === w.id}
+                            >
+                              {processingWithdrawal === w.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1" />}
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleRejectWithdrawal(w.id)}
+                              disabled={processingWithdrawal === w.id}
+                            >
+                              <Ban className="w-4 h-4 mr-1" />
+                              Reject
+                            </Button>
+                          </>
+                        )}
+                        {w.status === 'approved' && (
+                          <Button
+                            size="sm"
+                            className="bg-green-500 hover:bg-green-600"
+                            onClick={() => handleCompleteWithdrawal(w.id)}
+                            disabled={processingWithdrawal === w.id}
+                          >
+                            {processingWithdrawal === w.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-1" />}
+                            Mark Paid
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* Notifications Tab */}
