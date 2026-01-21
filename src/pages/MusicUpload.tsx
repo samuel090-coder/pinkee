@@ -145,8 +145,8 @@ const MusicUpload = () => {
       }
       setUploadProgress(80);
 
-      // Create track record
-      const { error: insertError } = await supabase.from('music_tracks').insert({
+      // Create track record with bank details for premium sounds
+      const trackData: any = {
         creator_id: user!.id,
         title: title.trim(),
         artist_name: artistName.trim() || null,
@@ -159,7 +159,16 @@ const MusicUpload = () => {
         description: description.trim() || null,
         price: parseFloat(price) || 0,
         license_type: licenseType,
-      });
+      };
+
+      // Add bank details for premium sounds
+      if (licenseType !== 'free' && parseFloat(price) > 0) {
+        trackData.bank_name = bankName.trim();
+        trackData.account_name = accountName.trim();
+        trackData.account_number = accountNumber.trim();
+      }
+
+      const { error: insertError } = await supabase.from('music_tracks').insert(trackData);
 
       if (insertError) throw insertError;
 

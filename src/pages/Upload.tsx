@@ -249,29 +249,44 @@ const Upload = () => {
 
       setUploadProgress(80);
 
-      // Create video record
-      await addVideo({
-        title: title.trim(),
-        description: description.trim() || null,
-        video_url: videoUrl,
-        thumbnail_url: thumbnailUrl || null,
-        duration: videoDuration,
-        uploader_id: user!.id,
-        category: mode === 'short' ? 'Shorts' : category || null,
-        tags: tags.split(',').map(t => t.trim()).filter(Boolean),
-        status: visibility === 'public' ? 'published' : visibility,
-        is_subscription_only: isSubscriptionOnly,
-        is_published: visibility === 'public',
-        published_at: scheduleDate || new Date().toISOString(),
-      });
+      // Create video record and get the ID
+      const { data: newVideo, error: videoError } = await supabase
+        .from('videos')
+        .insert({
+          title: title.trim(),
+          description: description.trim() || null,
+          video_url: videoUrl,
+          thumbnail_url: thumbnailUrl || null,
+          duration: videoDuration,
+          uploader_id: user!.id,
+          category: mode === 'short' ? 'Shorts' : category || null,
+          tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+          status: visibility === 'public' ? 'published' : visibility,
+          is_subscription_only: isSubscriptionOnly,
+          is_published: visibility === 'public',
+          published_at: scheduleDate || new Date().toISOString(),
+        })
+        .select('id')
+        .single();
 
-      // Track sound usage if selected
-      if (selectedSound) {
-        await supabase.from('sound_usages').insert({
+      if (videoError) throw videoError;
+
+      // Track sound usage if selected - this triggers artist earnings!
+      if (selectedSound && newVideo) {
+        const { error: usageError } = await supabase.from('sound_usages').insert({
           track_id: selectedSound.id,
-          video_id: '', // We'd need to get the new video ID here
+          video_id: newVideo.id,
           creator_id: user!.id,
         });
+
+        if (usageError) {
+          console.error('Error tracking sound usage:', usageError);
+        } else {
+          toast({ 
+            title: 'Sound added!', 
+            description: `Using "${selectedSound.title}" in your video` 
+          });
+        }
       }
 
       setUploadProgress(100);

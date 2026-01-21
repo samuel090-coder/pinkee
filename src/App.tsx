@@ -32,6 +32,7 @@ import Help from "./pages/Help";
 import MusicMarketplace from "./pages/MusicMarketplace";
 import MusicUpload from "./pages/MusicUpload";
 import ArtistDashboard from "./pages/ArtistDashboard";
+import SoundDetail from "./pages/SoundDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -84,6 +85,7 @@ const App = () => (
               <Route path="/music-marketplace" element={<MusicMarketplace />} />
               <Route path="/music/upload" element={<MusicUpload />} />
               <Route path="/studio/music" element={<ArtistDashboard />} />
+              <Route path="/sound/:id" element={<SoundDetail />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
