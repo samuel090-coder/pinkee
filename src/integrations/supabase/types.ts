@@ -330,8 +330,11 @@ export type Database = {
       }
       music_tracks: {
         Row: {
+          account_name: string | null
+          account_number: string | null
           artist_name: string | null
           audio_url: string
+          bank_name: string | null
           bpm: number | null
           cover_url: string | null
           created_at: string
@@ -349,8 +352,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_name?: string | null
+          account_number?: string | null
           artist_name?: string | null
           audio_url: string
+          bank_name?: string | null
           bpm?: number | null
           cover_url?: string | null
           created_at?: string
@@ -368,8 +374,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_name?: string | null
+          account_number?: string | null
           artist_name?: string | null
           audio_url?: string
+          bank_name?: string | null
           bpm?: number | null
           cover_url?: string | null
           created_at?: string
@@ -694,6 +703,53 @@ export type Database = {
             columns: ["video_id"]
             isOneToOne: false
             referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sound_purchase_requests: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          buyer_id: string
+          created_at: string
+          id: string
+          reviewed_at: string | null
+          screenshot_url: string | null
+          seller_id: string
+          status: string
+          track_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          buyer_id: string
+          created_at?: string
+          id?: string
+          reviewed_at?: string | null
+          screenshot_url?: string | null
+          seller_id: string
+          status?: string
+          track_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          reviewed_at?: string | null
+          screenshot_url?: string | null
+          seller_id?: string
+          status?: string
+          track_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sound_purchase_requests_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "music_tracks"
             referencedColumns: ["id"]
           },
         ]
