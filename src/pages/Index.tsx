@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Sparkles, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -10,6 +11,42 @@ import { Button } from '@/components/ui/button';
 const Index = () => {
   const { videos, loading, analytics } = useVideo();
   const { user } = useAuth();
+  const [autoPlayIndex, setAutoPlayIndex] = useState<number | null>(null);
+  const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
+
+  // Auto-play videos on scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const video = entry.target as HTMLVideoElement;
+          if (entry.isIntersecting) {
+            video.play().catch(() => {
+              video.muted = true;
+              video.play().catch(console.error);
+            });
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    videoRefs.current.forEach((video) => {
+      if (video) observer.observe(video);
+    });
+
+    return () => observer.disconnect();
+  }, [videos]);
+
+  const registerVideoRef = useCallback((index: number, ref: HTMLVideoElement | null) => {
+    if (ref) {
+      videoRefs.current.set(index, ref);
+    } else {
+      videoRefs.current.delete(index);
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -126,8 +163,13 @@ const Index = () => {
 
           {videos.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {videos.map((video) => (
-                <VideoCardNew key={video.id} video={video} />
+              {videos.map((video, index) => (
+                <VideoCardNew 
+                  key={video.id} 
+                  video={video} 
+                  autoPlay={index < 4}
+                  onVideoRef={(ref) => registerVideoRef(index, ref)}
+                />
               ))}
             </div>
           ) : (

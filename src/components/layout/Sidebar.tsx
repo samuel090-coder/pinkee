@@ -26,6 +26,7 @@ import {
   Users,
   Shield,
   DollarSign,
+  Wallet,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -157,6 +158,7 @@ export const Sidebar = ({ isExpanded, onToggle }: SidebarProps) => {
                 <SectionTitle title="Creator" isExpanded={isExpanded} />
                 <NavItem to="/upload" icon={<Upload className="w-full h-full" />} label="Upload" isExpanded={isExpanded} />
                 <NavItem to="/studio" icon={<Film className="w-full h-full" />} label="Studio" isExpanded={isExpanded} />
+                <NavItem to="/studio/monetization" icon={<Wallet className="w-full h-full" />} label="Monetization" isExpanded={isExpanded} />
                 <NavItem to="/studio/music" icon={<DollarSign className="w-full h-full" />} label="Music Earnings" isExpanded={isExpanded} />
 
                 {isModerator && (
