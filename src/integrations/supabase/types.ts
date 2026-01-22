@@ -251,6 +251,50 @@ export type Database = {
           },
         ]
       }
+      creator_earnings: {
+        Row: {
+          created_at: string
+          creator_id: string
+          id: string
+          last_payout_at: string | null
+          pending_withdrawal: number
+          total_earned: number
+          updated_at: string
+          video_id: string
+          views_counted: number
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          id?: string
+          last_payout_at?: string | null
+          pending_withdrawal?: number
+          total_earned?: number
+          updated_at?: string
+          video_id: string
+          views_counted?: number
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          id?: string
+          last_payout_at?: string | null
+          pending_withdrawal?: number
+          total_earned?: number
+          updated_at?: string
+          video_id?: string
+          views_counted?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_earnings_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       creator_requests: {
         Row: {
           admin_notes: string | null
@@ -287,6 +331,51 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      creator_withdrawals: {
+        Row: {
+          account_name: string | null
+          account_number: string | null
+          admin_notes: string | null
+          amount: number
+          bank_name: string | null
+          created_at: string
+          creator_id: string
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_name?: string | null
+          account_number?: string | null
+          admin_notes?: string | null
+          amount: number
+          bank_name?: string | null
+          created_at?: string
+          creator_id: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string | null
+          account_number?: string | null
+          admin_notes?: string | null
+          amount?: number
+          bank_name?: string | null
+          created_at?: string
+          creator_id?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -549,7 +638,10 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_name: string | null
+          account_number: string | null
           avatar_url: string | null
+          bank_name: string | null
           banner_url: string | null
           bio: string | null
           channel_description: string | null
@@ -572,7 +664,10 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          account_name?: string | null
+          account_number?: string | null
           avatar_url?: string | null
+          bank_name?: string | null
           banner_url?: string | null
           bio?: string | null
           channel_description?: string | null
@@ -595,7 +690,10 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          account_name?: string | null
+          account_number?: string | null
           avatar_url?: string | null
+          bank_name?: string | null
           banner_url?: string | null
           bio?: string | null
           channel_description?: string | null

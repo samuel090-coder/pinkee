@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, Clock, MoreVertical, ListPlus, Share2, Flag, Download } from 'lucide-react';
+import { Play, Clock, MoreVertical, ListPlus, Share2, Flag, Download, Volume2, VolumeX } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,11 +17,36 @@ import { Video } from '@/contexts/VideoContext';
 interface VideoCardProps {
   video: Video;
   variant?: 'default' | 'horizontal' | 'compact' | 'list' | 'search';
+  autoPlay?: boolean;
+  onVideoRef?: (ref: HTMLVideoElement | null) => void;
 }
 
-export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => {
+export const VideoCardNew = ({ video, variant = 'default', autoPlay = false, onVideoRef }: VideoCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const [muted, setMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Auto-play on hover for desktop
+  useEffect(() => {
+    if (isHovered && videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    } else if (!isHovered && videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  }, [isHovered]);
+
+  // Register video ref for intersection observer
+  useEffect(() => {
+    if (autoPlay && onVideoRef) {
+      onVideoRef(videoRef.current);
+    }
+    return () => {
+      if (onVideoRef) onVideoRef(null);
+    };
+  }, [autoPlay, onVideoRef]);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -49,7 +74,9 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
     return `${Math.floor(diff / 31536000)} years ago`;
   };
 
+  // Use video_url as thumbnail if no thumbnail exists
   const thumbnailUrl = video.thumbnail_url || video.video_url;
+  const hasVideoUrl = !!video.video_url;
 
   const uploader = video.uploader_profile;
   const channelName =
@@ -67,7 +94,7 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
 
   const avatarUrl = uploader?.avatar_url || video.poster?.avatar_url;
 
-  // Horizontal/List/Search variants - similar layout
+  // Horizontal/List/Search variants
   if (variant === 'horizontal' || variant === 'list' || variant === 'search') {
     return (
       <motion.article
@@ -75,23 +102,39 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
         animate={{ opacity: 1 }}
         className="flex gap-4 group"
       >
-        {/* Thumbnail */}
         <Link to={`/watch/${video.id}`} className={cn(
           "relative flex-shrink-0 aspect-video rounded-xl overflow-hidden",
           variant === 'search' ? 'w-64 md:w-80' : 'w-40 md:w-64'
         )}>
           <div className={cn('absolute inset-0 bg-muted', !imageLoaded && 'shimmer')}>
             {thumbnailUrl && (
-              <img
-                src={thumbnailUrl}
-                alt={video.title}
-                className={cn(
-                  'w-full h-full object-cover transition-all duration-300',
-                  imageLoaded ? 'opacity-100' : 'opacity-0',
-                  'group-hover:scale-105'
-                )}
-                onLoad={() => setImageLoaded(true)}
-              />
+              thumbnailUrl.includes('.mp4') || thumbnailUrl.includes('.webm') ? (
+                <video
+                  src={thumbnailUrl}
+                  className={cn(
+                    'w-full h-full object-cover transition-all duration-300',
+                    imageLoaded ? 'opacity-100' : 'opacity-0',
+                    'group-hover:scale-105'
+                  )}
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  onLoadedData={() => setImageLoaded(true)}
+                />
+              ) : (
+                <img
+                  src={thumbnailUrl}
+                  alt={video.title}
+                  className={cn(
+                    'w-full h-full object-cover transition-all duration-300',
+                    imageLoaded ? 'opacity-100' : 'opacity-0',
+                    'group-hover:scale-105'
+                  )}
+                  onLoad={() => setImageLoaded(true)}
+                  loading="lazy"
+                />
+              )
             )}
           </div>
           <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-background/90 rounded text-xs font-medium text-foreground">
@@ -99,7 +142,6 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
           </div>
         </Link>
 
-        {/* Info */}
         <div className="flex-1 min-w-0">
           <Link to={`/watch/${video.id}`}>
             <h3 className="font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors">
@@ -126,7 +168,6 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
           )}
         </div>
 
-        {/* Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100">
@@ -153,20 +194,50 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
       onMouseLeave={() => setIsHovered(false)}
       className="group"
     >
-      {/* Thumbnail */}
+      {/* Thumbnail with video preview on hover */}
       <Link to={`/watch/${video.id}`} className="block relative aspect-video rounded-xl overflow-hidden">
         <div className={cn('absolute inset-0 bg-muted', !imageLoaded && 'shimmer')}>
-          {thumbnailUrl && (
-            <img
-              src={thumbnailUrl}
-              alt={video.title}
-              className={cn(
-                'w-full h-full object-cover transition-all duration-500',
-                imageLoaded ? 'opacity-100' : 'opacity-0',
-                isHovered && 'scale-105'
-              )}
-              onLoad={() => setImageLoaded(true)}
+          {/* Show video preview on hover if video exists */}
+          {hasVideoUrl && isHovered ? (
+            <video
+              ref={videoRef}
+              src={video.video_url!}
+              className="w-full h-full object-cover"
+              muted={muted}
+              loop
+              playsInline
+              preload="metadata"
             />
+          ) : thumbnailUrl ? (
+            thumbnailUrl.includes('.mp4') || thumbnailUrl.includes('.webm') ? (
+              <video
+                src={thumbnailUrl}
+                className={cn(
+                  'w-full h-full object-cover transition-all duration-500',
+                  imageLoaded ? 'opacity-100' : 'opacity-0'
+                )}
+                muted
+                playsInline
+                preload="metadata"
+                onLoadedData={() => setImageLoaded(true)}
+              />
+            ) : (
+              <img
+                src={thumbnailUrl}
+                alt={video.title}
+                className={cn(
+                  'w-full h-full object-cover transition-all duration-500',
+                  imageLoaded ? 'opacity-100' : 'opacity-0',
+                  isHovered && 'scale-105'
+                )}
+                onLoad={() => setImageLoaded(true)}
+                loading="lazy"
+              />
+            )
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-muted">
+              <Play className="w-12 h-12 text-muted-foreground" />
+            </div>
           )}
         </div>
 
@@ -175,20 +246,36 @@ export const VideoCardNew = ({ video, variant = 'default' }: VideoCardProps) => 
           {formatDuration(video.duration || 0)}
         </div>
 
-        {/* Hover Overlay */}
-        <motion.div
-          initial={false}
-          animate={{ opacity: isHovered ? 1 : 0 }}
-          className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent flex items-center justify-center"
-        >
-          <motion.div
-            initial={{ scale: 0.8 }}
-            animate={{ scale: isHovered ? 1 : 0.8 }}
-            className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center pink-glow"
+        {/* Mute toggle on hover */}
+        {isHovered && hasVideoUrl && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              setMuted(!muted);
+            }}
+            className="absolute bottom-2 left-2 p-1.5 bg-background/90 rounded-full"
           >
-            <Play className="w-6 h-6 text-primary-foreground ml-1" fill="currentColor" />
+            {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </button>
+        )}
+
+        {/* Hover Overlay */}
+        {!isHovered && (
+          <motion.div
+            initial={false}
+            animate={{ opacity: 0 }}
+            whileHover={{ opacity: 1 }}
+            className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent flex items-center justify-center"
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              whileHover={{ scale: 1 }}
+              className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center pink-glow"
+            >
+              <Play className="w-6 h-6 text-primary-foreground ml-1" fill="currentColor" />
+            </motion.div>
           </motion.div>
-        </motion.div>
+        )}
       </Link>
 
       {/* Info */}
