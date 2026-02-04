@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { VideoProvider } from "@/contexts/VideoContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { NotificationPrompt } from "@/components/NotificationPrompt";
 import Index from "./pages/Index";
 import Explore from "./pages/Explore";
@@ -42,15 +43,16 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <VideoProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <NotificationPrompt />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
+      <CurrencyProvider>
+        <VideoProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <NotificationPrompt />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
 
               <Route path="/explore" element={<Explore />} />
               <Route path="/shorts" element={<Shorts />} />
@@ -91,11 +93,12 @@ const App = () => (
               <Route path="/sound/:id" element={<SoundDetail />} />
               <Route path="/wallet" element={<Wallet />} />
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </VideoProvider>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </VideoProvider>
+      </CurrencyProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

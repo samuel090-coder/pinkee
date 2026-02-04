@@ -38,6 +38,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useVideo } from '@/contexts/VideoContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { CurrencySelect } from '@/components/settings/CurrencySelect';
 
 interface CreatorRequest {
   id: string;
@@ -546,6 +547,8 @@ const Settings = () => {
                 <CardDescription>Customize your viewing experience</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <CurrencySelect />
+
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-foreground">Autoplay</p>
