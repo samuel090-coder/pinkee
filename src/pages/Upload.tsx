@@ -24,6 +24,9 @@ import {
   ChevronUp,
   FolderOpen,
   Zap,
+  Volume2,
+  Crown,
+  DollarSign,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -104,8 +107,18 @@ const Upload = () => {
   const [selectedSound, setSelectedSound] = useState<MusicTrack | null>(null);
   const [loadingSounds, setLoadingSounds] = useState(false);
 
+  // Audio mix settings
+  const [audioMixSettings, setAudioMixSettings] = useState({
+    originalVolume: 100,
+    addedSoundVolume: 80,
+    primaryAudio: 'added' as 'original' | 'added',
+    muteOriginal: false,
+    muteAdded: false,
+  });
+
   // Controls
   const [showControls, setShowControls] = useState(false);
+  const [showAudioMixer, setShowAudioMixer] = useState(false);
 
   // Metadata
   const [title, setTitle] = useState('');
@@ -114,6 +127,8 @@ const Upload = () => {
   const [tags, setTags] = useState('');
   const [visibility, setVisibility] = useState<VisibilityType>('public');
   const [isSubscriptionOnly, setIsSubscriptionOnly] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
+  const [premiumPrice, setPremiumPrice] = useState('');
   const [scheduleDate, setScheduleDate] = useState<string>('');
 
   // Fetch sounds
@@ -263,6 +278,8 @@ const Upload = () => {
           tags: tags.split(',').map(t => t.trim()).filter(Boolean),
           status: visibility === 'public' ? 'published' : visibility,
           is_subscription_only: isSubscriptionOnly,
+          is_premium: isPremium,
+          premium_price: isPremium ? parseFloat(premiumPrice) || 0 : 0,
           is_published: visibility === 'public',
           published_at: scheduleDate || new Date().toISOString(),
         })
@@ -569,12 +586,81 @@ const Upload = () => {
             </div>
 
             {selectedSound && (
-              <div className="flex items-center gap-3 p-3 bg-secondary rounded-lg">
-                <Music className="w-5 h-5 text-primary" />
-                <span className="text-foreground">{selectedSound.title}</span>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedSound(null)}>
-                  <X className="w-4 h-4" />
-                </Button>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-secondary rounded-lg">
+                  <Music className="w-5 h-5 text-primary" />
+                  <span className="text-foreground flex-1">{selectedSound.title}</span>
+                  <Button variant="ghost" size="sm" onClick={() => setShowAudioMixer(!showAudioMixer)}>
+                    <Volume2 className="w-4 h-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedSound(null)}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                {/* Audio Mixer */}
+                {showAudioMixer && (
+                  <div className="p-4 bg-card rounded-lg border border-border space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Volume2 className="w-4 h-4 text-primary" />
+                      <span className="font-medium text-sm">Audio Settings</span>
+                    </div>
+                    
+                    {/* Primary Audio Selection */}
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Which audio should play?</Label>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant={audioMixSettings.primaryAudio === 'original' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setAudioMixSettings(prev => ({ ...prev, primaryAudio: 'original' }))}
+                          className="flex-1"
+                        >
+                          Original Sound
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={audioMixSettings.primaryAudio === 'added' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setAudioMixSettings(prev => ({ ...prev, primaryAudio: 'added' }))}
+                          className="flex-1"
+                        >
+                          Added Sound
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Volume Controls */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Original Video Volume</span>
+                        <span className="text-xs text-muted-foreground">{audioMixSettings.originalVolume}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={audioMixSettings.originalVolume}
+                        onChange={(e) => setAudioMixSettings(prev => ({ ...prev, originalVolume: parseInt(e.target.value) }))}
+                        className="w-full accent-primary"
+                      />
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Added Sound Volume</span>
+                        <span className="text-xs text-muted-foreground">{audioMixSettings.addedSoundVolume}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={audioMixSettings.addedSoundVolume}
+                        onChange={(e) => setAudioMixSettings(prev => ({ ...prev, addedSoundVolume: parseInt(e.target.value) }))}
+                        className="w-full accent-primary"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -700,6 +786,46 @@ const Upload = () => {
                     </div>
                   </label>
                 ))}
+              </div>
+
+              {/* Premium Content */}
+              <div className="p-4 rounded-lg border border-border space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                      <Crown className="w-5 h-5 text-amber-500" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">Premium Video</p>
+                      <p className="text-sm text-muted-foreground">Viewers pay to watch</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={isPremium}
+                    onCheckedChange={setIsPremium}
+                  />
+                </div>
+                
+                {isPremium && (
+                  <div className="pt-2 border-t border-border">
+                    <Label>Price (USD)</Label>
+                    <div className="relative mt-1">
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        type="number"
+                        value={premiumPrice}
+                        onChange={(e) => setPremiumPrice(e.target.value)}
+                        placeholder="1.99"
+                        className="pl-9 bg-input border-border"
+                        min="0.50"
+                        step="0.50"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      You keep 90% of each sale. Platform fee: 10%
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 

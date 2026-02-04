@@ -153,6 +153,7 @@ export const Sidebar = ({ isExpanded, onToggle }: SidebarProps) => {
                 <NavItem to="/playlists" icon={<ListVideo className="w-full h-full" />} label="Playlists" isExpanded={isExpanded} />
                 <NavItem to="/watch-later" icon={<Clock className="w-full h-full" />} label="Watch Later" isExpanded={isExpanded} />
                 <NavItem to="/liked" icon={<ThumbsUp className="w-full h-full" />} label="Liked Videos" isExpanded={isExpanded} />
+                <NavItem to="/wallet" icon={<Wallet className="w-full h-full" />} label="Wallet" isExpanded={isExpanded} />
 
                 {isExpanded && <Separator className="my-4 bg-border" />}
                 <SectionTitle title="Creator" isExpanded={isExpanded} />

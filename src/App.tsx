@@ -34,6 +34,7 @@ import MusicUpload from "./pages/MusicUpload";
 import ArtistDashboard from "./pages/ArtistDashboard";
 import SoundDetail from "./pages/SoundDetail";
 import Monetization from "./pages/Monetization";
+import Wallet from "./pages/Wallet";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -88,6 +89,7 @@ const App = () => (
               <Route path="/studio/music" element={<ArtistDashboard />} />
               <Route path="/studio/monetization" element={<Monetization />} />
               <Route path="/sound/:id" element={<SoundDetail />} />
+              <Route path="/wallet" element={<Wallet />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

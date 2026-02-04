@@ -43,6 +43,8 @@ export interface Video {
   views: number;
   reactions: number;
   is_subscription_only: boolean;
+  is_premium: boolean;
+  premium_price: number;
   cta_link: string | null;
   cta_text: string | null;
   created_at: string;

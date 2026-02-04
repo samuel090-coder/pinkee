@@ -48,7 +48,10 @@ export type Database = {
           created_at: string
           default_ad_frequency: number | null
           id: string
+          platform_fee_percent: number | null
           site_name: string | null
+          subscription_monthly_price: number | null
+          subscription_yearly_price: number | null
           updated_at: string
         }
         Insert: {
@@ -60,7 +63,10 @@ export type Database = {
           created_at?: string
           default_ad_frequency?: number | null
           id?: string
+          platform_fee_percent?: number | null
           site_name?: string | null
+          subscription_monthly_price?: number | null
+          subscription_yearly_price?: number | null
           updated_at?: string
         }
         Update: {
@@ -72,7 +78,10 @@ export type Database = {
           created_at?: string
           default_ad_frequency?: number | null
           id?: string
+          platform_fee_percent?: number | null
           site_name?: string | null
+          subscription_monthly_price?: number | null
+          subscription_yearly_price?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -379,6 +388,42 @@ export type Database = {
         }
         Relationships: []
       }
+      deposit_requests: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          created_at: string
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          screenshot_url: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          created_at?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          screenshot_url?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          screenshot_url?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       music_licenses: {
         Row: {
           buyer_id: string
@@ -633,6 +678,39 @@ export type Database = {
           telegram?: string | null
           updated_at?: string
           whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      premium_subscriptions: {
+        Row: {
+          amount: number
+          created_at: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          plan: string
+          starts_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          expires_at: string
+          id?: string
+          is_active?: boolean
+          plan?: string
+          starts_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          plan?: string
+          starts_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1087,6 +1165,38 @@ export type Database = {
           },
         ]
       }
+      video_purchases: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          user_id: string
+          video_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          user_id: string
+          video_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          user_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_purchases_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       videos: {
         Row: {
           ad_frequency: number | null
@@ -1099,10 +1209,12 @@ export type Database = {
           dislikes_count: number | null
           duration: number | null
           id: string
+          is_premium: boolean | null
           is_published: boolean | null
           is_subscription_only: boolean | null
           likes_count: number | null
           poster_id: string | null
+          premium_price: number | null
           published_at: string | null
           reactions: number | null
           status: string | null
@@ -1128,10 +1240,12 @@ export type Database = {
           dislikes_count?: number | null
           duration?: number | null
           id?: string
+          is_premium?: boolean | null
           is_published?: boolean | null
           is_subscription_only?: boolean | null
           likes_count?: number | null
           poster_id?: string | null
+          premium_price?: number | null
           published_at?: string | null
           reactions?: number | null
           status?: string | null
@@ -1157,10 +1271,12 @@ export type Database = {
           dislikes_count?: number | null
           duration?: number | null
           id?: string
+          is_premium?: boolean | null
           is_published?: boolean | null
           is_subscription_only?: boolean | null
           likes_count?: number | null
           poster_id?: string | null
+          premium_price?: number | null
           published_at?: string | null
           reactions?: number | null
           status?: string | null
@@ -1184,6 +1300,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          created_at: string
+          description: string | null
+          id: string
+          reference_id: string | null
+          status: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          status?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          status?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          total_deposited: number
+          total_spent: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_deposited?: number
+          total_spent?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          total_deposited?: number
+          total_spent?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       watch_history: {
         Row: {
@@ -1281,6 +1463,16 @@ export type Database = {
         Returns: boolean
       }
       is_moderator: { Args: { _user_id: string }; Returns: boolean }
+      process_wallet_payment: {
+        Args: {
+          p_amount: number
+          p_description: string
+          p_reference_id?: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "creator" | "user"
