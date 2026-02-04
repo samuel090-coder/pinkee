@@ -42,6 +42,7 @@ import { useVideo } from '@/contexts/VideoContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import {
   DropdownMenu,
@@ -493,8 +494,11 @@ const Watch = () => {
               <video
                 ref={videoRef}
                 src={hasAccess ? (video.video_url || undefined) : undefined}
-                poster={video.thumbnail_url || undefined}
-                className="w-full h-full object-contain"
+                poster={video.thumbnail_url || video.video_url || undefined}
+                className={cn(
+                  "w-full h-full object-contain",
+                  !hasAccess && video.is_premium && "blur-sm"
+                )}
                 onTimeUpdate={() => {
                   if (videoRef.current) {
                     setCurrentTime(videoRef.current.currentTime);

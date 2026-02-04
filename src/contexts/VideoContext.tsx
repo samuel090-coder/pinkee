@@ -246,7 +246,13 @@ export function VideoProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     };
     init();
-  }, [refreshPosterProfiles, refreshUserProfiles, refreshSettings, refreshAdCodes, refreshVideos]);
+  }, []);
+
+  // Auto-refresh profiles when videos change to ensure uploader info is available
+  const refreshAllData = useCallback(async () => {
+    await Promise.all([refreshPosterProfiles(), refreshUserProfiles()]);
+    await refreshVideos();
+  }, [refreshPosterProfiles, refreshUserProfiles, refreshVideos]);
 
   // Realtime: keep in-memory videos fresh for Studio + feeds
   useEffect(() => {
@@ -255,8 +261,10 @@ export function VideoProvider({ children }: { children: ReactNode }) {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'videos' },
-        () => {
-          refreshVideos();
+        (payload) => {
+          console.log('Video change detected:', payload.eventType);
+          // Refresh all data including profiles to ensure new uploaders are loaded
+          refreshAllData();
         }
       )
       .subscribe();
@@ -264,7 +272,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [refreshVideos]);
+  }, [refreshAllData]);
 
   const uploadFile = async (file: File, bucket: 'videos' | 'thumbnails' | 'avatars' | 'notification-images'): Promise<string | null> => {
     try {

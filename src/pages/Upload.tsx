@@ -84,6 +84,8 @@ const Upload = () => {
   const videoInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const previewVideoRef = useRef<HTMLVideoElement>(null);
+  const addedAudioRef = useRef<HTMLAudioElement>(null);
 
   const [mode, setMode] = useState<UploadMode>('short');
   const [step, setStep] = useState<UploadStep>('create');
@@ -578,6 +580,7 @@ const Upload = () => {
             <div className="aspect-[9/16] max-h-[400px] bg-black rounded-xl overflow-hidden mx-auto">
               {videoPreview && (
                 <video
+                  ref={previewVideoRef}
                   src={videoPreview}
                   className="w-full h-full object-contain"
                   controls
@@ -642,7 +645,13 @@ const Upload = () => {
                         min="0"
                         max="100"
                         value={audioMixSettings.originalVolume}
-                        onChange={(e) => setAudioMixSettings(prev => ({ ...prev, originalVolume: parseInt(e.target.value) }))}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          setAudioMixSettings(prev => ({ ...prev, originalVolume: value }));
+                          if (previewVideoRef.current) {
+                            previewVideoRef.current.volume = value / 100;
+                          }
+                        }}
                         className="w-full accent-primary"
                       />
                       
@@ -655,9 +664,44 @@ const Upload = () => {
                         min="0"
                         max="100"
                         value={audioMixSettings.addedSoundVolume}
-                        onChange={(e) => setAudioMixSettings(prev => ({ ...prev, addedSoundVolume: parseInt(e.target.value) }))}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          setAudioMixSettings(prev => ({ ...prev, addedSoundVolume: value }));
+                          if (addedAudioRef.current) {
+                            addedAudioRef.current.volume = value / 100;
+                          }
+                        }}
                         className="w-full accent-primary"
                       />
+                      
+                      {/* Play added sound preview */}
+                      {selectedSound && (
+                        <audio
+                          ref={addedAudioRef}
+                          src={selectedSound.audio_url}
+                          loop
+                          className="hidden"
+                        />
+                      )}
+                      
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => {
+                          if (addedAudioRef.current) {
+                            if (addedAudioRef.current.paused) {
+                              addedAudioRef.current.volume = audioMixSettings.addedSoundVolume / 100;
+                              addedAudioRef.current.play();
+                            } else {
+                              addedAudioRef.current.pause();
+                            }
+                          }
+                        }}
+                      >
+                        Preview Added Sound
+                      </Button>
                     </div>
                   </div>
                 )}
