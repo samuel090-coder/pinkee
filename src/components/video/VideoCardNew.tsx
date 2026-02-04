@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { Video } from '@/contexts/VideoContext';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface VideoCardProps {
   video: Video;
@@ -22,6 +23,7 @@ interface VideoCardProps {
 }
 
 export const VideoCardNew = ({ video, variant = 'default', autoPlay = false, onVideoRef }: VideoCardProps) => {
+  const { formatMoney } = useCurrency();
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
@@ -250,7 +252,7 @@ export const VideoCardNew = ({ video, variant = 'default', autoPlay = false, onV
         {video.is_premium && (
           <div className="absolute top-2 right-2 px-2 py-1 bg-amber-500 text-white text-xs font-bold rounded flex items-center gap-1">
             <Crown className="w-3 h-3" />
-            ${video.premium_price?.toFixed(2) || '0.00'}
+            {formatMoney(video.premium_price || 0)}
           </div>
         )}
 

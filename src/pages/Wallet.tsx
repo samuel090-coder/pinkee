@@ -24,6 +24,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVideo } from '@/contexts/VideoContext';
 import { toast } from '@/hooks/use-toast';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface WalletData {
   balance: number;
@@ -51,6 +52,7 @@ interface DepositRequest {
 const Wallet = () => {
   const { user } = useAuth();
   const { adminSettings } = useVideo();
+  const { formatMoney, formatBaseMoney, currency } = useCurrency();
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [depositRequests, setDepositRequests] = useState<DepositRequest[]>([]);
@@ -197,12 +199,7 @@ const Wallet = () => {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
+  const formatCurrency = (amountInBase: number) => formatMoney(amountInBase);
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', {
@@ -270,7 +267,7 @@ const Wallet = () => {
                     {depositStep === 'amount' && (
                       <div className="space-y-4">
                         <div>
-                          <Label>Amount (USD)</Label>
+                          <Label>Amount (NGN)</Label>
                           <Input
                             type="number"
                             placeholder="Enter amount"
@@ -278,6 +275,9 @@ const Wallet = () => {
                             onChange={(e) => setDepositAmount(e.target.value)}
                             min="1"
                           />
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Showing amounts in {currency}. Deposits are processed in NGN.
+                          </p>
                         </div>
                         <Button 
                           className="w-full" 
@@ -294,7 +294,7 @@ const Wallet = () => {
                         <div className="p-4 bg-muted rounded-lg">
                           <p className="text-sm text-muted-foreground mb-2">Amount to Transfer</p>
                           <p className="font-bold text-2xl text-primary">
-                            {formatCurrency(parseFloat(depositAmount))}
+                            {formatBaseMoney(parseFloat(depositAmount))}
                           </p>
                         </div>
 

@@ -1086,6 +1086,7 @@ export type Database = {
         Row: {
           autoplay: boolean | null
           created_at: string
+          currency: string
           default_quality: string | null
           email_notifications: boolean | null
           id: string
@@ -1102,6 +1103,7 @@ export type Database = {
         Insert: {
           autoplay?: boolean | null
           created_at?: string
+          currency?: string
           default_quality?: string | null
           email_notifications?: boolean | null
           id?: string
@@ -1118,6 +1120,7 @@ export type Database = {
         Update: {
           autoplay?: boolean | null
           created_at?: string
+          currency?: string
           default_quality?: string | null
           email_notifications?: boolean | null
           id?: string

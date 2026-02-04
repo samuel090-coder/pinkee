@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
+import { useCurrency } from '@/hooks/useCurrency';
 
 interface PremiumVideoOverlayProps {
   videoId: string;
@@ -25,6 +26,7 @@ export const PremiumVideoOverlay = ({
 }: PremiumVideoOverlayProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { formatMoney, formatBaseMoney } = useCurrency();
   const [showDialog, setShowDialog] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -131,7 +133,7 @@ export const PremiumVideoOverlay = ({
           user_id: video.uploader_id,
           type: 'earning',
           title: 'New Premium Purchase! 💰',
-          body: `Someone purchased "${title}" for $${price}. You earned $${creatorEarning.toFixed(2)}!`,
+          body: `Someone purchased "${title}" for ${formatBaseMoney(price)}. You earned ${formatBaseMoney(creatorEarning)}!`,
           link: '/studio/monetization'
         });
       }
@@ -148,13 +150,6 @@ export const PremiumVideoOverlay = ({
     } finally {
       setPurchasing(false);
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
   };
 
   return (
@@ -184,7 +179,7 @@ export const PremiumVideoOverlay = ({
         >
           <h3 className="font-display font-bold text-xl mb-2">Premium Content</h3>
           <p className="text-muted-foreground text-sm mb-4">
-            Unlock this video for {formatCurrency(price)}
+            Unlock this video for {formatMoney(price)}
           </p>
           
           <Button 
@@ -226,7 +221,7 @@ export const PremiumVideoOverlay = ({
 
               <div className="text-center">
                 <p className="font-medium">{title}</p>
-                <p className="text-2xl font-bold text-primary mt-2">{formatCurrency(price)}</p>
+                <p className="text-2xl font-bold text-primary mt-2">{formatMoney(price)}</p>
               </div>
 
               {/* Wallet Balance */}
@@ -237,7 +232,7 @@ export const PremiumVideoOverlay = ({
                     <span>Wallet Balance</span>
                   </div>
                   <span className={`font-bold ${(walletBalance || 0) >= price ? 'text-green-500' : 'text-red-500'}`}>
-                    {formatCurrency(walletBalance || 0)}
+                    {formatMoney(walletBalance || 0)}
                   </span>
                 </div>
               </div>
@@ -245,7 +240,7 @@ export const PremiumVideoOverlay = ({
               {(walletBalance || 0) < price ? (
                 <div className="space-y-3">
                   <p className="text-center text-sm text-muted-foreground">
-                    Insufficient balance. Please add {formatCurrency(price - (walletBalance || 0))} to your wallet.
+                    Insufficient balance. Please add {formatMoney(price - (walletBalance || 0))} to your wallet.
                   </p>
                   <Button asChild className="w-full">
                     <Link to="/wallet">Add Funds</Link>
@@ -265,7 +260,7 @@ export const PremiumVideoOverlay = ({
                   ) : (
                     <>
                       <Lock className="w-4 h-4 mr-2" />
-                      Purchase for {formatCurrency(price)}
+                      Purchase for {formatMoney(price)}
                     </>
                   )}
                 </Button>

@@ -6,9 +6,11 @@ import { Header } from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { useVideo } from '@/contexts/VideoContext';
 import { toast } from '@/hooks/use-toast';
+import { useCurrency } from '@/hooks/useCurrency';
 
 const Subscribe = () => {
   const { adminSettings, loading } = useVideo();
+  const { formatMoney } = useCurrency();
   const [copied, setCopied] = useState<string | null>(null);
 
   const copyToClipboard = (text: string, field: string) => {
@@ -117,7 +119,7 @@ const Subscribe = () => {
 
                 <div className="mt-8 pt-6 border-t border-border">
                   <div className="flex items-baseline gap-2">
-                    <span className="font-display font-bold text-4xl text-gradient-pink">₦5,000</span>
+                    <span className="font-display font-bold text-4xl text-gradient-pink">{formatMoney(5000, { maximumFractionDigits: 0 })}</span>
                     <span className="text-muted-foreground">/ month</span>
                   </div>
                 </div>
