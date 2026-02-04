@@ -26,6 +26,9 @@ import {
   Bell,
   BellOff,
   CheckCircle,
+  Crown,
+  Lock,
+  Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -34,6 +37,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { VideoCardNew } from '@/components/video/VideoCardNew';
 import { CommentSection } from '@/components/watch/CommentSection';
+import { PremiumVideoOverlay } from '@/components/video/PremiumVideoOverlay';
 import { useVideo } from '@/contexts/VideoContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -76,12 +80,78 @@ const Watch = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
   const [viewCounted, setViewCounted] = useState(false);
+  const [hasAccess, setHasAccess] = useState(true);
+  const [checkingAccess, setCheckingAccess] = useState(false);
 
   // Ad state
   const [showAd, setShowAd] = useState(false);
   const [adTimeRemaining, setAdTimeRemaining] = useState(0);
   const [adHtml, setAdHtml] = useState<string | null>(null);
   const lastAdTimeRef = useRef(0);
+
+  // Check premium access
+  useEffect(() => {
+    if (!video) return;
+    
+    const checkPremiumAccess = async () => {
+      // If not premium, grant access
+      if (!video.is_premium) {
+        setHasAccess(true);
+        return;
+      }
+      
+      // If not logged in, no access
+      if (!user) {
+        setHasAccess(false);
+        return;
+      }
+
+      setCheckingAccess(true);
+      try {
+        // Check if user is the uploader
+        if (video.uploader_id === user.id) {
+          setHasAccess(true);
+          return;
+        }
+
+        // Check for existing purchase
+        const { data: purchase } = await supabase
+          .from('video_purchases')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('video_id', video.id)
+          .maybeSingle();
+
+        if (purchase) {
+          setHasAccess(true);
+          return;
+        }
+
+        // Check for active subscription
+        const { data: subscription } = await supabase
+          .from('premium_subscriptions')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .gt('expires_at', new Date().toISOString())
+          .maybeSingle();
+
+        if (subscription) {
+          setHasAccess(true);
+          return;
+        }
+
+        setHasAccess(false);
+      } catch (error) {
+        console.error('Error checking premium access:', error);
+        setHasAccess(false);
+      } finally {
+        setCheckingAccess(false);
+      }
+    };
+
+    checkPremiumAccess();
+  }, [video, user]);
 
   // Check user interactions
   useEffect(() => {
@@ -403,9 +473,26 @@ const Watch = () => {
               onMouseMove={handleMouseMove}
               onMouseLeave={() => isPlaying && setShowControls(false)}
             >
+              {/* Premium Video Overlay */}
+              {video.is_premium && !hasAccess && !checkingAccess && (
+                <PremiumVideoOverlay
+                  videoId={video.id}
+                  price={video.premium_price || 0}
+                  thumbnailUrl={video.thumbnail_url || video.video_url || undefined}
+                  title={video.title}
+                  onUnlocked={() => setHasAccess(true)}
+                />
+              )}
+
+              {checkingAccess && (
+                <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              )}
+
               <video
                 ref={videoRef}
-                src={video.video_url || undefined}
+                src={hasAccess ? (video.video_url || undefined) : undefined}
                 poster={video.thumbnail_url || undefined}
                 className="w-full h-full object-contain"
                 onTimeUpdate={() => {
@@ -424,7 +511,7 @@ const Watch = () => {
                   }
                 }}
                 onEnded={() => setIsPlaying(false)}
-                onClick={togglePlay}
+                onClick={hasAccess ? togglePlay : undefined}
               />
 
               {/* Ad Overlay */}

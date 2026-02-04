@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, Clock, MoreVertical, ListPlus, Share2, Flag, Download, Volume2, VolumeX } from 'lucide-react';
+import { Play, Clock, MoreVertical, ListPlus, Share2, Flag, Download, Volume2, VolumeX, Crown } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -245,6 +245,14 @@ export const VideoCardNew = ({ video, variant = 'default', autoPlay = false, onV
         <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-background/90 rounded text-xs font-medium text-foreground">
           {formatDuration(video.duration || 0)}
         </div>
+
+        {/* Premium Badge */}
+        {video.is_premium && (
+          <div className="absolute top-2 right-2 px-2 py-1 bg-amber-500 text-white text-xs font-bold rounded flex items-center gap-1">
+            <Crown className="w-3 h-3" />
+            ${video.premium_price?.toFixed(2) || '0.00'}
+          </div>
+        )}
 
         {/* Mute toggle on hover */}
         {isHovered && hasVideoUrl && (

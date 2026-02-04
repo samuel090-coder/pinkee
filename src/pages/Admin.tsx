@@ -5,7 +5,7 @@ import {
   BarChart3, Plus, Trash2, Edit, Save, X, Calendar,
   Download, Play, Heart, Clock, TrendingUp, CreditCard, Loader2, Megaphone,
   User, Users, MapPin, Mail, MessageCircle, Send, Bell, Image, Wand2,
-  Wallet, CheckCircle, AlertCircle, Ban
+  Wallet, CheckCircle, AlertCircle, Ban, Upload
 } from 'lucide-react';
 import { useVideo, Video as VideoType, AdCode, PosterProfile } from '@/contexts/VideoContext';
 import { Button } from '@/components/ui/button';
@@ -108,6 +108,21 @@ const Admin = () => {
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([]);
   const [loadingWithdrawals, setLoadingWithdrawals] = useState(false);
   const [processingWithdrawal, setProcessingWithdrawal] = useState<string | null>(null);
+
+  // Deposit request states
+  interface DepositRequest {
+    id: string;
+    user_id: string;
+    amount: number;
+    status: string;
+    screenshot_url: string | null;
+    admin_notes: string | null;
+    created_at: string;
+    user_profile?: { display_name: string | null; username: string | null; avatar_url: string | null };
+  }
+  const [deposits, setDeposits] = useState<DepositRequest[]>([]);
+  const [loadingDeposits, setLoadingDeposits] = useState(false);
+  const [processingDeposit, setProcessingDeposit] = useState<string | null>(null);
   
   const [newVideo, setNewVideo] = useState({
     title: '',
@@ -193,10 +208,41 @@ const Admin = () => {
       }
     };
 
+    const fetchDeposits = async () => {
+      setLoadingDeposits(true);
+      try {
+        const { data, error } = await supabase
+          .from('deposit_requests')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Get user profiles
+        const userIds = [...new Set((data || []).map((d: any) => d.user_id))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('user_id, display_name, username, avatar_url')
+          .in('user_id', userIds);
+
+        const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
+        
+        setDeposits((data || []).map((d: any) => ({
+          ...d,
+          user_profile: profileMap.get(d.user_id),
+        })));
+      } catch (e) {
+        console.error('Error fetching deposits:', e);
+      } finally {
+        setLoadingDeposits(false);
+      }
+    };
+
     if (isAdminAuthenticated) {
       fetchNotifications();
       fetchSubscriberCount();
       fetchWithdrawals();
+      fetchDeposits();
     }
   }, [isAdminAuthenticated]);
 
@@ -631,6 +677,10 @@ const Admin = () => {
                   {withdrawals.filter(w => w.status === 'pending').length}
                 </span>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="deposits" className="gap-2 relative">
+              <CreditCard className="w-4 h-4" />
+              <span className="hidden sm:inline">Deposits</span>
             </TabsTrigger>
             <TabsTrigger value="notifications" className="gap-2 relative">
               <Bell className="w-4 h-4" />
