@@ -3,8 +3,8 @@ import { motion } from 'framer-motion';
 import { Play, Sparkles, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { VideoCardNew } from '@/components/video/VideoCardNew';
-import { DashboardShortsRow } from '@/components/dashboard/DashboardShortsRow';
+import { DashboardShortsGrid } from '@/components/dashboard/DashboardShortsGrid';
+import { LongVideoCard } from '@/components/dashboard/LongVideoCard';
 import { useVideo } from '@/contexts/VideoContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -123,57 +123,40 @@ const Index = () => {
         </section>
       )}
 
-      {/* Videos Section */}
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-6"
-          >
-            <h2 className="font-display font-bold text-xl md:text-2xl text-foreground mb-1">
-              {user ? 'Recommended for you' : 'Trending Now'}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {user ? 'Based on your interests' : 'Watch our most popular videos'}
-            </p>
-          </motion.div>
-
+      {/* Videos Feed Section - YouTube mobile style */}
+      <section className="py-4">
+        <div className="container mx-auto px-3">
           {videos.length > 0 ? (
-            <>
-              <DashboardShortsRow videos={shorts} />
-
+            <div className="space-y-6">
+              {/* Long Videos - Full width cards like YouTube */}
               {longs.length > 0 && (
-                <>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="mb-4 mt-8"
-                  >
-                    <h2 className="font-display font-bold text-xl md:text-2xl text-foreground mb-1">
-                      Videos
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
-                      Full-length content for you
-                    </p>
-                  </motion.div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
-                    {longs.map((video) => (
-                      <VideoCardNew key={video.id} video={video} />
-                    ))}
-                  </div>
-                </>
+                <div className="space-y-6">
+                  {longs.slice(0, 2).map((video, i) => (
+                    <LongVideoCard key={video.id} video={video} index={i} />
+                  ))}
+                </div>
               )}
-              
+
+              {/* Shorts Section - 2 column grid */}
+              {shorts.length > 0 && (
+                <DashboardShortsGrid videos={shorts} maxItems={4} />
+              )}
+
+              {/* More Long Videos */}
+              {longs.length > 2 && (
+                <div className="space-y-6">
+                  {longs.slice(2).map((video, i) => (
+                    <LongVideoCard key={video.id} video={video} index={i + 2} />
+                  ))}
+                </div>
+              )}
+
               {longs.length === 0 && shorts.length === 0 && (
                 <div className="text-center py-10">
                   <p className="text-muted-foreground">No videos yet. Check back soon!</p>
                 </div>
               )}
-            </>
+            </div>
           ) : (
             <div className="text-center py-16">
               <p className="text-muted-foreground">No videos yet. Check back soon!</p>
