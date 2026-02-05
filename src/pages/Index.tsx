@@ -144,15 +144,33 @@ const Index = () => {
             <>
               <DashboardShortsRow videos={shorts} />
 
-              {longs.length > 0 ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {longs.map((video) => (
-                    <VideoCardNew key={video.id} video={video} variant="horizontal" />
-                  ))}
-                </div>
-              ) : (
+              {longs.length > 0 && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="mb-4 mt-8"
+                  >
+                    <h2 className="font-display font-bold text-xl md:text-2xl text-foreground mb-1">
+                      Videos
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      Full-length content for you
+                    </p>
+                  </motion.div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
+                    {longs.map((video) => (
+                      <VideoCardNew key={video.id} video={video} />
+                    ))}
+                  </div>
+                </>
+              )}
+              
+              {longs.length === 0 && shorts.length === 0 && (
                 <div className="text-center py-10">
-                  <p className="text-muted-foreground">No long videos yet. Check back soon!</p>
+                  <p className="text-muted-foreground">No videos yet. Check back soon!</p>
                 </div>
               )}
             </>

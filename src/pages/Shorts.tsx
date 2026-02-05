@@ -1,5 +1,5 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Heart, MessageCircle, Share2, Music, Volume2, VolumeX, Play, Pause,
@@ -40,6 +40,9 @@ interface Comment {
 
 const Shorts = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const startVideoId = searchParams.get('start');
+  
   const { user } = useAuth();
   const { videos } = useVideo();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -65,11 +68,26 @@ const Shorts = () => {
   const [shareOpen, setShareOpen] = useState(false);
 
   const shorts = useMemo(() => {
-    return [...videos]
+    const allShorts = [...videos]
       .filter(v => v.is_published)
-      .filter(v => (v.duration || 0) > 0 && (v.duration || 0) <= 60)
+      .filter(v => {
+        const dur = v.duration || 0;
+        const category = (v.category || '').toLowerCase();
+        return category === 'shorts' || (dur > 0 && dur <= 60);
+      })
       .slice(0, 30);
-  }, [videos]);
+    
+    // If we have a start video ID, reorder to put it first
+    if (startVideoId) {
+      const startIndex = allShorts.findIndex(v => v.id === startVideoId);
+      if (startIndex > 0) {
+        const [startVideo] = allShorts.splice(startIndex, 1);
+        allShorts.unshift(startVideo);
+      }
+    }
+    
+    return allShorts;
+  }, [videos, startVideoId]);
 
   // Fetch user's likes
   useEffect(() => {
