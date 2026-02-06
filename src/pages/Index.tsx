@@ -1,31 +1,51 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Sparkles, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { DashboardShortsGrid } from '@/components/dashboard/DashboardShortsGrid';
 import { LongVideoCard } from '@/components/dashboard/LongVideoCard';
+import { CategoryChips } from '@/components/dashboard/CategoryChips';
 import { useVideo } from '@/contexts/VideoContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 
+const VIDEOS_PER_PAGE = 8;
+
 const Index = () => {
   const { videos, loading, analytics } = useVideo();
   const { user } = useAuth();
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [displayCount, setDisplayCount] = useState(VIDEOS_PER_PAGE);
 
-  const { shorts, longs } = useMemo(() => {
+  const { shorts, longs, hasMore } = useMemo(() => {
     const published = [...videos].filter((v) => v.is_published);
+    
+    // Filter by category
+    const filtered = selectedCategory === 'All'
+      ? published
+      : published.filter((v) => 
+          (v.category || '').toLowerCase() === selectedCategory.toLowerCase()
+        );
+
     const isShort = (v: any) => {
       const dur = v.duration || 0;
       const category = (v.category || '').toLowerCase();
       return category === 'shorts' || (dur > 0 && dur <= 60);
     };
 
+    const allLongs = filtered.filter((v) => !isShort(v));
+    
     return {
-      shorts: published.filter(isShort),
-      longs: published.filter((v) => !isShort(v)),
+      shorts: filtered.filter(isShort),
+      longs: allLongs.slice(0, displayCount),
+      hasMore: allLongs.length > displayCount,
     };
-  }, [videos]);
+  }, [videos, selectedCategory, displayCount]);
+
+  const loadMore = useCallback(() => {
+    setDisplayCount((prev) => prev + VIDEOS_PER_PAGE);
+  }, []);
 
   if (loading) {
     return (
@@ -123,12 +143,17 @@ const Index = () => {
         </section>
       )}
 
+      {/* Category Chips */}
+      <section className="container mx-auto px-3">
+        <CategoryChips selected={selectedCategory} onSelect={setSelectedCategory} />
+      </section>
+
       {/* Videos Feed Section - YouTube mobile style */}
-      <section className="py-4">
+      <section className="py-4 pb-20">
         <div className="container mx-auto px-3">
           {videos.length > 0 ? (
             <div className="space-y-6">
-              {/* Long Videos - Full width cards like YouTube */}
+              {/* Long Videos - First batch */}
               {longs.length > 0 && (
                 <div className="space-y-6">
                   {longs.slice(0, 2).map((video, i) => (
@@ -151,9 +176,26 @@ const Index = () => {
                 </div>
               )}
 
+              {/* Load More Button */}
+              {hasMore && (
+                <div className="flex justify-center py-4">
+                  <Button
+                    variant="outline"
+                    onClick={loadMore}
+                    className="px-8"
+                  >
+                    Load More
+                  </Button>
+                </div>
+              )}
+
               {longs.length === 0 && shorts.length === 0 && (
                 <div className="text-center py-10">
-                  <p className="text-muted-foreground">No videos yet. Check back soon!</p>
+                  <p className="text-muted-foreground">
+                    {selectedCategory === 'All' 
+                      ? 'No videos yet. Check back soon!' 
+                      : `No ${selectedCategory} videos yet.`}
+                  </p>
                 </div>
               )}
             </div>

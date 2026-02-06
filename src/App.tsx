@@ -11,6 +11,7 @@ import Index from "./pages/Index";
 import Explore from "./pages/Explore";
 import ExploreCategory from "./pages/ExploreCategory";
 import Shorts from "./pages/Shorts";
+import Analytics from "./pages/Analytics";
 import Subscribe from "./pages/Subscribe";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
@@ -82,6 +83,7 @@ const App = () => (
               <Route path="/studio" element={<Studio />} />
               <Route path="/search" element={<Search />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/analytics" element={<Analytics />} />
               <Route path="/report" element={<Report />} />
               <Route path="/help" element={<Help />} />
 
