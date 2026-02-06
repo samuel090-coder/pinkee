@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { TopNav } from './TopNav';
 import { Sidebar } from './Sidebar';
+import { BottomNav } from './BottomNav';
 import { cn } from '@/lib/utils';
 
 interface MainLayoutProps {
@@ -46,13 +47,16 @@ export const MainLayout = ({ children, hideSidebar = false }: MainLayoutProps) =
 
       <main
         className={cn(
-          'pt-16 min-h-screen transition-all duration-300',
+          'pt-16 min-h-screen transition-all duration-300 pb-16 lg:pb-0',
           !hideSidebar && 'lg:pl-[72px]',
           !hideSidebar && sidebarExpanded && 'xl:pl-[240px]'
         )}
       >
         {children}
       </main>
+
+      {/* Mobile bottom navigation */}
+      <BottomNav />
     </div>
   );
 };
