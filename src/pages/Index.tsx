@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Sparkles, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -8,6 +8,7 @@ import { LongVideoCard } from '@/components/dashboard/LongVideoCard';
 import { CategoryChips } from '@/components/dashboard/CategoryChips';
 import { useVideo } from '@/contexts/VideoContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useContentAlgorithm } from '@/hooks/useContentAlgorithm';
 import { Button } from '@/components/ui/button';
 
 const VIDEOS_PER_PAGE = 8;
@@ -18,30 +19,11 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [displayCount, setDisplayCount] = useState(VIDEOS_PER_PAGE);
 
-  const { shorts, longs, hasMore } = useMemo(() => {
-    const published = [...videos].filter((v) => v.is_published);
-    
-    // Filter by category
-    const filtered = selectedCategory === 'All'
-      ? published
-      : published.filter((v) => 
-          (v.category || '').toLowerCase() === selectedCategory.toLowerCase()
-        );
+  // AI-powered content algorithm for smart feed ordering
+  const { longs: allLongs, shorts } = useContentAlgorithm(videos, selectedCategory);
 
-    const isShort = (v: any) => {
-      const dur = v.duration || 0;
-      const category = (v.category || '').toLowerCase();
-      return category === 'shorts' || (dur > 0 && dur <= 60);
-    };
-
-    const allLongs = filtered.filter((v) => !isShort(v));
-    
-    return {
-      shorts: filtered.filter(isShort),
-      longs: allLongs.slice(0, displayCount),
-      hasMore: allLongs.length > displayCount,
-    };
-  }, [videos, selectedCategory, displayCount]);
+  const longs = allLongs.slice(0, displayCount);
+  const hasMore = allLongs.length > displayCount;
 
   const loadMore = useCallback(() => {
     setDisplayCount((prev) => prev + VIDEOS_PER_PAGE);

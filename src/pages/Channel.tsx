@@ -77,12 +77,39 @@ const Channel = () => {
         if (id === 'me' && user) {
           query = query.eq('user_id', user.id);
         } else {
-          query = query.eq('id', id);
+          // Try user_id first (from shorts/reels links), fall back to id
+          query = query.eq('user_id', id);
         }
 
-        const { data, error } = await query.single();
+        const { data, error } = await query.maybeSingle();
 
+        // If not found by user_id, try by profile id
+        if (!data && id !== 'me') {
+          const { data: fallbackData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', id)
+            .maybeSingle();
+          if (fallbackData) {
+            setChannel(fallbackData);
+            setSubscriberCount(fallbackData.subscriber_count || 0);
+            
+            if (user && !isOwnChannel) {
+              const { data: subData } = await supabase
+                .from('subscriptions')
+                .select('id')
+                .eq('channel_id', fallbackData.id)
+                .eq('subscriber_id', user.id)
+                .maybeSingle();
+              setIsSubscribed(!!subData);
+            }
+            setLoading(false);
+            return;
+          }
+          throw new Error('Channel not found');
+        }
         if (error) throw error;
+        if (!data) throw new Error('Channel not found');
         setChannel(data);
         setSubscriberCount(data.subscriber_count || 0);
 
