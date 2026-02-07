@@ -19,6 +19,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Video } from "@/contexts/VideoContext";
+import { useNavigate as useNav } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,6 +66,8 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
   const [playing, setPlaying] = useState(true);
   const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
   const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
+  const [subscribedChannels, setSubscribedChannels] = useState<Set<string>>(new Set());
+  const [subscribing, setSubscribing] = useState(false);
   
   // Comments
   const [commentsOpen, setCommentsOpen] = useState(false);
@@ -80,20 +83,39 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
     return num.toString();
   };
 
-  // Fetch user's likes
+  // Fetch user's likes and subscriptions
   useEffect(() => {
     if (!user) return;
-    const fetchLikes = async () => {
-      const { data } = await supabase
-        .from("video_likes")
-        .select("video_id")
-        .eq("user_id", user.id)
-        .eq("is_like", true);
-      if (data) {
-        setLikedVideos(new Set(data.map((l) => l.video_id)));
+    const fetchUserData = async () => {
+      const [likesRes, subsRes] = await Promise.all([
+        supabase
+          .from("video_likes")
+          .select("video_id")
+          .eq("user_id", user.id)
+          .eq("is_like", true),
+        supabase
+          .from("subscriptions")
+          .select("channel_id")
+          .eq("subscriber_id", user.id),
+      ]);
+      if (likesRes.data) {
+        setLikedVideos(new Set(likesRes.data.map((l) => l.video_id)));
+      }
+      if (subsRes.data) {
+        // Map channel_id (profile.id) to uploader user_ids for matching
+        const channelIds = subsRes.data.map((s) => s.channel_id);
+        if (channelIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("id, user_id")
+            .in("id", channelIds);
+          if (profiles) {
+            setSubscribedChannels(new Set(profiles.map((p) => p.user_id)));
+          }
+        }
       }
     };
-    fetchLikes();
+    fetchUserData();
   }, [user]);
 
   // Initialize like counts
@@ -229,6 +251,52 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
     }
   };
 
+  const handleSubscribe = async (uploaderUserId: string | undefined) => {
+    if (!user) {
+      toast({ title: "Sign in to subscribe" });
+      navigate("/auth");
+      return;
+    }
+    if (!uploaderUserId || subscribing) return;
+    
+    setSubscribing(true);
+    try {
+      // Get the profile id for the channel
+      const { data: channelProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", uploaderUserId)
+        .single();
+      
+      if (!channelProfile) return;
+
+      const isSub = subscribedChannels.has(uploaderUserId);
+      if (isSub) {
+        await supabase.from("subscriptions").delete()
+          .eq("channel_id", channelProfile.id)
+          .eq("subscriber_id", user.id);
+        setSubscribedChannels(prev => {
+          const next = new Set(prev);
+          next.delete(uploaderUserId);
+          return next;
+        });
+        toast({ title: "Unsubscribed" });
+      } else {
+        await supabase.from("subscriptions").insert({
+          channel_id: channelProfile.id,
+          subscriber_id: user.id,
+        });
+        setSubscribedChannels(prev => new Set(prev).add(uploaderUserId));
+        toast({ title: "Subscribed!" });
+      }
+    } catch (e) {
+      console.error("Error subscribing:", e);
+      toast({ title: "Failed to subscribe", variant: "destructive" });
+    } finally {
+      setSubscribing(false);
+    }
+  };
+
   const handleShare = async (videoId: string) => {
     const url = `${window.location.origin}/shorts?start=${videoId}`;
     if (navigator.share) {
@@ -280,6 +348,8 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
           const avatarUrl = uploader?.avatar_url || short.poster?.avatar_url;
           const isLiked = likedVideos.has(short.id);
           const likeCount = likeCounts[short.id] || 0;
+          const isSub = uploader?.user_id ? subscribedChannels.has(uploader.user_id) : false;
+          const isOwnVideo = user && uploader?.user_id === user.id;
 
           return (
             <div key={short.id} className="relative h-screen w-full snap-start">
@@ -385,9 +455,21 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
                       @{uploader?.username || channelName}
                     </p>
                   </Link>
-                  <Button size="sm" variant="secondary" className="rounded-full px-4 h-8 bg-white text-black hover:bg-white/90">
-                    Subscribe
-                  </Button>
+                  {!isOwnVideo && (
+                    <Button 
+                      size="sm" 
+                      variant="secondary" 
+                      onClick={() => handleSubscribe(uploader?.user_id)}
+                      className={cn(
+                        "rounded-full px-4 h-8",
+                        isSub 
+                          ? "bg-secondary text-secondary-foreground hover:bg-secondary/80" 
+                          : "bg-white text-black hover:bg-white/90"
+                      )}
+                    >
+                      {isSub ? "Subscribed" : "Subscribe"}
+                    </Button>
+                  )}
                 </div>
 
                 {/* Title/Description */}
