@@ -10,7 +10,8 @@
 @import '@fontsource/inter/500.css';
 
 @layer base {
-  :root {
+  :root,
+  .dark {
     /* Dark theme with pink accents */
     --background: 270 50% 4%;
     --foreground: 300 20% 98%;
@@ -70,6 +71,61 @@
     --sidebar-accent-foreground: 300 20% 98%;
     --sidebar-border: 330 40% 20%;
     --sidebar-ring: 330 100% 60%;
+  }
+
+  .light {
+    --background: 0 0% 98%;
+    --foreground: 270 30% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 270 30% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 270 30% 10%;
+
+    --primary: 330 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 330 30% 92%;
+    --secondary-foreground: 330 60% 30%;
+
+    --muted: 270 10% 93%;
+    --muted-foreground: 270 10% 45%;
+
+    --accent: 320 80% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 270 10% 85%;
+    --input: 270 10% 93%;
+    --ring: 330 100% 50%;
+
+    --radius: 1rem;
+
+    --pink-glow: 330 100% 50%;
+    --pink-soft: 330 60% 70%;
+    --pink-deep: 330 70% 45%;
+    --pink-neon: 320 90% 55%;
+
+    --gradient-pink: linear-gradient(135deg, hsl(330 100% 50%), hsl(320 100% 45%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100% / 0.9), hsl(270 10% 96% / 0.9));
+    --gradient-shine: linear-gradient(90deg, transparent, hsl(330 100% 60% / 0.15), transparent);
+    --gradient-border: linear-gradient(135deg, hsl(330 100% 50% / 0.3), hsl(320 100% 60% / 0.1), hsl(330 100% 50% / 0.3));
+
+    --shadow-pink: 0 0 20px hsl(330 100% 50% / 0.15);
+    --shadow-card: 0 4px 16px hsl(270 20% 40% / 0.08);
+    --shadow-glow: 0 0 40px hsl(330 100% 50% / 0.2);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 270 30% 10%;
+    --sidebar-primary: 330 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 330 30% 92%;
+    --sidebar-accent-foreground: 270 30% 10%;
+    --sidebar-border: 270 10% 85%;
+    --sidebar-ring: 330 100% 50%;
   }
 }
 

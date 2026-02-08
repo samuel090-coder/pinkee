@@ -19,7 +19,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Video } from "@/contexts/VideoContext";
-import { useNavigate as useNav } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -251,13 +250,13 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
     }
   };
 
-  const handleSubscribe = async (uploaderUserId: string | undefined) => {
+  const handleSubscribe = async (uploaderId: string | null | undefined) => {
     if (!user) {
       toast({ title: "Sign in to subscribe" });
       navigate("/auth");
       return;
     }
-    if (!uploaderUserId || subscribing) return;
+    if (!uploaderId || subscribing) return;
     
     setSubscribing(true);
     try {
@@ -265,19 +264,22 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
       const { data: channelProfile } = await supabase
         .from("profiles")
         .select("id")
-        .eq("user_id", uploaderUserId)
-        .single();
+        .eq("user_id", uploaderId)
+        .maybeSingle();
       
-      if (!channelProfile) return;
+      if (!channelProfile) {
+        toast({ title: "Channel not found", variant: "destructive" });
+        return;
+      }
 
-      const isSub = subscribedChannels.has(uploaderUserId);
+      const isSub = subscribedChannels.has(uploaderId);
       if (isSub) {
         await supabase.from("subscriptions").delete()
           .eq("channel_id", channelProfile.id)
           .eq("subscriber_id", user.id);
         setSubscribedChannels(prev => {
           const next = new Set(prev);
-          next.delete(uploaderUserId);
+          next.delete(uploaderId);
           return next;
         });
         toast({ title: "Unsubscribed" });
@@ -286,7 +288,7 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
           channel_id: channelProfile.id,
           subscriber_id: user.id,
         });
-        setSubscribedChannels(prev => new Set(prev).add(uploaderUserId));
+        setSubscribedChannels(prev => new Set(prev).add(uploaderId));
         toast({ title: "Subscribed!" });
       }
     } catch (e) {
@@ -348,8 +350,9 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
           const avatarUrl = uploader?.avatar_url || short.poster?.avatar_url;
           const isLiked = likedVideos.has(short.id);
           const likeCount = likeCounts[short.id] || 0;
-          const isSub = uploader?.user_id ? subscribedChannels.has(uploader.user_id) : false;
-          const isOwnVideo = user && uploader?.user_id === user.id;
+          const uploaderId = uploader?.user_id || short.uploader_id;
+          const isSub = uploaderId ? subscribedChannels.has(uploaderId) : false;
+          const isOwnVideo = user && uploaderId === user.id;
 
           return (
             <div key={short.id} className="relative h-screen w-full snap-start">
@@ -442,15 +445,15 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
 
                 {/* Channel info */}
                 <div className="flex items-center gap-3">
-                  <Link to={uploader?.user_id ? `/channel/${uploader.user_id}` : "#"}>
-                    <Avatar className="w-10 h-10 border-2 border-white">
+                  <Link to={uploaderId ? `/channel/${uploaderId}` : "#"}>
+                    <Avatar className="w-10 h-10 border-2 border-foreground/20">
                       <AvatarImage src={avatarUrl || undefined} />
                       <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                         {channelName.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                   </Link>
-                  <Link to={uploader?.user_id ? `/channel/${uploader.user_id}` : "#"} className="flex-1 min-w-0">
+                  <Link to={uploaderId ? `/channel/${uploaderId}` : "#"} className="flex-1 min-w-0">
                     <p className="text-white font-semibold text-sm truncate">
                       @{uploader?.username || channelName}
                     </p>
@@ -459,7 +462,8 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
                     <Button 
                       size="sm" 
                       variant="secondary" 
-                      onClick={() => handleSubscribe(uploader?.user_id)}
+                      onClick={() => handleSubscribe(uploaderId)}
+                      disabled={subscribing}
                       className={cn(
                         "rounded-full px-4 h-8",
                         isSub 
