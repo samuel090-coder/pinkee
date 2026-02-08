@@ -17,6 +17,7 @@ import {
   Sun,
   Globe,
   Shield,
+  Monitor,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,10 +28,14 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVideo } from '@/contexts/VideoContext';
 import { NotificationBell } from '@/components/NotificationBell';
+import { useTheme } from '@/components/ThemeProvider';
 
 interface TopNavProps {
   onMenuToggle: () => void;
@@ -44,6 +49,7 @@ export const TopNav = ({ onMenuToggle }: TopNavProps) => {
   const navigate = useNavigate();
   const { user, profile, signOut, isAdmin, isModerator } = useAuth();
   const { adminSettings } = useVideo();
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   const siteName = adminSettings?.site_name || 'PlayStream';
 
@@ -221,10 +227,33 @@ export const TopNav = ({ onMenuToggle }: TopNavProps) => {
                     <Settings className="w-4 h-4 mr-3" />
                     Settings
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Globe className="w-4 h-4 mr-3" />
-                    Language: English
-                  </DropdownMenuItem>
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      {resolvedTheme === 'dark' ? (
+                        <Moon className="w-4 h-4 mr-3" />
+                      ) : (
+                        <Sun className="w-4 h-4 mr-3" />
+                      )}
+                      Appearance
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent className="bg-card border-border">
+                      <DropdownMenuItem onClick={() => setTheme('dark')}>
+                        <Moon className="w-4 h-4 mr-3" />
+                        Dark
+                        {theme === 'dark' && <span className="ml-auto text-primary">✓</span>}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setTheme('light')}>
+                        <Sun className="w-4 h-4 mr-3" />
+                        Light
+                        {theme === 'light' && <span className="ml-auto text-primary">✓</span>}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setTheme('system')}>
+                        <Monitor className="w-4 h-4 mr-3" />
+                        System
+                        {theme === 'system' && <span className="ml-auto text-primary">✓</span>}
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
                   <DropdownMenuItem onClick={() => navigate('/help')}>
                     <HelpCircle className="w-4 h-4 mr-3" />
                     Help
