@@ -11,7 +11,6 @@ import {
   Save,
   Scissors,
   Play,
-  Pause,
   ChevronDown,
   ChevronUp,
   Loader2,
