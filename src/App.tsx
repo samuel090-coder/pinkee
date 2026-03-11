@@ -105,6 +105,7 @@ const App = () => (
                 </Routes>
               </BrowserRouter>
             </TooltipProvider>
+            </PiPProvider>
           </VideoProvider>
         </CurrencyProvider>
       </AuthProvider>
