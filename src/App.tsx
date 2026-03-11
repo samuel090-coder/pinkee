@@ -50,10 +50,12 @@ const App = () => (
       <AuthProvider>
         <CurrencyProvider>
           <VideoProvider>
+            <PiPProvider>
             <TooltipProvider>
               <Toaster />
               <Sonner />
               <NotificationPrompt />
+              <MiniPlayer />
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Index />} />
