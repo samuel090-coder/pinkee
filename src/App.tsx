@@ -7,6 +7,8 @@ import { VideoProvider } from "@/contexts/VideoContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { PiPProvider } from "@/contexts/PiPContext";
+import { MiniPlayer } from "@/components/video/MiniPlayer";
 import { NotificationPrompt } from "@/components/NotificationPrompt";
 import Index from "./pages/Index";
 import Explore from "./pages/Explore";
@@ -48,10 +50,12 @@ const App = () => (
       <AuthProvider>
         <CurrencyProvider>
           <VideoProvider>
+            <PiPProvider>
             <TooltipProvider>
               <Toaster />
               <Sonner />
               <NotificationPrompt />
+              <MiniPlayer />
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Index />} />
@@ -101,6 +105,7 @@ const App = () => (
                 </Routes>
               </BrowserRouter>
             </TooltipProvider>
+            </PiPProvider>
           </VideoProvider>
         </CurrencyProvider>
       </AuthProvider>

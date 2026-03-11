@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ThumbsUp,
@@ -10,34 +10,22 @@ import {
   Flag,
   Save,
   Scissors,
-  MessageSquare,
+  Play,
   ChevronDown,
   ChevronUp,
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Maximize,
-  Minimize,
-  SkipForward,
-  SkipBack,
-  Settings,
   Loader2,
-  Bell,
   BellOff,
   CheckCircle,
-  Crown,
-  Lock,
-  Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Slider } from '@/components/ui/slider';
-import { Textarea } from '@/components/ui/textarea';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { VideoCardNew } from '@/components/video/VideoCardNew';
 import { CommentSection } from '@/components/watch/CommentSection';
 import { PremiumVideoOverlay } from '@/components/video/PremiumVideoOverlay';
+import { VideoPlayerControls } from '@/components/video/VideoPlayerControls';
+import { DoubleTapOverlay } from '@/components/video/DoubleTapOverlay';
+import { usePiP } from '@/contexts/PiPContext';
 import { useVideo } from '@/contexts/VideoContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -71,7 +59,7 @@ const Watch = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [buffered, setBuffered] = useState(0);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const watchTimeRef = useRef(0);
 
   // Interaction state
@@ -89,6 +77,13 @@ const Watch = () => {
   const [adTimeRemaining, setAdTimeRemaining] = useState(0);
   const [adHtml, setAdHtml] = useState<string | null>(null);
   const lastAdTimeRef = useRef(0);
+
+  // New Phase 2 state
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [quality, setQuality] = useState('Auto');
+  const availableQualities = ['Auto', '1080p', '720p', '480p', '360p'];
+  const { enterPiP } = usePiP();
+  const [searchParams] = useSearchParams();
 
   // Check premium access
   useEffect(() => {
@@ -491,32 +486,41 @@ const Watch = () => {
                 </div>
               )}
 
-              <video
-                ref={videoRef}
-                src={hasAccess ? (video.video_url || undefined) : undefined}
-                poster={video.thumbnail_url || video.video_url || undefined}
-                className={cn(
-                  "w-full h-full object-contain",
-                  !hasAccess && video.is_premium && "blur-sm"
-                )}
-                onTimeUpdate={() => {
-                  if (videoRef.current) {
-                    setCurrentTime(videoRef.current.currentTime);
-                  }
-                }}
-                onLoadedMetadata={() => {
-                  if (videoRef.current) {
-                    setDuration(videoRef.current.duration);
-                  }
-                }}
-                onProgress={() => {
-                  if (videoRef.current && videoRef.current.buffered.length > 0) {
-                    setBuffered(videoRef.current.buffered.end(0));
-                  }
-                }}
-                onEnded={() => setIsPlaying(false)}
-                onClick={hasAccess ? togglePlay : undefined}
-              />
+              <DoubleTapOverlay
+                onDoubleTapLeft={() => skip(-10)}
+                onDoubleTapRight={() => skip(10)}
+                onSingleTap={() => hasAccess && togglePlay()}
+              >
+                <video
+                  ref={videoRef}
+                  src={hasAccess ? (video.video_url || undefined) : undefined}
+                  poster={video.thumbnail_url || video.video_url || undefined}
+                  className={cn(
+                    "w-full h-full object-contain",
+                    !hasAccess && video.is_premium && "blur-sm"
+                  )}
+                  onTimeUpdate={() => {
+                    if (videoRef.current) {
+                      setCurrentTime(videoRef.current.currentTime);
+                    }
+                  }}
+                  onLoadedMetadata={() => {
+                    if (videoRef.current) {
+                      setDuration(videoRef.current.duration);
+                      // Resume from URL param
+                      const t = searchParams.get('t');
+                      if (t) videoRef.current.currentTime = Number(t);
+                    }
+                  }}
+                  onProgress={() => {
+                    if (videoRef.current && videoRef.current.buffered.length > 0) {
+                      setBuffered(videoRef.current.buffered.end(0));
+                    }
+                  }}
+                  onEnded={() => setIsPlaying(false)}
+                  playsInline
+                />
+              </DoubleTapOverlay>
 
               {/* Ad Overlay */}
               <AnimatePresence>
@@ -545,97 +549,56 @@ const Watch = () => {
               {/* Center Play Button */}
               <AnimatePresence>
                 {!isPlaying && !showAd && (
-                  <motion.button
+                  <motion.div
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.5 }}
-                    onClick={togglePlay}
-                    className="absolute inset-0 flex items-center justify-center"
+                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
                   >
                     <div className="w-20 h-20 rounded-full bg-primary/90 flex items-center justify-center pink-glow">
                       <Play className="w-10 h-10 text-primary-foreground ml-1" fill="currentColor" />
                     </div>
-                  </motion.button>
+                  </motion.div>
                 )}
               </AnimatePresence>
 
               {/* Controls */}
               <AnimatePresence>
                 {showControls && !showAd && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4"
-                  >
-                    {/* Progress Bar */}
-                    <div className="relative mb-4">
-                      <div className="absolute h-1 bg-muted/30 w-full rounded" />
-                      <div
-                        className="absolute h-1 bg-muted/50 rounded"
-                        style={{ width: `${(buffered / duration) * 100}%` }}
-                      />
-                      <Slider
-                        value={[currentTime]}
-                        max={duration || 100}
-                        step={0.1}
-                        onValueChange={handleSeek}
-                        className="relative z-10"
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => skip(-10)}>
-                          <SkipBack className="w-5 h-5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={togglePlay}>
-                          {isPlaying ? (
-                            <Pause className="w-6 h-6" fill="currentColor" />
-                          ) : (
-                            <Play className="w-6 h-6" fill="currentColor" />
-                          )}
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => skip(10)}>
-                          <SkipForward className="w-5 h-5" />
-                        </Button>
-
-                        <div className="flex items-center gap-2 ml-2">
-                          <Button variant="ghost" size="icon" onClick={toggleMute}>
-                            {isMuted ? (
-                              <VolumeX className="w-5 h-5" />
-                            ) : (
-                              <Volume2 className="w-5 h-5" />
-                            )}
-                          </Button>
-                          <Slider
-                            value={[isMuted ? 0 : volume]}
-                            max={1}
-                            step={0.1}
-                            onValueChange={handleVolumeChange}
-                            className="w-20"
-                          />
-                        </div>
-
-                        <span className="text-sm text-white ml-4">
-                          {formatTime(currentTime)} / {formatTime(duration)}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon">
-                          <Settings className="w-5 h-5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={toggleFullscreen}>
-                          {isFullscreen ? (
-                            <Minimize className="w-5 h-5" />
-                          ) : (
-                            <Maximize className="w-5 h-5" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-                  </motion.div>
+                  <VideoPlayerControls
+                    isPlaying={isPlaying}
+                    isMuted={isMuted}
+                    volume={volume}
+                    currentTime={currentTime}
+                    duration={duration}
+                    buffered={buffered}
+                    isFullscreen={isFullscreen}
+                    playbackSpeed={playbackSpeed}
+                    quality={quality}
+                    availableQualities={availableQualities}
+                    onTogglePlay={togglePlay}
+                    onToggleMute={toggleMute}
+                    onVolumeChange={handleVolumeChange}
+                    onSeek={handleSeek}
+                    onSkip={skip}
+                    onToggleFullscreen={toggleFullscreen}
+                    onSpeedChange={(speed) => {
+                      setPlaybackSpeed(speed);
+                      if (videoRef.current) videoRef.current.playbackRate = speed;
+                    }}
+                    onQualityChange={setQuality}
+                    onTogglePiP={() => {
+                      if (videoRef.current && video) {
+                        enterPiP({
+                          id: video.id,
+                          title: video.title,
+                          videoUrl: video.video_url || '',
+                          currentTime: videoRef.current.currentTime,
+                        });
+                        navigate(-1);
+                      }
+                    }}
+                  />
                 )}
               </AnimatePresence>
             </div>
