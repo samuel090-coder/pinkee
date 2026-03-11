@@ -79,6 +79,13 @@ const Watch = () => {
   const [adHtml, setAdHtml] = useState<string | null>(null);
   const lastAdTimeRef = useRef(0);
 
+  // New Phase 2 state
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [quality, setQuality] = useState('Auto');
+  const availableQualities = ['Auto', '1080p', '720p', '480p', '360p'];
+  const { enterPiP } = usePiP();
+  const [searchParams] = useSearchParams();
+
   // Check premium access
   useEffect(() => {
     if (!video) return;
