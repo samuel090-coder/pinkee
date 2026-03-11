@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ThumbsUp,
@@ -10,34 +10,20 @@ import {
   Flag,
   Save,
   Scissors,
-  MessageSquare,
-  ChevronDown,
-  ChevronUp,
   Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Maximize,
-  Minimize,
-  SkipForward,
-  SkipBack,
-  Settings,
   Loader2,
-  Bell,
   BellOff,
   CheckCircle,
-  Crown,
-  Lock,
-  Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Slider } from '@/components/ui/slider';
-import { Textarea } from '@/components/ui/textarea';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { VideoCardNew } from '@/components/video/VideoCardNew';
 import { CommentSection } from '@/components/watch/CommentSection';
 import { PremiumVideoOverlay } from '@/components/video/PremiumVideoOverlay';
+import { VideoPlayerControls } from '@/components/video/VideoPlayerControls';
+import { DoubleTapOverlay } from '@/components/video/DoubleTapOverlay';
+import { usePiP } from '@/contexts/PiPContext';
 import { useVideo } from '@/contexts/VideoContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
