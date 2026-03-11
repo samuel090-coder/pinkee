@@ -11,7 +11,7 @@ interface DoubleTapOverlayProps {
 
 export function DoubleTapOverlay({ onDoubleTapLeft, onDoubleTapRight, onSingleTap, children }: DoubleTapOverlayProps) {
   const [ripple, setRipple] = useState<{ side: 'left' | 'right'; key: number } | null>(null);
-  const tapTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTapRef = useRef<{ time: number; side: 'left' | 'right' | null }>({ time: 0, side: null });
   const rippleKeyRef = useRef(0);
 
