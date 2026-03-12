@@ -27,6 +27,7 @@ import {
   Volume2,
   Crown,
   DollarSign,
+  Link2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -97,6 +98,11 @@ const Upload = () => {
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [videoDuration, setVideoDuration] = useState(0);
   const [selectedDuration, setSelectedDuration] = useState('15s');
+
+  // Link paste
+  const [videoLink, setVideoLink] = useState('');
+  const [extractingMetadata, setExtractingMetadata] = useState(false);
+  const [embedInfo, setEmbedInfo] = useState<{ type: string; embed_url: string; video_url: string } | null>(null);
 
   // Thumbnail
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -213,6 +219,44 @@ const Upload = () => {
     toast({ title: 'Sound added!', description: sound.title });
   };
 
+  const handlePasteLink = async () => {
+    if (!videoLink.trim()) {
+      toast({ title: 'Please enter a video link', variant: 'destructive' });
+      return;
+    }
+
+    setExtractingMetadata(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('extract-video-metadata', {
+        body: { url: videoLink.trim() },
+      });
+
+      if (error) throw error;
+
+      if (data?.success && data.metadata) {
+        setTitle(data.metadata.title || '');
+        setDescription(data.metadata.description || '');
+        setCategory(data.metadata.category || '');
+        setTags((data.metadata.tags || []).join(', '));
+        if (data.embed) {
+          setEmbedInfo(data.embed);
+        }
+        setStep('details');
+        toast({ title: '✨ Video info extracted!', description: `Detected: ${data.metadata.platform || 'video link'}` });
+      } else {
+        throw new Error(data?.error || 'Failed to extract metadata');
+      }
+    } catch (error) {
+      console.error('Error extracting metadata:', error);
+      toast({ title: 'Error', description: 'Failed to extract video info. Please fill in details manually.', variant: 'destructive' });
+      // Still proceed to details with the link
+      setEmbedInfo({ type: 'link', embed_url: videoLink.trim(), video_url: videoLink.trim() });
+      setStep('details');
+    } finally {
+      setExtractingMetadata(false);
+    }
+  };
+
   const handleThumbnailSelect = (file: File) => {
     if (!file.type.startsWith('image/')) {
       toast({ title: 'Invalid file', description: 'Please select an image file', variant: 'destructive' });
@@ -243,8 +287,14 @@ const Upload = () => {
   };
 
   const handleUpload = async () => {
-    if (!videoFile || !title.trim()) {
-      toast({ title: 'Missing required fields', variant: 'destructive' });
+    const isLinkPost = !!embedInfo && !videoFile;
+    
+    if (!isLinkPost && !videoFile) {
+      toast({ title: 'Missing video file or link', variant: 'destructive' });
+      return;
+    }
+    if (!title.trim()) {
+      toast({ title: 'Title is required', variant: 'destructive' });
       return;
     }
 
@@ -253,8 +303,17 @@ const Upload = () => {
 
     try {
       setUploadProgress(10);
-      const videoUrl = await uploadFile(videoFile, 'videos');
-      if (!videoUrl) throw new Error('Failed to upload video');
+      
+      let videoUrl: string;
+      if (isLinkPost) {
+        // For link-based posts, use the embed URL directly
+        videoUrl = embedInfo!.video_url;
+        setUploadProgress(50);
+      } else {
+        const uploaded = await uploadFile(videoFile!, 'videos');
+        if (!uploaded) throw new Error('Failed to upload video');
+        videoUrl = uploaded;
+      }
 
       setUploadProgress(60);
 
@@ -422,6 +481,35 @@ const Upload = () => {
           </div>
         </div>
 
+        {/* Paste Link Section */}
+        <div className="px-4 pb-2">
+          <div className="flex gap-2">
+            <div className="flex-1 relative">
+              <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={videoLink}
+                onChange={(e) => setVideoLink(e.target.value)}
+                placeholder="Paste video link (YouTube, TikTok, etc.)"
+                className="pl-9 bg-input border-border text-sm"
+                onKeyDown={(e) => e.key === 'Enter' && handlePasteLink()}
+              />
+            </div>
+            <Button
+              onClick={handlePasteLink}
+              disabled={extractingMetadata || !videoLink.trim()}
+              size="sm"
+              className="bg-primary"
+            >
+              {extractingMetadata ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+            </Button>
+          </div>
+          {extractingMetadata && (
+            <p className="text-xs text-muted-foreground mt-2 text-center animate-pulse">
+              ✨ AI is extracting video info...
+            </p>
+          )}
+        </div>
+
         {/* Bottom Controls */}
         <div className="bg-background p-6 space-y-4">
           <div className="flex items-center justify-between">
@@ -578,14 +666,30 @@ const Upload = () => {
           >
             {/* Preview */}
             <div className="aspect-[9/16] max-h-[400px] bg-black rounded-xl overflow-hidden mx-auto">
-              {videoPreview && (
+              {embedInfo && !videoPreview ? (
+                embedInfo.type === 'youtube' || embedInfo.type === 'vimeo' || embedInfo.type === 'dailymotion' ? (
+                  <iframe
+                    src={embedInfo.embed_url}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title="Video preview"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-3 p-4">
+                    <Link2 className="w-12 h-12" />
+                    <p className="text-sm text-center break-all">{embedInfo.video_url}</p>
+                    <span className="text-xs bg-primary/20 text-primary px-3 py-1 rounded-full capitalize">{embedInfo.type}</span>
+                  </div>
+                )
+              ) : videoPreview ? (
                 <video
                   ref={previewVideoRef}
                   src={videoPreview}
                   className="w-full h-full object-contain"
                   controls
                 />
-              )}
+              ) : null}
             </div>
 
             {selectedSound && (
