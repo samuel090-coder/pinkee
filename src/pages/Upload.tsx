@@ -481,6 +481,35 @@ const Upload = () => {
           </div>
         </div>
 
+        {/* Paste Link Section */}
+        <div className="px-4 pb-2">
+          <div className="flex gap-2">
+            <div className="flex-1 relative">
+              <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={videoLink}
+                onChange={(e) => setVideoLink(e.target.value)}
+                placeholder="Paste video link (YouTube, TikTok, etc.)"
+                className="pl-9 bg-input border-border text-sm"
+                onKeyDown={(e) => e.key === 'Enter' && handlePasteLink()}
+              />
+            </div>
+            <Button
+              onClick={handlePasteLink}
+              disabled={extractingMetadata || !videoLink.trim()}
+              size="sm"
+              className="bg-primary"
+            >
+              {extractingMetadata ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+            </Button>
+          </div>
+          {extractingMetadata && (
+            <p className="text-xs text-muted-foreground mt-2 text-center animate-pulse">
+              ✨ AI is extracting video info...
+            </p>
+          )}
+        </div>
+
         {/* Bottom Controls */}
         <div className="bg-background p-6 space-y-4">
           <div className="flex items-center justify-between">
