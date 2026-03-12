@@ -666,14 +666,30 @@ const Upload = () => {
           >
             {/* Preview */}
             <div className="aspect-[9/16] max-h-[400px] bg-black rounded-xl overflow-hidden mx-auto">
-              {videoPreview && (
+              {embedInfo && !videoPreview ? (
+                embedInfo.type === 'youtube' || embedInfo.type === 'vimeo' || embedInfo.type === 'dailymotion' ? (
+                  <iframe
+                    src={embedInfo.embed_url}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title="Video preview"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground gap-3 p-4">
+                    <Link2 className="w-12 h-12" />
+                    <p className="text-sm text-center break-all">{embedInfo.video_url}</p>
+                    <span className="text-xs bg-primary/20 text-primary px-3 py-1 rounded-full capitalize">{embedInfo.type}</span>
+                  </div>
+                )
+              ) : videoPreview ? (
                 <video
                   ref={previewVideoRef}
                   src={videoPreview}
                   className="w-full h-full object-contain"
                   controls
                 />
-              )}
+              ) : null}
             </div>
 
             {selectedSound && (
