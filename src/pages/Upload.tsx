@@ -257,7 +257,7 @@ const Upload = () => {
     }
   };
 
-
+  const handleThumbnailSelect = (file: File) => {
     if (!file.type.startsWith('image/')) {
       toast({ title: 'Invalid file', description: 'Please select an image file', variant: 'destructive' });
       return;
