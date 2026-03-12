@@ -219,7 +219,45 @@ const Upload = () => {
     toast({ title: 'Sound added!', description: sound.title });
   };
 
-  const handleThumbnailSelect = (file: File) => {
+  const handlePasteLink = async () => {
+    if (!videoLink.trim()) {
+      toast({ title: 'Please enter a video link', variant: 'destructive' });
+      return;
+    }
+
+    setExtractingMetadata(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('extract-video-metadata', {
+        body: { url: videoLink.trim() },
+      });
+
+      if (error) throw error;
+
+      if (data?.success && data.metadata) {
+        setTitle(data.metadata.title || '');
+        setDescription(data.metadata.description || '');
+        setCategory(data.metadata.category || '');
+        setTags((data.metadata.tags || []).join(', '));
+        if (data.embed) {
+          setEmbedInfo(data.embed);
+        }
+        setStep('details');
+        toast({ title: '✨ Video info extracted!', description: `Detected: ${data.metadata.platform || 'video link'}` });
+      } else {
+        throw new Error(data?.error || 'Failed to extract metadata');
+      }
+    } catch (error) {
+      console.error('Error extracting metadata:', error);
+      toast({ title: 'Error', description: 'Failed to extract video info. Please fill in details manually.', variant: 'destructive' });
+      // Still proceed to details with the link
+      setEmbedInfo({ type: 'link', embed_url: videoLink.trim(), video_url: videoLink.trim() });
+      setStep('details');
+    } finally {
+      setExtractingMetadata(false);
+    }
+  };
+
+
     if (!file.type.startsWith('image/')) {
       toast({ title: 'Invalid file', description: 'Please select an image file', variant: 'destructive' });
       return;
