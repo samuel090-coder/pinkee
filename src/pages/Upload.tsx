@@ -303,8 +303,17 @@ const Upload = () => {
 
     try {
       setUploadProgress(10);
-      const videoUrl = await uploadFile(videoFile, 'videos');
-      if (!videoUrl) throw new Error('Failed to upload video');
+      
+      let videoUrl: string;
+      if (isLinkPost) {
+        // For link-based posts, use the embed URL directly
+        videoUrl = embedInfo!.video_url;
+        setUploadProgress(50);
+      } else {
+        const uploaded = await uploadFile(videoFile!, 'videos');
+        if (!uploaded) throw new Error('Failed to upload video');
+        videoUrl = uploaded;
+      }
 
       setUploadProgress(60);
 
