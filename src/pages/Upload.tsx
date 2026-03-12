@@ -287,8 +287,14 @@ const Upload = () => {
   };
 
   const handleUpload = async () => {
-    if (!videoFile || !title.trim()) {
-      toast({ title: 'Missing required fields', variant: 'destructive' });
+    const isLinkPost = !!embedInfo && !videoFile;
+    
+    if (!isLinkPost && !videoFile) {
+      toast({ title: 'Missing video file or link', variant: 'destructive' });
+      return;
+    }
+    if (!title.trim()) {
+      toast({ title: 'Title is required', variant: 'destructive' });
       return;
     }
 
