@@ -99,6 +99,11 @@ const Upload = () => {
   const [videoDuration, setVideoDuration] = useState(0);
   const [selectedDuration, setSelectedDuration] = useState('15s');
 
+  // Link paste
+  const [videoLink, setVideoLink] = useState('');
+  const [extractingMetadata, setExtractingMetadata] = useState(false);
+  const [embedInfo, setEmbedInfo] = useState<{ type: string; embed_url: string; video_url: string } | null>(null);
+
   // Thumbnail
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
