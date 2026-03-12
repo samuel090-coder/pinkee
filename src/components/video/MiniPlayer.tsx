@@ -1,13 +1,11 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play, Pause, Maximize2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { usePiP } from '@/contexts/PiPContext';
 import { Button } from '@/components/ui/button';
 
 export function MiniPlayer() {
   const { pipVideo, isMinimized, exitPiP, updateTime } = usePiP();
-  const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
 
@@ -30,7 +28,7 @@ export function MiniPlayer() {
     if (pipVideo) {
       const time = videoRef.current?.currentTime || 0;
       exitPiP();
-      navigate(`/watch/${pipVideo.id}?t=${Math.floor(time)}`);
+      window.location.assign(`/watch/${pipVideo.id}?t=${Math.floor(time)}`);
     }
   };
 
