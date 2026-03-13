@@ -399,6 +399,10 @@ const Upload = () => {
           is_subscription_only: isSubscriptionOnly,
           is_premium: isPremium,
           premium_price: isPremium ? parseFloat(premiumPrice) || 0 : 0,
+          views: isLinkPost ? (embedEngagement?.views || 0) : 0,
+          likes_count: isLinkPost ? (embedEngagement?.likes || 0) : 0,
+          comments_count: isLinkPost ? (embedEngagement?.comments || 0) : 0,
+          reactions: isLinkPost ? (embedEngagement?.likes || 0) : 0,
           is_published: visibility === 'public',
           published_at: scheduleDate || new Date().toISOString(),
         })
