@@ -364,6 +364,9 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
           const isSub = uploaderId ? subscribedChannels.has(uploaderId) : false;
           const isOwnVideo = user && uploaderId === user.id;
           const isExternal = isExternalUrl(short.video_url);
+          if (isExternal) {
+            videoRefs.current[index] = null;
+          }
 
           return (
             <div key={short.id} className="relative h-screen w-full snap-start">
