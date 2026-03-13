@@ -725,7 +725,7 @@ const Upload = () => {
             {/* Preview */}
             <div className="aspect-[9/16] max-h-[400px] bg-black rounded-xl overflow-hidden mx-auto">
               {embedInfo && !videoPreview ? (
-                embedInfo.type === 'youtube' || embedInfo.type === 'vimeo' || embedInfo.type === 'dailymotion' ? (
+                embedInfo.type === 'youtube' || embedInfo.type === 'vimeo' || embedInfo.type === 'dailymotion' || embedInfo.type === 'tiktok' || embedInfo.type === 'facebook' ? (
                   <iframe
                     src={embedInfo.embed_url}
                     className="w-full h-full"
