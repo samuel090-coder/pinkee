@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { isExternalUrl, getEmbedUrl } from "@/lib/video-utils";
 import {
   Sheet,
   SheetContent,
@@ -126,15 +127,17 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
     setLikeCounts(counts);
   }, [shorts]);
 
-  // Intersection observer for auto-play
+  // Intersection observer for auto-play (direct video files only)
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           const video = entry.target as HTMLVideoElement;
           const index = videoRefs.current.indexOf(video);
+          if (index < 0) return;
+
           if (entry.isIntersecting) {
-            video.play();
+            video.play().catch(() => {});
             setPlaying(true);
             setCurrentIndex(index);
           } else {
@@ -153,10 +156,17 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
   }, [shorts, setCurrentIndex]);
 
   const togglePlay = (index: number) => {
+    const short = shorts[index];
+    if (short && isExternalUrl(short.video_url)) {
+      navigate(`/watch/${short.id}`);
+      return;
+    }
+
     const video = videoRefs.current[index];
     if (!video) return;
+
     if (video.paused) {
-      video.play();
+      video.play().catch(() => {});
       setPlaying(true);
     } else {
       video.pause();
@@ -353,22 +363,36 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
           const uploaderId = uploader?.user_id || short.uploader_id;
           const isSub = uploaderId ? subscribedChannels.has(uploaderId) : false;
           const isOwnVideo = user && uploaderId === user.id;
+          const isExternal = isExternalUrl(short.video_url);
+          if (isExternal) {
+            videoRefs.current[index] = null;
+          }
 
           return (
             <div key={short.id} className="relative h-screen w-full snap-start">
               {/* Video */}
-              <video
-                ref={(el) => {
-                  videoRefs.current[index] = el;
-                }}
-                src={short.video_url || undefined}
-                poster={short.thumbnail_url || undefined}
-                className="absolute inset-0 w-full h-full object-cover"
-                loop
-                muted={muted}
-                playsInline
-                onClick={() => togglePlay(index)}
-              />
+              {isExternal ? (
+                <iframe
+                  src={short.video_url ? getEmbedUrl(short.video_url) : undefined}
+                  className="absolute inset-0 w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title={short.title}
+                />
+              ) : (
+                <video
+                  ref={(el) => {
+                    videoRefs.current[index] = el;
+                  }}
+                  src={short.video_url || undefined}
+                  poster={short.thumbnail_url || undefined}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  loop
+                  muted={muted}
+                  playsInline
+                  onClick={() => togglePlay(index)}
+                />
+              )}
 
               {/* Gradient overlays */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
@@ -491,16 +515,18 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
               </div>
 
               {/* Volume toggle */}
-              <button
-                onClick={() => setMuted(!muted)}
-                className="absolute top-20 right-4 w-9 h-9 bg-black/30 rounded-full flex items-center justify-center"
-              >
-                {muted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
-              </button>
+              {!isExternal && (
+                <button
+                  onClick={() => setMuted(!muted)}
+                  className="absolute top-20 right-4 w-9 h-9 bg-black/30 rounded-full flex items-center justify-center"
+                >
+                  {muted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
+                </button>
+              )}
 
               {/* Play/Pause indicator */}
               <AnimatePresence>
-                {!playing && index === currentIndex && (
+                {!isExternal && !playing && index === currentIndex && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}

@@ -103,6 +103,13 @@ const Upload = () => {
   const [videoLink, setVideoLink] = useState('');
   const [extractingMetadata, setExtractingMetadata] = useState(false);
   const [embedInfo, setEmbedInfo] = useState<{ type: string; embed_url: string; video_url: string } | null>(null);
+  const [embedEngagement, setEmbedEngagement] = useState<{
+    views: number;
+    likes: number;
+    comments: number;
+    source?: string;
+    is_estimated?: boolean;
+  } | null>(null);
 
   // Thumbnail
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -226,6 +233,8 @@ const Upload = () => {
     }
 
     setExtractingMetadata(true);
+    setEmbedEngagement(null);
+
     try {
       const { data, error } = await supabase.functions.invoke('extract-video-metadata', {
         body: { url: videoLink.trim() },
@@ -238,11 +247,34 @@ const Upload = () => {
         setDescription(data.metadata.description || '');
         setCategory(data.metadata.category || '');
         setTags((data.metadata.tags || []).join(', '));
+        setVideoDuration(Number(data.metadata.duration) || 0);
+
+        if (data.metadata.thumbnail_url && !thumbnailFile) {
+          setThumbnailPreview(data.metadata.thumbnail_url);
+        }
+
         if (data.embed) {
           setEmbedInfo(data.embed);
         }
+
+        if (data.engagement) {
+          setEmbedEngagement({
+            views: Number(data.engagement.views) || 0,
+            likes: Number(data.engagement.likes) || 0,
+            comments: Number(data.engagement.comments) || 0,
+            source: data.engagement.source,
+            is_estimated: data.engagement.is_estimated,
+          });
+        }
+
         setStep('details');
-        toast({ title: '✨ Video info extracted!', description: `Detected: ${data.metadata.platform || 'video link'}` });
+
+        toast({
+          title: '✨ Video info extracted!',
+          description: data.engagement?.is_estimated
+            ? `Detected: ${data.metadata.platform || 'video link'} • sample engagement added`
+            : `Detected: ${data.metadata.platform || 'video link'} • engagement imported`,
+        });
       } else {
         throw new Error(data?.error || 'Failed to extract metadata');
       }
@@ -367,6 +399,10 @@ const Upload = () => {
           is_subscription_only: isSubscriptionOnly,
           is_premium: isPremium,
           premium_price: isPremium ? parseFloat(premiumPrice) || 0 : 0,
+          views: isLinkPost ? (embedEngagement?.views || 0) : 0,
+          likes_count: isLinkPost ? (embedEngagement?.likes || 0) : 0,
+          comments_count: isLinkPost ? (embedEngagement?.comments || 0) : 0,
+          reactions: isLinkPost ? (embedEngagement?.likes || 0) : 0,
           is_published: visibility === 'public',
           published_at: scheduleDate || new Date().toISOString(),
         })
@@ -693,7 +729,7 @@ const Upload = () => {
             {/* Preview */}
             <div className="aspect-[9/16] max-h-[400px] bg-black rounded-xl overflow-hidden mx-auto">
               {embedInfo && !videoPreview ? (
-                embedInfo.type === 'youtube' || embedInfo.type === 'vimeo' || embedInfo.type === 'dailymotion' ? (
+                embedInfo.type === 'youtube' || embedInfo.type === 'vimeo' || embedInfo.type === 'dailymotion' || embedInfo.type === 'tiktok' || embedInfo.type === 'facebook' ? (
                   <iframe
                     src={embedInfo.embed_url}
                     className="w-full h-full"
