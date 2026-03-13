@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Video } from '@/contexts/VideoContext';
 import { useCurrency } from '@/hooks/useCurrency';
+import { isExternalUrl, getExternalThumbnail } from '@/lib/video-utils';
 
 interface VideoCardProps {
   video: Video;
