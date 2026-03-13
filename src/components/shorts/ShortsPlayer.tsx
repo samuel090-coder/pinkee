@@ -156,10 +156,17 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
   }, [shorts, setCurrentIndex]);
 
   const togglePlay = (index: number) => {
+    const short = shorts[index];
+    if (short && isExternalUrl(short.video_url)) {
+      navigate(`/watch/${short.id}`);
+      return;
+    }
+
     const video = videoRefs.current[index];
     if (!video) return;
+
     if (video.paused) {
-      video.play();
+      video.play().catch(() => {});
       setPlaying(true);
     } else {
       video.pause();
