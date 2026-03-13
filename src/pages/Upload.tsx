@@ -233,6 +233,8 @@ const Upload = () => {
     }
 
     setExtractingMetadata(true);
+    setEmbedEngagement(null);
+
     try {
       const { data, error } = await supabase.functions.invoke('extract-video-metadata', {
         body: { url: videoLink.trim() },
@@ -245,11 +247,34 @@ const Upload = () => {
         setDescription(data.metadata.description || '');
         setCategory(data.metadata.category || '');
         setTags((data.metadata.tags || []).join(', '));
+        setVideoDuration(Number(data.metadata.duration) || 0);
+
+        if (data.metadata.thumbnail_url && !thumbnailFile) {
+          setThumbnailPreview(data.metadata.thumbnail_url);
+        }
+
         if (data.embed) {
           setEmbedInfo(data.embed);
         }
+
+        if (data.engagement) {
+          setEmbedEngagement({
+            views: Number(data.engagement.views) || 0,
+            likes: Number(data.engagement.likes) || 0,
+            comments: Number(data.engagement.comments) || 0,
+            source: data.engagement.source,
+            is_estimated: data.engagement.is_estimated,
+          });
+        }
+
         setStep('details');
-        toast({ title: '✨ Video info extracted!', description: `Detected: ${data.metadata.platform || 'video link'}` });
+
+        toast({
+          title: '✨ Video info extracted!',
+          description: data.engagement?.is_estimated
+            ? `Detected: ${data.metadata.platform || 'video link'} • sample engagement added`
+            : `Detected: ${data.metadata.platform || 'video link'} • engagement imported`,
+        });
       } else {
         throw new Error(data?.error || 'Failed to extract metadata');
       }
