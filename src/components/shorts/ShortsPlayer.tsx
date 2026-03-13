@@ -127,15 +127,17 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
     setLikeCounts(counts);
   }, [shorts]);
 
-  // Intersection observer for auto-play
+  // Intersection observer for auto-play (direct video files only)
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           const video = entry.target as HTMLVideoElement;
           const index = videoRefs.current.indexOf(video);
+          if (index < 0) return;
+
           if (entry.isIntersecting) {
-            video.play();
+            video.play().catch(() => {});
             setPlaying(true);
             setCurrentIndex(index);
           } else {
