@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Video } from '@/contexts/VideoContext';
 import { useCurrency } from '@/hooks/useCurrency';
+import { isExternalUrl, getExternalThumbnail } from '@/lib/video-utils';
 
 interface VideoCardProps {
   video: Video;
@@ -76,9 +77,11 @@ export const VideoCardNew = ({ video, variant = 'default', autoPlay = false, onV
     return `${Math.floor(diff / 31536000)} years ago`;
   };
 
-  // Use video_url as thumbnail if no thumbnail exists
-  const thumbnailUrl = video.thumbnail_url || video.video_url;
-  const hasVideoUrl = !!video.video_url;
+  // Use video_url as thumbnail if no thumbnail exists, handle external URLs
+  const isExternal = isExternalUrl(video.video_url);
+  const externalThumb = isExternal && video.video_url ? getExternalThumbnail(video.video_url) : null;
+  const thumbnailUrl = video.thumbnail_url || externalThumb || (!isExternal ? video.video_url : null);
+  const hasVideoUrl = !!video.video_url && !isExternal;
 
   const uploader = video.uploader_profile;
   const channelName =
@@ -237,8 +240,9 @@ export const VideoCardNew = ({ video, variant = 'default', autoPlay = false, onV
               />
             )
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-muted">
+            <div className="w-full h-full flex flex-col items-center justify-center bg-muted gap-2">
               <Play className="w-12 h-12 text-muted-foreground" />
+              {isExternal && <span className="text-xs text-muted-foreground">External Video</span>}
             </div>
           )}
         </div>

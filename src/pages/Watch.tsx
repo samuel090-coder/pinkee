@@ -31,6 +31,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { isExternalUrl, getEmbedUrl } from '@/lib/video-utils';
 import { formatDistanceToNow } from 'date-fns';
 import {
   DropdownMenu,
@@ -486,41 +487,53 @@ const Watch = () => {
                 </div>
               )}
 
-              <DoubleTapOverlay
-                onDoubleTapLeft={() => skip(-10)}
-                onDoubleTapRight={() => skip(10)}
-                onSingleTap={() => hasAccess && togglePlay()}
-              >
-                <video
-                  ref={videoRef}
-                  src={hasAccess ? (video.video_url || undefined) : undefined}
-                  poster={video.thumbnail_url || video.video_url || undefined}
+              {isExternalUrl(video.video_url) ? (
+                <iframe
+                  src={hasAccess ? getEmbedUrl(video.video_url!) : undefined}
                   className={cn(
-                    "w-full h-full object-contain",
+                    "w-full h-full",
                     !hasAccess && video.is_premium && "blur-sm"
                   )}
-                  onTimeUpdate={() => {
-                    if (videoRef.current) {
-                      setCurrentTime(videoRef.current.currentTime);
-                    }
-                  }}
-                  onLoadedMetadata={() => {
-                    if (videoRef.current) {
-                      setDuration(videoRef.current.duration);
-                      // Resume from URL param
-                      const t = searchParams.get('t');
-                      if (t) videoRef.current.currentTime = Number(t);
-                    }
-                  }}
-                  onProgress={() => {
-                    if (videoRef.current && videoRef.current.buffered.length > 0) {
-                      setBuffered(videoRef.current.buffered.end(0));
-                    }
-                  }}
-                  onEnded={() => setIsPlaying(false)}
-                  playsInline
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title={video.title}
                 />
-              </DoubleTapOverlay>
+              ) : (
+                <DoubleTapOverlay
+                  onDoubleTapLeft={() => skip(-10)}
+                  onDoubleTapRight={() => skip(10)}
+                  onSingleTap={() => hasAccess && togglePlay()}
+                >
+                  <video
+                    ref={videoRef}
+                    src={hasAccess ? (video.video_url || undefined) : undefined}
+                    poster={video.thumbnail_url || undefined}
+                    className={cn(
+                      "w-full h-full object-contain",
+                      !hasAccess && video.is_premium && "blur-sm"
+                    )}
+                    onTimeUpdate={() => {
+                      if (videoRef.current) {
+                        setCurrentTime(videoRef.current.currentTime);
+                      }
+                    }}
+                    onLoadedMetadata={() => {
+                      if (videoRef.current) {
+                        setDuration(videoRef.current.duration);
+                        const t = searchParams.get('t');
+                        if (t) videoRef.current.currentTime = Number(t);
+                      }
+                    }}
+                    onProgress={() => {
+                      if (videoRef.current && videoRef.current.buffered.length > 0) {
+                        setBuffered(videoRef.current.buffered.end(0));
+                      }
+                    }}
+                    onEnded={() => setIsPlaying(false)}
+                    playsInline
+                  />
+                </DoubleTapOverlay>
+              )}
 
               {/* Ad Overlay */}
               <AnimatePresence>
