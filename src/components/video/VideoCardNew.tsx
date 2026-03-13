@@ -77,9 +77,11 @@ export const VideoCardNew = ({ video, variant = 'default', autoPlay = false, onV
     return `${Math.floor(diff / 31536000)} years ago`;
   };
 
-  // Use video_url as thumbnail if no thumbnail exists
-  const thumbnailUrl = video.thumbnail_url || video.video_url;
-  const hasVideoUrl = !!video.video_url;
+  // Use video_url as thumbnail if no thumbnail exists, handle external URLs
+  const isExternal = isExternalUrl(video.video_url);
+  const externalThumb = isExternal && video.video_url ? getExternalThumbnail(video.video_url) : null;
+  const thumbnailUrl = video.thumbnail_url || externalThumb || (!isExternal ? video.video_url : null);
+  const hasVideoUrl = !!video.video_url && !isExternal;
 
   const uploader = video.uploader_profile;
   const channelName =
