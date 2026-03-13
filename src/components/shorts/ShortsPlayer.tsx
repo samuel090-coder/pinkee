@@ -515,16 +515,18 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
               </div>
 
               {/* Volume toggle */}
-              <button
-                onClick={() => setMuted(!muted)}
-                className="absolute top-20 right-4 w-9 h-9 bg-black/30 rounded-full flex items-center justify-center"
-              >
-                {muted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
-              </button>
+              {!isExternal && (
+                <button
+                  onClick={() => setMuted(!muted)}
+                  className="absolute top-20 right-4 w-9 h-9 bg-black/30 rounded-full flex items-center justify-center"
+                >
+                  {muted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
+                </button>
+              )}
 
               {/* Play/Pause indicator */}
               <AnimatePresence>
-                {!playing && index === currentIndex && (
+                {!isExternal && !playing && index === currentIndex && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}
