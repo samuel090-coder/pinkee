@@ -103,6 +103,13 @@ const Upload = () => {
   const [videoLink, setVideoLink] = useState('');
   const [extractingMetadata, setExtractingMetadata] = useState(false);
   const [embedInfo, setEmbedInfo] = useState<{ type: string; embed_url: string; video_url: string } | null>(null);
+  const [embedEngagement, setEmbedEngagement] = useState<{
+    views: number;
+    likes: number;
+    comments: number;
+    source?: string;
+    is_estimated?: boolean;
+  } | null>(null);
 
   // Thumbnail
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
