@@ -322,6 +322,32 @@ const Upload = () => {
         const uploaded = await uploadFile(thumbnailFile, 'thumbnails');
         if (uploaded) thumbnailUrl = uploaded;
       }
+      
+      // Auto-generate thumbnail for link posts if none provided
+      if (!thumbnailUrl && isLinkPost) {
+        try {
+          // Try to get YouTube thumbnail automatically
+          const ytMatch = videoUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+          if (ytMatch) {
+            thumbnailUrl = `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+          } else {
+            // Use AI to generate a thumbnail
+            const { data: thumbData } = await supabase.functions.invoke('generate-thumbnail', {
+              body: { video_url: videoUrl, title, description },
+            });
+            if (thumbData?.thumbnail_base64) {
+              // Convert base64 to blob and upload
+              const resp = await fetch(`data:image/png;base64,${thumbData.thumbnail_base64}`);
+              const blob = await resp.blob();
+              const thumbFile = new File([blob], `thumb-${Date.now()}.png`, { type: 'image/png' });
+              const uploaded = await uploadFile(thumbFile, 'thumbnails');
+              if (uploaded) thumbnailUrl = uploaded;
+            }
+          }
+        } catch (e) {
+          console.error('Auto-thumbnail generation failed:', e);
+        }
+      }
 
       setUploadProgress(80);
 
