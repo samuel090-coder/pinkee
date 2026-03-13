@@ -363,22 +363,33 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
           const uploaderId = uploader?.user_id || short.uploader_id;
           const isSub = uploaderId ? subscribedChannels.has(uploaderId) : false;
           const isOwnVideo = user && uploaderId === user.id;
+          const isExternal = isExternalUrl(short.video_url);
 
           return (
             <div key={short.id} className="relative h-screen w-full snap-start">
               {/* Video */}
-              <video
-                ref={(el) => {
-                  videoRefs.current[index] = el;
-                }}
-                src={short.video_url || undefined}
-                poster={short.thumbnail_url || undefined}
-                className="absolute inset-0 w-full h-full object-cover"
-                loop
-                muted={muted}
-                playsInline
-                onClick={() => togglePlay(index)}
-              />
+              {isExternal ? (
+                <iframe
+                  src={short.video_url ? getEmbedUrl(short.video_url) : undefined}
+                  className="absolute inset-0 w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title={short.title}
+                />
+              ) : (
+                <video
+                  ref={(el) => {
+                    videoRefs.current[index] = el;
+                  }}
+                  src={short.video_url || undefined}
+                  poster={short.thumbnail_url || undefined}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  loop
+                  muted={muted}
+                  playsInline
+                  onClick={() => togglePlay(index)}
+                />
+              )}
 
               {/* Gradient overlays */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
