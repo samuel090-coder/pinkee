@@ -1,0 +1,205 @@
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Star, Calendar, Play, ExternalLink, Loader2, ArrowLeft, Plus, Check, Tv } from 'lucide-react';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { Button } from '@/components/ui/button';
+import { MovieRow } from '@/components/movies/MovieRow';
+import {
+  getTVDetail, getTVCredits, getTVVideos,
+  getSimilarTV, getTVWatchProviders,
+  backdrop, posterLg, profile as profileImg,
+} from '@/lib/tmdb';
+import type { TMDbTVDetail, TMDbCast, TMDbVideo, TMDbWatchProviders, TMDbTVShow, MediaItem } from '@/types/tmdb';
+
+const TVDetail = () => {
+  const { id } = useParams<{ id: string }>();
+  const [show, setShow] = useState<TMDbTVDetail | null>(null);
+  const [cast, setCast] = useState<TMDbCast[]>([]);
+  const [trailer, setTrailer] = useState<TMDbVideo | null>(null);
+  const [similar, setSimilar] = useState<TMDbTVShow[]>([]);
+  const [providers, setProviders] = useState<TMDbWatchProviders | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [inWatchlist, setInWatchlist] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    const tvId = parseInt(id);
+    setLoading(true);
+
+    const wl: number[] = JSON.parse(localStorage.getItem('tv_watchlist') || '[]');
+    setInWatchlist(wl.includes(tvId));
+
+    const rv: number[] = JSON.parse(localStorage.getItem('recently_viewed_tv') || '[]');
+    localStorage.setItem('recently_viewed_tv', JSON.stringify([tvId, ...rv.filter(x => x !== tvId)].slice(0, 20)));
+
+    Promise.all([
+      getTVDetail(tvId),
+      getTVCredits(tvId),
+      getTVVideos(tvId),
+      getSimilarTV(tvId),
+      getTVWatchProviders(tvId),
+    ]).then(([s, c, v, sim, wp]) => {
+      setShow(s);
+      setCast(c.cast.slice(0, 12));
+      setTrailer(v.results.find(x => x.type === 'Trailer' && x.site === 'YouTube') || v.results[0] || null);
+      setSimilar(sim.results.slice(0, 10));
+      setProviders(wp.results?.NG || wp.results?.US || null);
+    }).catch(console.error).finally(() => setLoading(false));
+  }, [id]);
+
+  const toggleWatchlist = () => {
+    if (!id) return;
+    const tvId = parseInt(id);
+    const wl: number[] = JSON.parse(localStorage.getItem('tv_watchlist') || '[]');
+    const next = inWatchlist ? wl.filter(x => x !== tvId) : [...wl, tvId];
+    localStorage.setItem('tv_watchlist', JSON.stringify(next));
+    setInWatchlist(!inWatchlist);
+  };
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </MainLayout>
+    );
+  }
+
+  if (!show) {
+    return (
+      <MainLayout>
+        <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+          <p className="text-muted-foreground">Show not found</p>
+          <Link to="/tv-shows"><Button variant="outline">Back to TV Shows</Button></Link>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  return (
+    <MainLayout>
+      <div className="pb-20">
+        <div className="relative w-full aspect-[16/9] sm:aspect-[21/9]">
+          <img src={backdrop(show.backdrop_path)} alt={show.name} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
+          <Link to="/tv-shows" className="absolute top-4 left-4 z-10">
+            <Button variant="ghost" size="icon" className="bg-black/30 text-white hover:bg-black/50 rounded-full">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
+        </div>
+
+        <div className="container max-w-6xl mx-auto px-4 -mt-32 relative z-10">
+          <div className="flex flex-col sm:flex-row gap-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-shrink-0 w-40 sm:w-56 mx-auto sm:mx-0">
+              <img src={posterLg(show.poster_path)} alt={show.name} className="w-full rounded-xl shadow-2xl" />
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex-1 space-y-3">
+              <h1 className="text-2xl sm:text-4xl font-bold text-foreground">{show.name}</h1>
+              {show.tagline && <p className="text-muted-foreground italic">{show.tagline}</p>}
+
+              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                {show.vote_average > 0 && (
+                  <span className="flex items-center gap-1 text-foreground font-semibold">
+                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                    {show.vote_average.toFixed(1)}
+                  </span>
+                )}
+                {show.first_air_date && (
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    {new Date(show.first_air_date).getFullYear()}
+                  </span>
+                )}
+                <span className="flex items-center gap-1">
+                  <Tv className="w-4 h-4" />
+                  {show.number_of_seasons} Season{show.number_of_seasons !== 1 ? 's' : ''}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {show.genres.map(g => (
+                  <span key={g.id} className="px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs">{g.name}</span>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                {trailer && (
+                  <a href={`https://www.youtube.com/watch?v=${trailer.key}`} target="_blank" rel="noopener noreferrer">
+                    <Button className="rounded-full gap-2 bg-primary text-primary-foreground">
+                      <Play className="w-4 h-4" fill="currentColor" />
+                      Watch Trailer
+                    </Button>
+                  </a>
+                )}
+                <Button variant="outline" className="rounded-full gap-2" onClick={toggleWatchlist}>
+                  {inWatchlist ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                  {inWatchlist ? 'In Watchlist' : 'Watchlist'}
+                </Button>
+              </div>
+
+              <p className="text-sm text-muted-foreground leading-relaxed pt-2">{show.overview}</p>
+            </motion.div>
+          </div>
+
+          {trailer && (
+            <section className="mt-8">
+              <h2 className="text-lg font-bold text-foreground mb-3">Trailer</h2>
+              <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-muted">
+                <iframe src={`https://www.youtube.com/embed/${trailer.key}`} title={trailer.name} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="absolute inset-0 w-full h-full" />
+              </div>
+            </section>
+          )}
+
+          {cast.length > 0 && (
+            <section className="mt-8">
+              <h2 className="text-lg font-bold text-foreground mb-3">Cast</h2>
+              <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+                {cast.map(c => (
+                  <div key={c.id} className="flex-shrink-0 w-24 text-center">
+                    <div className="w-20 h-20 rounded-full overflow-hidden bg-muted mx-auto">
+                      <img src={profileImg(c.profile_path)} alt={c.name} className="w-full h-full object-cover" />
+                    </div>
+                    <p className="text-xs font-medium text-foreground mt-1.5 line-clamp-1">{c.name}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-1">{c.character}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {providers && (providers.flatrate || providers.rent || providers.buy) && (
+            <section className="mt-8">
+              <h2 className="text-lg font-bold text-foreground mb-3">Where to Watch</h2>
+              <div className="flex flex-wrap gap-3">
+                {[...(providers.flatrate || []), ...(providers.rent || []), ...(providers.buy || [])].map(p => (
+                  <div key={p.provider_id} className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg">
+                    <img src={`https://image.tmdb.org/t/p/w45${p.logo_path}`} alt={p.provider_name} className="w-6 h-6 rounded" />
+                    <span className="text-sm text-foreground">{p.provider_name}</span>
+                  </div>
+                ))}
+              </div>
+              {providers.link && (
+                <a href={providers.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-2">
+                  View all options <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
+            </section>
+          )}
+        </div>
+
+        {similar.length > 0 && (
+          <div className="mt-8">
+            <MovieRow title="Similar Shows" items={similar as MediaItem[]} />
+          </div>
+        )}
+      </div>
+    </MainLayout>
+  );
+};
+
+export default TVDetail;

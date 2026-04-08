@@ -40,6 +40,10 @@ import ArtistDashboard from "./pages/ArtistDashboard";
 import SoundDetail from "./pages/SoundDetail";
 import Monetization from "./pages/Monetization";
 import Wallet from "./pages/Wallet";
+import Movies from "./pages/Movies";
+import TVShows from "./pages/TVShows";
+import MovieDetail from "./pages/MovieDetail";
+import TVDetail from "./pages/TVDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -100,6 +104,12 @@ const App = () => (
                 <Route path="/studio/monetization" element={<Monetization />} />
                 <Route path="/sound/:id" element={<SoundDetail />} />
                 <Route path="/wallet" element={<Wallet />} />
+
+                {/* Movies & TV */}
+                <Route path="/movies" element={<Movies />} />
+                <Route path="/tv-shows" element={<TVShows />} />
+                <Route path="/movie/:id" element={<MovieDetail />} />
+                <Route path="/tv/:id" element={<TVDetail />} />
 
                   <Route path="*" element={<NotFound />} />
                 </Routes>
