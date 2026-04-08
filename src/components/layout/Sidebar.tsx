@@ -27,6 +27,8 @@ import {
   Shield,
   DollarSign,
   Wallet,
+  Clapperboard,
+  Tv,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
