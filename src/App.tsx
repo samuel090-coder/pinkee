@@ -105,6 +105,12 @@ const App = () => (
                 <Route path="/sound/:id" element={<SoundDetail />} />
                 <Route path="/wallet" element={<Wallet />} />
 
+                {/* Movies & TV */}
+                <Route path="/movies" element={<Movies />} />
+                <Route path="/tv-shows" element={<TVShows />} />
+                <Route path="/movie/:id" element={<MovieDetail />} />
+                <Route path="/tv/:id" element={<TVDetail />} />
+
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>
