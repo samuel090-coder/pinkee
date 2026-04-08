@@ -40,6 +40,10 @@ import ArtistDashboard from "./pages/ArtistDashboard";
 import SoundDetail from "./pages/SoundDetail";
 import Monetization from "./pages/Monetization";
 import Wallet from "./pages/Wallet";
+import Movies from "./pages/Movies";
+import TVShows from "./pages/TVShows";
+import MovieDetail from "./pages/MovieDetail";
+import TVDetail from "./pages/TVDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
