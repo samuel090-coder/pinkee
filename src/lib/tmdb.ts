@@ -4,6 +4,8 @@ import type {
   TMDbResponse, MediaItem,
 } from '@/types/tmdb';
 
+export type { MediaItem } from '@/types/tmdb';
+
 const API_KEY = '272139592cd689eae0663d4ed7dfdb39';
 const BASE = 'https://api.themoviedb.org/3';
 const IMG_BASE = 'https://image.tmdb.org/t/p';
