@@ -1,13 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Flame, PlusSquare, Play, User } from "lucide-react";
+import { Home, Clapperboard, PlusSquare, Tv, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
 const NAV_ITEMS = [
   { label: "Home", icon: Home, path: "/" },
-  { label: "Shorts", icon: Flame, path: "/shorts" },
+  { label: "Movies", icon: Clapperboard, path: "/movies" },
   { label: "", icon: PlusSquare, path: "/upload", isCreate: true },
-  { label: "Subs", icon: Play, path: "/subscriptions" },
+  { label: "TV", icon: Tv, path: "/tv-shows" },
   { label: "You", icon: User, path: "/settings" },
 ];
 

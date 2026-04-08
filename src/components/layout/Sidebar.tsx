@@ -140,8 +140,11 @@ export const Sidebar = ({ isExpanded, onToggle }: SidebarProps) => {
           <nav className="space-y-1 px-2">
             {/* Main Navigation */}
             <NavItem to="/" icon={<Home className="w-full h-full" />} label="Home" isExpanded={isExpanded} />
+            <NavItem to="/movies" icon={<Clapperboard className="w-full h-full" />} label="Movies" isExpanded={isExpanded} />
+            <NavItem to="/tv-shows" icon={<Tv className="w-full h-full" />} label="TV Shows" isExpanded={isExpanded} />
             <NavItem to="/explore" icon={<Compass className="w-full h-full" />} label="Explore" isExpanded={isExpanded} />
             <NavItem to="/shorts" icon={<PlaySquare className="w-full h-full" />} label="Shorts" isExpanded={isExpanded} />
+            <NavItem to="/subscriptions" icon={<Users className="w-full h-full" />} label="Subscriptions" isExpanded={isExpanded} />
             <NavItem to="/subscriptions" icon={<Users className="w-full h-full" />} label="Subscriptions" isExpanded={isExpanded} />
 
             {isExpanded && <Separator className="my-4 bg-border" />}
