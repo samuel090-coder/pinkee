@@ -62,7 +62,8 @@ const App = () => (
               <BrowserRouter>
                 <MiniPlayer />
                 <Routes>
-                  <Route path="/" element={<Index />} />
+                  <Route path="/" element={<Movies />} />
+                  <Route path="/feed" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
 
                 <Route path="/explore" element={<Explore />} />
@@ -107,6 +108,7 @@ const App = () => (
 
                 {/* Movies & TV */}
                 <Route path="/movies" element={<Movies />} />
+                
                 <Route path="/tv-shows" element={<TVShows />} />
                 <Route path="/movie/:id" element={<MovieDetail />} />
                 <Route path="/tv/:id" element={<TVDetail />} />
