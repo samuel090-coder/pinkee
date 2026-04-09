@@ -1,17 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Star, Clock, Calendar, Play, ExternalLink, Loader2, ArrowLeft, Plus, Check } from 'lucide-react';
+import { Star, Clock, Calendar, Play, ExternalLink, Loader2, ArrowLeft, Plus, Check, X } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { MovieRow } from '@/components/movies/MovieRow';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   getMovieDetail, getMovieCredits, getMovieVideos,
   getSimilarMovies, getMovieWatchProviders, getMovieRecommendations,
   backdrop, posterLg, profile as profileImg,
 } from '@/lib/tmdb';
 import type { TMDbMovieDetail, TMDbCast, TMDbVideo, TMDbWatchProviders, TMDbMovie, MediaItem } from '@/types/tmdb';
+
+const STREAM_SERVERS = [
+  { name: 'Server 1', url: (id: number) => `https://vidsrc.icu/embed/movie/${id}` },
+  { name: 'Server 2', url: (id: number) => `https://vidsrc.cc/v2/embed/movie/${id}` },
+  { name: 'Server 3', url: (id: number) => `https://www.2embed.cc/embed/${id}` },
+  { name: 'Server 4', url: (id: number) => `https://multiembed.mov/?video_id=${id}&tmdb=1` },
+];
 
 const MovieDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,20 +29,20 @@ const MovieDetail = () => {
   const [providers, setProviders] = useState<TMDbWatchProviders | null>(null);
   const [loading, setLoading] = useState(true);
   const [inWatchlist, setInWatchlist] = useState(false);
+  const [showPlayer, setShowPlayer] = useState(false);
+  const [activeServer, setActiveServer] = useState(0);
 
   useEffect(() => {
     if (!id) return;
     const movieId = parseInt(id);
     setLoading(true);
+    setShowPlayer(false);
 
-    // Check watchlist
     const wl: number[] = JSON.parse(localStorage.getItem('movie_watchlist') || '[]');
     setInWatchlist(wl.includes(movieId));
 
-    // Save to recently viewed
     const rv: number[] = JSON.parse(localStorage.getItem('recently_viewed_movies') || '[]');
-    const updated = [movieId, ...rv.filter(x => x !== movieId)].slice(0, 20);
-    localStorage.setItem('recently_viewed_movies', JSON.stringify(updated));
+    localStorage.setItem('recently_viewed_movies', JSON.stringify([movieId, ...rv.filter(x => x !== movieId)].slice(0, 20)));
 
     Promise.all([
       getMovieDetail(movieId),
@@ -79,51 +85,74 @@ const MovieDetail = () => {
       <MainLayout>
         <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
           <p className="text-muted-foreground">Movie not found</p>
-          <Link to="/movies"><Button variant="outline">Back to Movies</Button></Link>
+          <Link to="/"><Button variant="outline">Back to Movies</Button></Link>
         </div>
       </MainLayout>
     );
   }
 
+  const movieId = parseInt(id!);
+
   return (
     <MainLayout>
       <div className="pb-20">
-        {/* Hero Backdrop */}
-        <div className="relative w-full aspect-[16/9] sm:aspect-[21/9]">
-          <img src={backdrop(movie.backdrop_path)} alt={movie.title} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
+        {/* Streaming Player */}
+        {showPlayer && (
+          <div className="w-full bg-black">
+            <div className="container max-w-6xl mx-auto">
+              <div className="relative w-full aspect-video">
+                <iframe
+                  key={`${movieId}-${activeServer}`}
+                  src={STREAM_SERVERS[activeServer].url(movieId)}
+                  className="absolute inset-0 w-full h-full"
+                  allowFullScreen
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  referrerPolicy="origin"
+                  sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                />
+              </div>
+              <div className="flex items-center justify-between px-2 py-2">
+                <div className="flex items-center gap-1.5 overflow-x-auto">
+                  {STREAM_SERVERS.map((s, i) => (
+                    <Button
+                      key={s.name}
+                      size="sm"
+                      variant={activeServer === i ? 'default' : 'secondary'}
+                      className="text-xs h-7 px-2.5 whitespace-nowrap"
+                      onClick={() => setActiveServer(i)}
+                    >
+                      {s.name}
+                    </Button>
+                  ))}
+                </div>
+                <Button size="sm" variant="ghost" className="text-white h-7" onClick={() => setShowPlayer(false)}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
-          <Link to="/movies" className="absolute top-4 left-4 z-10">
-            <Button variant="ghost" size="icon" className="bg-black/30 text-white hover:bg-black/50 rounded-full">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-        </div>
+        {!showPlayer && (
+          <div className="relative w-full aspect-[16/9] sm:aspect-[21/9]">
+            <img src={backdrop(movie.backdrop_path)} alt={movie.title} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
+            <Link to="/" className="absolute top-4 left-4 z-10">
+              <Button variant="ghost" size="icon" className="bg-black/30 text-white hover:bg-black/50 rounded-full">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+          </div>
+        )}
 
-        {/* Movie Info */}
-        <div className="container max-w-6xl mx-auto px-4 -mt-32 relative z-10">
+        <div className={`container max-w-6xl mx-auto px-4 ${!showPlayer ? '-mt-32' : 'mt-4'} relative z-10`}>
           <div className="flex flex-col sm:flex-row gap-6">
-            {/* Poster */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex-shrink-0 w-40 sm:w-56 mx-auto sm:mx-0"
-            >
-              <img
-                src={posterLg(movie.poster_path)}
-                alt={movie.title}
-                className="w-full rounded-xl shadow-2xl"
-              />
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-shrink-0 w-40 sm:w-56 mx-auto sm:mx-0">
+              <img src={posterLg(movie.poster_path)} alt={movie.title} className="w-full rounded-xl shadow-2xl" />
             </motion.div>
 
-            {/* Details */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="flex-1 space-y-3"
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex-1 space-y-3">
               <h1 className="text-2xl sm:text-4xl font-bold text-foreground">{movie.title}</h1>
               {movie.tagline && <p className="text-muted-foreground italic">{movie.tagline}</p>}
 
@@ -148,57 +177,38 @@ const MovieDetail = () => {
                 )}
               </div>
 
-              {/* Genres */}
               <div className="flex flex-wrap gap-2">
                 {movie.genres.map(g => (
-                  <span key={g.id} className="px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs">
-                    {g.name}
-                  </span>
+                  <span key={g.id} className="px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs">{g.name}</span>
                 ))}
               </div>
 
-              {/* Actions */}
               <div className="flex items-center gap-3 pt-2">
+                <Button
+                  className="rounded-full gap-2 bg-primary text-primary-foreground"
+                  onClick={() => { setShowPlayer(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                >
+                  <Play className="w-4 h-4" fill="currentColor" />
+                  Watch Now
+                </Button>
                 {trailer && (
                   <a href={`https://www.youtube.com/watch?v=${trailer.key}`} target="_blank" rel="noopener noreferrer">
-                    <Button className="rounded-full gap-2 bg-primary text-primary-foreground">
-                      <Play className="w-4 h-4" fill="currentColor" />
-                      Watch Trailer
+                    <Button variant="outline" className="rounded-full gap-2">
+                      <Play className="w-4 h-4" />
+                      Trailer
                     </Button>
                   </a>
                 )}
-                <Button
-                  variant="outline"
-                  className="rounded-full gap-2"
-                  onClick={toggleWatchlist}
-                >
+                <Button variant="outline" className="rounded-full gap-2" onClick={toggleWatchlist}>
                   {inWatchlist ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                  {inWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+                  {inWatchlist ? 'In Watchlist' : 'Watchlist'}
                 </Button>
               </div>
 
-              {/* Overview */}
               <p className="text-sm text-muted-foreground leading-relaxed pt-2">{movie.overview}</p>
             </motion.div>
           </div>
 
-          {/* Trailer Embed */}
-          {trailer && (
-            <section className="mt-8">
-              <h2 className="text-lg font-bold text-foreground mb-3">Trailer</h2>
-              <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-muted">
-                <iframe
-                  src={`https://www.youtube.com/embed/${trailer.key}`}
-                  title={trailer.name}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="absolute inset-0 w-full h-full"
-                />
-              </div>
-            </section>
-          )}
-
-          {/* Cast */}
           {cast.length > 0 && (
             <section className="mt-8">
               <h2 className="text-lg font-bold text-foreground mb-3">Cast</h2>
@@ -216,18 +226,13 @@ const MovieDetail = () => {
             </section>
           )}
 
-          {/* Where to Watch */}
           {providers && (providers.flatrate || providers.rent || providers.buy) && (
             <section className="mt-8">
-              <h2 className="text-lg font-bold text-foreground mb-3">Where to Watch</h2>
+              <h2 className="text-lg font-bold text-foreground mb-3">Also Available On</h2>
               <div className="flex flex-wrap gap-3">
                 {[...(providers.flatrate || []), ...(providers.rent || []), ...(providers.buy || [])].map(p => (
                   <div key={p.provider_id} className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg">
-                    <img
-                      src={`https://image.tmdb.org/t/p/w45${p.logo_path}`}
-                      alt={p.provider_name}
-                      className="w-6 h-6 rounded"
-                    />
+                    <img src={`https://image.tmdb.org/t/p/w45${p.logo_path}`} alt={p.provider_name} className="w-6 h-6 rounded" />
                     <span className="text-sm text-foreground">{p.provider_name}</span>
                   </div>
                 ))}
@@ -241,14 +246,9 @@ const MovieDetail = () => {
           )}
         </div>
 
-        {/* Similar & Recommendations */}
         <div className="mt-8 space-y-6">
-          {recommendations.length > 0 && (
-            <MovieRow title="Recommended" items={recommendations as MediaItem[]} />
-          )}
-          {similar.length > 0 && (
-            <MovieRow title="Similar Movies" items={similar as MediaItem[]} />
-          )}
+          {recommendations.length > 0 && <MovieRow title="Recommended" items={recommendations as MediaItem[]} />}
+          {similar.length > 0 && <MovieRow title="Similar Movies" items={similar as MediaItem[]} />}
         </div>
       </div>
     </MainLayout>
