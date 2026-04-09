@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Star, Calendar, Play, ExternalLink, Loader2, ArrowLeft, Plus, Check, Tv } from 'lucide-react';
+import { Star, Calendar, Play, ExternalLink, Loader2, ArrowLeft, Plus, Check, Tv, X } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { MovieRow } from '@/components/movies/MovieRow';
@@ -12,6 +12,13 @@ import {
 } from '@/lib/tmdb';
 import type { TMDbTVDetail, TMDbCast, TMDbVideo, TMDbWatchProviders, TMDbTVShow, MediaItem } from '@/types/tmdb';
 
+const STREAM_SERVERS = [
+  { name: 'Server 1', url: (id: number, s: number, e: number) => `https://vidsrc.icu/embed/tv/${id}/${s}/${e}` },
+  { name: 'Server 2', url: (id: number, s: number, e: number) => `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}` },
+  { name: 'Server 3', url: (id: number, s: number, e: number) => `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}` },
+  { name: 'Server 4', url: (id: number, s: number, e: number) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}` },
+];
+
 const TVDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [show, setShow] = useState<TMDbTVDetail | null>(null);
@@ -21,11 +28,16 @@ const TVDetail = () => {
   const [providers, setProviders] = useState<TMDbWatchProviders | null>(null);
   const [loading, setLoading] = useState(true);
   const [inWatchlist, setInWatchlist] = useState(false);
+  const [showPlayer, setShowPlayer] = useState(false);
+  const [activeServer, setActiveServer] = useState(0);
+  const [selectedSeason, setSelectedSeason] = useState(1);
+  const [selectedEpisode, setSelectedEpisode] = useState(1);
 
   useEffect(() => {
     if (!id) return;
     const tvId = parseInt(id);
     setLoading(true);
+    setShowPlayer(false);
 
     const wl: number[] = JSON.parse(localStorage.getItem('tv_watchlist') || '[]');
     setInWatchlist(wl.includes(tvId));
@@ -45,6 +57,8 @@ const TVDetail = () => {
       setTrailer(v.results.find(x => x.type === 'Trailer' && x.site === 'YouTube') || v.results[0] || null);
       setSimilar(sim.results.slice(0, 10));
       setProviders(wp.results?.NG || wp.results?.US || null);
+      setSelectedSeason(1);
+      setSelectedEpisode(1);
     }).catch(console.error).finally(() => setLoading(false));
   }, [id]);
 
@@ -78,21 +92,89 @@ const TVDetail = () => {
     );
   }
 
+  const tvId = parseInt(id!);
+  const totalSeasons = show.number_of_seasons || 1;
+  const currentSeasonData = show.seasons?.find(s => s.season_number === selectedSeason);
+  const totalEpisodes = currentSeasonData?.episode_count || 24;
+
   return (
     <MainLayout>
       <div className="pb-20">
-        <div className="relative w-full aspect-[16/9] sm:aspect-[21/9]">
-          <img src={backdrop(show.backdrop_path)} alt={show.name} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
-          <Link to="/tv-shows" className="absolute top-4 left-4 z-10">
-            <Button variant="ghost" size="icon" className="bg-black/30 text-white hover:bg-black/50 rounded-full">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-        </div>
+        {showPlayer && (
+          <div className="w-full bg-black">
+            <div className="container max-w-6xl mx-auto">
+              <div className="relative w-full aspect-video">
+                <iframe
+                  key={`${tvId}-${activeServer}-s${selectedSeason}e${selectedEpisode}`}
+                  src={STREAM_SERVERS[activeServer].url(tvId, selectedSeason, selectedEpisode)}
+                  className="absolute inset-0 w-full h-full"
+                  allowFullScreen
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  referrerPolicy="origin"
+                  sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                />
+              </div>
+              <div className="flex flex-col gap-2 px-2 py-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <select
+                    value={selectedSeason}
+                    onChange={e => { setSelectedSeason(Number(e.target.value)); setSelectedEpisode(1); }}
+                    className="bg-secondary text-foreground text-xs rounded px-2 py-1.5 border-none outline-none"
+                  >
+                    {Array.from({ length: totalSeasons }, (_, i) => i + 1).map(s => (
+                      <option key={s} value={s}>Season {s}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={selectedEpisode}
+                    onChange={e => setSelectedEpisode(Number(e.target.value))}
+                    className="bg-secondary text-foreground text-xs rounded px-2 py-1.5 border-none outline-none"
+                  >
+                    {Array.from({ length: totalEpisodes }, (_, i) => i + 1).map(ep => (
+                      <option key={ep} value={ep}>Episode {ep}</option>
+                    ))}
+                  </select>
+                  <span className="text-xs text-muted-foreground ml-auto">
+                    S{selectedSeason} E{selectedEpisode}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 overflow-x-auto">
+                    {STREAM_SERVERS.map((s, i) => (
+                      <Button
+                        key={s.name}
+                        size="sm"
+                        variant={activeServer === i ? 'default' : 'secondary'}
+                        className="text-xs h-7 px-2.5 whitespace-nowrap"
+                        onClick={() => setActiveServer(i)}
+                      >
+                        {s.name}
+                      </Button>
+                    ))}
+                  </div>
+                  <Button size="sm" variant="ghost" className="text-white h-7" onClick={() => setShowPlayer(false)}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-        <div className="container max-w-6xl mx-auto px-4 -mt-32 relative z-10">
+        {!showPlayer && (
+          <div className="relative w-full aspect-[16/9] sm:aspect-[21/9]">
+            <img src={backdrop(show.backdrop_path)} alt={show.name} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
+            <Link to="/tv-shows" className="absolute top-4 left-4 z-10">
+              <Button variant="ghost" size="icon" className="bg-black/30 text-white hover:bg-black/50 rounded-full">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+          </div>
+        )}
+
+        <div className={`container max-w-6xl mx-auto px-4 ${!showPlayer ? '-mt-32' : 'mt-4'} relative z-10`}>
           <div className="flex flex-col sm:flex-row gap-6">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-shrink-0 w-40 sm:w-56 mx-auto sm:mx-0">
               <img src={posterLg(show.poster_path)} alt={show.name} className="w-full rounded-xl shadow-2xl" />
@@ -128,11 +210,18 @@ const TVDetail = () => {
               </div>
 
               <div className="flex items-center gap-3 pt-2">
+                <Button
+                  className="rounded-full gap-2 bg-primary text-primary-foreground"
+                  onClick={() => { setShowPlayer(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                >
+                  <Play className="w-4 h-4" fill="currentColor" />
+                  Watch Now
+                </Button>
                 {trailer && (
                   <a href={`https://www.youtube.com/watch?v=${trailer.key}`} target="_blank" rel="noopener noreferrer">
-                    <Button className="rounded-full gap-2 bg-primary text-primary-foreground">
-                      <Play className="w-4 h-4" fill="currentColor" />
-                      Watch Trailer
+                    <Button variant="outline" className="rounded-full gap-2">
+                      <Play className="w-4 h-4" />
+                      Trailer
                     </Button>
                   </a>
                 )}
@@ -145,15 +234,6 @@ const TVDetail = () => {
               <p className="text-sm text-muted-foreground leading-relaxed pt-2">{show.overview}</p>
             </motion.div>
           </div>
-
-          {trailer && (
-            <section className="mt-8">
-              <h2 className="text-lg font-bold text-foreground mb-3">Trailer</h2>
-              <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-muted">
-                <iframe src={`https://www.youtube.com/embed/${trailer.key}`} title={trailer.name} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="absolute inset-0 w-full h-full" />
-              </div>
-            </section>
-          )}
 
           {cast.length > 0 && (
             <section className="mt-8">
@@ -174,7 +254,7 @@ const TVDetail = () => {
 
           {providers && (providers.flatrate || providers.rent || providers.buy) && (
             <section className="mt-8">
-              <h2 className="text-lg font-bold text-foreground mb-3">Where to Watch</h2>
+              <h2 className="text-lg font-bold text-foreground mb-3">Also Available On</h2>
               <div className="flex flex-wrap gap-3">
                 {[...(providers.flatrate || []), ...(providers.rent || []), ...(providers.buy || [])].map(p => (
                   <div key={p.provider_id} className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg">
