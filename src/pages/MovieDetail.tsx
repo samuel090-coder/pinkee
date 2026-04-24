@@ -5,6 +5,7 @@ import { Star, Clock, Calendar, Play, ExternalLink, Loader2, ArrowLeft, Plus, Ch
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { MovieRow } from '@/components/movies/MovieRow';
+import { IframePlayerShield } from '@/components/movies/IframePlayerShield';
 import {
   getMovieDetail, getMovieCredits, getMovieVideos,
   getSimilarMovies, getMovieWatchProviders, getMovieRecommendations,
