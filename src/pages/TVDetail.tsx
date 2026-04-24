@@ -34,6 +34,15 @@ const TVDetail = () => {
   const [activeServer, setActiveServer] = useState(0);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
+  const [rotated, setRotated] = useState(false);
+  const playerWrapRef = useRef<HTMLDivElement>(null);
+
+  const enterFullscreen = () => {
+    const el = playerWrapRef.current;
+    if (!el) return;
+    const req = (el as any).requestFullscreen || (el as any).webkitRequestFullscreen || (el as any).webkitEnterFullscreen;
+    if (req) req.call(el);
+  };
 
   useEffect(() => {
     if (!id) return;
