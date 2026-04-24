@@ -109,9 +109,8 @@ const TVDetail = () => {
                   src={STREAM_SERVERS[activeServer].url(tvId, selectedSeason, selectedEpisode)}
                   className="absolute inset-0 w-full h-full"
                   allowFullScreen
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  referrerPolicy="origin"
-                  sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                  allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                  referrerPolicy="no-referrer"
                 />
               </div>
               <div className="flex flex-col gap-2 px-2 py-2">

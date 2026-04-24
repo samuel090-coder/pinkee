@@ -106,9 +106,8 @@ const MovieDetail = () => {
                   src={STREAM_SERVERS[activeServer].url(movieId)}
                   className="absolute inset-0 w-full h-full"
                   allowFullScreen
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  referrerPolicy="origin"
-                  sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                  allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                  referrerPolicy="no-referrer"
                 />
               </div>
               <div className="flex items-center justify-between px-2 py-2">
