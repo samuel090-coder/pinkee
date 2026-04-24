@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Star, Clock, Calendar, Play, ExternalLink, Loader2, ArrowLeft, Plus, Check, X } from 'lucide-react';
+import { Star, Clock, Calendar, Play, ExternalLink, Loader2, ArrowLeft, Plus, Check, X, Maximize, RotateCw } from 'lucide-react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { MovieRow } from '@/components/movies/MovieRow';
@@ -33,6 +33,15 @@ const MovieDetail = () => {
   const [inWatchlist, setInWatchlist] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
   const [activeServer, setActiveServer] = useState(0);
+  const [rotated, setRotated] = useState(false);
+  const playerWrapRef = useRef<HTMLDivElement>(null);
+
+  const enterFullscreen = () => {
+    const el = playerWrapRef.current;
+    if (!el) return;
+    const req = (el as any).requestFullscreen || (el as any).webkitRequestFullscreen || (el as any).webkitEnterFullscreen;
+    if (req) req.call(el);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -105,7 +114,7 @@ const MovieDetail = () => {
               <div className="bg-amber-500/10 border-b border-amber-500/20 px-3 py-1.5 text-[11px] text-amber-200 text-center">
                 Free streams may show pop-up ads. For an ad-free experience, install <a href="https://ublockorigin.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">uBlock Origin</a> or use <a href="https://brave.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">Brave Browser</a>.
               </div>
-              <div className="relative w-full aspect-video">
+              <div ref={playerWrapRef} className={`relative w-full aspect-video bg-black ${rotated ? 'rotate-90 origin-center' : ''}`}>
                 <iframe
                   key={`${movieId}-${activeServer}`}
                   src={STREAM_SERVERS[activeServer].url(movieId)}
@@ -113,25 +122,35 @@ const MovieDetail = () => {
                   allowFullScreen
                   allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
                   referrerPolicy="no-referrer"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
                 />
               </div>
-              <div className="flex items-center justify-between px-2 py-2">
-                <div className="flex items-center gap-1.5 overflow-x-auto">
+              <div className="flex items-center gap-2 px-2 py-2 flex-wrap">
+                <Button size="sm" variant="secondary" className="text-xs h-8 gap-1" onClick={enterFullscreen}>
+                  <Maximize className="w-3.5 h-3.5" /> Fullscreen
+                </Button>
+                <Button size="sm" variant="secondary" className="text-xs h-8 gap-1" onClick={() => setRotated(r => !r)}>
+                  <RotateCw className="w-3.5 h-3.5" /> Rotate
+                </Button>
+                <div className="flex items-center gap-1.5 overflow-x-auto ml-auto">
                   {STREAM_SERVERS.map((s, i) => (
                     <Button
                       key={s.name}
                       size="sm"
                       variant={activeServer === i ? 'default' : 'secondary'}
-                      className="text-xs h-7 px-2.5 whitespace-nowrap"
+                      className="text-xs h-8 px-2.5 whitespace-nowrap"
                       onClick={() => setActiveServer(i)}
                     >
                       {s.name}
                     </Button>
                   ))}
                 </div>
-                <Button size="sm" variant="ghost" className="text-white h-7" onClick={() => setShowPlayer(false)}>
+                <Button size="sm" variant="ghost" className="text-white h-8" onClick={() => setShowPlayer(false)}>
                   <X className="w-4 h-4" />
                 </Button>
+              </div>
+              <div className="px-3 pb-2 text-[10px] text-muted-foreground text-center">
+                Tip: Avoid tapping the video — use Fullscreen above. Volume controls are inside the player UI itself.
               </div>
             </div>
           </div>
