@@ -13,10 +13,12 @@ import {
 import type { TMDbTVDetail, TMDbCast, TMDbVideo, TMDbWatchProviders, TMDbTVShow, MediaItem } from '@/types/tmdb';
 
 const STREAM_SERVERS = [
-  { name: 'Server 1', url: (id: number, s: number, e: number) => `https://vidsrc.icu/embed/tv/${id}/${s}/${e}` },
-  { name: 'Server 2', url: (id: number, s: number, e: number) => `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}` },
-  { name: 'Server 3', url: (id: number, s: number, e: number) => `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}` },
-  { name: 'Server 4', url: (id: number, s: number, e: number) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}` },
+  { name: 'VidLink', url: (id: number, s: number, e: number) => `https://vidlink.pro/tv/${id}/${s}/${e}?primaryColor=8b5cf6&autoplay=true` },
+  { name: 'Embed.su', url: (id: number, s: number, e: number) => `https://embed.su/embed/tv/${id}/${s}/${e}` },
+  { name: 'AutoEmbed', url: (id: number, s: number, e: number) => `https://player.autoembed.cc/embed/tv/${id}/${s}/${e}` },
+  { name: 'VidSrc.to', url: (id: number, s: number, e: number) => `https://vidsrc.to/embed/tv/${id}/${s}/${e}` },
+  { name: 'VidSrc.cc', url: (id: number, s: number, e: number) => `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}` },
+  { name: '2Embed', url: (id: number, s: number, e: number) => `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}` },
 ];
 
 const TVDetail = () => {

@@ -13,10 +13,12 @@ import {
 import type { TMDbMovieDetail, TMDbCast, TMDbVideo, TMDbWatchProviders, TMDbMovie, MediaItem } from '@/types/tmdb';
 
 const STREAM_SERVERS = [
-  { name: 'Server 1', url: (id: number) => `https://vidsrc.icu/embed/movie/${id}` },
-  { name: 'Server 2', url: (id: number) => `https://vidsrc.cc/v2/embed/movie/${id}` },
-  { name: 'Server 3', url: (id: number) => `https://www.2embed.cc/embed/${id}` },
-  { name: 'Server 4', url: (id: number) => `https://multiembed.mov/?video_id=${id}&tmdb=1` },
+  { name: 'VidLink', url: (id: number) => `https://vidlink.pro/movie/${id}?primaryColor=8b5cf6&autoplay=true` },
+  { name: 'Embed.su', url: (id: number) => `https://embed.su/embed/movie/${id}` },
+  { name: 'AutoEmbed', url: (id: number) => `https://player.autoembed.cc/embed/movie/${id}` },
+  { name: 'VidSrc.to', url: (id: number) => `https://vidsrc.to/embed/movie/${id}` },
+  { name: 'VidSrc.cc', url: (id: number) => `https://vidsrc.cc/v2/embed/movie/${id}` },
+  { name: '2Embed', url: (id: number) => `https://www.2embed.cc/embed/${id}` },
 ];
 
 const MovieDetail = () => {
