@@ -127,13 +127,9 @@ const TVDetail = () => {
                 Free streams may show pop-up ads. For an ad-free experience, install <a href="https://ublockorigin.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">uBlock Origin</a> or use <a href="https://brave.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">Brave Browser</a>.
               </div>
               <div ref={playerWrapRef} className="relative w-full aspect-video bg-black">
-                <iframe
-                  key={`${tvId}-${activeServer}-s${selectedSeason}e${selectedEpisode}`}
+                <IframePlayerShield
                   src={STREAM_SERVERS[activeServer].url(tvId, selectedSeason, selectedEpisode)}
-                  className="absolute inset-0 w-full h-full"
-                  allowFullScreen
-                  allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-                  referrerPolicy="no-referrer"
+                  iframeKey={`${tvId}-${activeServer}-s${selectedSeason}e${selectedEpisode}`}
                 />
               </div>
 
