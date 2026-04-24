@@ -143,14 +143,12 @@ const MovieDetail = () => {
                       transformOrigin: 'center center',
                     }}
                   >
-                    <iframe
-                      key={`${movieId}-${activeServer}-rot`}
-                      src={STREAM_SERVERS[activeServer].url(movieId)}
-                      className="w-full h-full border-0"
-                      allowFullScreen
-                      allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-                      referrerPolicy="no-referrer"
-                    />
+                    <div className="relative w-full h-full">
+                      <IframePlayerShield
+                        src={STREAM_SERVERS[activeServer].url(movieId)}
+                        iframeKey={`${movieId}-${activeServer}-rot`}
+                      />
+                    </div>
                   </div>
                   <Button
                     size="sm"
