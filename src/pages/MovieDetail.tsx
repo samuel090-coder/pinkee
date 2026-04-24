@@ -102,6 +102,9 @@ const MovieDetail = () => {
         {showPlayer && (
           <div className="w-full bg-black">
             <div className="container max-w-6xl mx-auto">
+              <div className="bg-amber-500/10 border-b border-amber-500/20 px-3 py-1.5 text-[11px] text-amber-200 text-center">
+                Free streams may show pop-up ads. For an ad-free experience, install <a href="https://ublockorigin.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">uBlock Origin</a> or use <a href="https://brave.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">Brave Browser</a>.
+              </div>
               <div className="relative w-full aspect-video">
                 <iframe
                   key={`${movieId}-${activeServer}`}
