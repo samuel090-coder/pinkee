@@ -13,10 +13,12 @@ import {
 import type { TMDbMovieDetail, TMDbCast, TMDbVideo, TMDbWatchProviders, TMDbMovie, MediaItem } from '@/types/tmdb';
 
 const STREAM_SERVERS = [
-  { name: 'Server 1', url: (id: number) => `https://vidsrc.icu/embed/movie/${id}` },
-  { name: 'Server 2', url: (id: number) => `https://vidsrc.cc/v2/embed/movie/${id}` },
-  { name: 'Server 3', url: (id: number) => `https://www.2embed.cc/embed/${id}` },
-  { name: 'Server 4', url: (id: number) => `https://multiembed.mov/?video_id=${id}&tmdb=1` },
+  { name: 'VidLink', url: (id: number) => `https://vidlink.pro/movie/${id}?primaryColor=8b5cf6&autoplay=true` },
+  { name: 'Embed.su', url: (id: number) => `https://embed.su/embed/movie/${id}` },
+  { name: 'AutoEmbed', url: (id: number) => `https://player.autoembed.cc/embed/movie/${id}` },
+  { name: 'VidSrc.to', url: (id: number) => `https://vidsrc.to/embed/movie/${id}` },
+  { name: 'VidSrc.cc', url: (id: number) => `https://vidsrc.cc/v2/embed/movie/${id}` },
+  { name: '2Embed', url: (id: number) => `https://www.2embed.cc/embed/${id}` },
 ];
 
 const MovieDetail = () => {
@@ -100,6 +102,9 @@ const MovieDetail = () => {
         {showPlayer && (
           <div className="w-full bg-black">
             <div className="container max-w-6xl mx-auto">
+              <div className="bg-amber-500/10 border-b border-amber-500/20 px-3 py-1.5 text-[11px] text-amber-200 text-center">
+                Free streams may show pop-up ads. For an ad-free experience, install <a href="https://ublockorigin.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">uBlock Origin</a> or use <a href="https://brave.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">Brave Browser</a>.
+              </div>
               <div className="relative w-full aspect-video">
                 <iframe
                   key={`${movieId}-${activeServer}`}
