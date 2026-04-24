@@ -185,7 +185,7 @@ const MovieDetail = () => {
                 </Button>
               </div>
               <div className="px-3 pb-2 text-[10px] text-muted-foreground text-center">
-                Tip: Avoid tapping the video — use Fullscreen above. Volume controls are inside the player UI itself.
+                Tip: Taps on the video are blocked to stop ad redirects. Use the floating <strong>Volume</strong> button (top-right of the player) to enable in-player volume, or your phone's volume keys to adjust playback.
               </div>
             </div>
           </div>
