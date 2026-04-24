@@ -43,6 +43,15 @@ const MovieDetail = () => {
     if (req) req.call(el);
   };
 
+  // Lock body scroll while rotated overlay is active
+  useEffect(() => {
+    if (rotated) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [rotated]);
+
   useEffect(() => {
     if (!id) return;
     const movieId = parseInt(id);
