@@ -5,6 +5,7 @@ import { Star, Calendar, Play, ExternalLink, Loader2, ArrowLeft, Plus, Check, Tv
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { MovieRow } from '@/components/movies/MovieRow';
+import { IframePlayerShield } from '@/components/movies/IframePlayerShield';
 import {
   getTVDetail, getTVCredits, getTVVideos,
   getSimilarTV, getTVWatchProviders,
