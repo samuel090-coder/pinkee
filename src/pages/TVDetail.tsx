@@ -5,6 +5,7 @@ import { Star, Calendar, Play, ExternalLink, Loader2, ArrowLeft, Plus, Check, Tv
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { MovieRow } from '@/components/movies/MovieRow';
+import { IframePlayerShield } from '@/components/movies/IframePlayerShield';
 import {
   getTVDetail, getTVCredits, getTVVideos,
   getSimilarTV, getTVWatchProviders,
@@ -126,13 +127,9 @@ const TVDetail = () => {
                 Free streams may show pop-up ads. For an ad-free experience, install <a href="https://ublockorigin.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">uBlock Origin</a> or use <a href="https://brave.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">Brave Browser</a>.
               </div>
               <div ref={playerWrapRef} className="relative w-full aspect-video bg-black">
-                <iframe
-                  key={`${tvId}-${activeServer}-s${selectedSeason}e${selectedEpisode}`}
+                <IframePlayerShield
                   src={STREAM_SERVERS[activeServer].url(tvId, selectedSeason, selectedEpisode)}
-                  className="absolute inset-0 w-full h-full"
-                  allowFullScreen
-                  allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-                  referrerPolicy="no-referrer"
+                  iframeKey={`${tvId}-${activeServer}-s${selectedSeason}e${selectedEpisode}`}
                 />
               </div>
 
@@ -147,14 +144,12 @@ const TVDetail = () => {
                       transformOrigin: 'center center',
                     }}
                   >
-                    <iframe
-                      key={`${tvId}-${activeServer}-s${selectedSeason}e${selectedEpisode}-rot`}
-                      src={STREAM_SERVERS[activeServer].url(tvId, selectedSeason, selectedEpisode)}
-                      className="w-full h-full border-0"
-                      allowFullScreen
-                      allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-                      referrerPolicy="no-referrer"
-                    />
+                    <div className="relative w-full h-full">
+                      <IframePlayerShield
+                        src={STREAM_SERVERS[activeServer].url(tvId, selectedSeason, selectedEpisode)}
+                        iframeKey={`${tvId}-${activeServer}-s${selectedSeason}e${selectedEpisode}-rot`}
+                      />
+                    </div>
                   </div>
                   <Button
                     size="sm"
@@ -215,7 +210,7 @@ const TVDetail = () => {
                   </Button>
                 </div>
                 <div className="text-[10px] text-muted-foreground text-center">
-                  Tip: Avoid tapping the video — use Fullscreen above. Volume controls are inside the player UI itself.
+                  Tip: Taps on the video are blocked to stop ad redirects. Use the floating <strong>Volume</strong> button (top-right of the player) to enable in-player volume, or your phone's volume keys to adjust playback.
                 </div>
               </div>
             </div>
