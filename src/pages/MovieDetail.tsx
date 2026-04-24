@@ -43,6 +43,15 @@ const MovieDetail = () => {
     if (req) req.call(el);
   };
 
+  // Lock body scroll while rotated overlay is active
+  useEffect(() => {
+    if (rotated) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [rotated]);
+
   useEffect(() => {
     if (!id) return;
     const movieId = parseInt(id);
@@ -114,7 +123,7 @@ const MovieDetail = () => {
               <div className="bg-amber-500/10 border-b border-amber-500/20 px-3 py-1.5 text-[11px] text-amber-200 text-center">
                 Free streams may show pop-up ads. For an ad-free experience, install <a href="https://ublockorigin.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">uBlock Origin</a> or use <a href="https://brave.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">Brave Browser</a>.
               </div>
-              <div ref={playerWrapRef} className={`relative w-full aspect-video bg-black ${rotated ? 'rotate-90 origin-center' : ''}`}>
+              <div ref={playerWrapRef} className="relative w-full aspect-video bg-black">
                 <iframe
                   key={`${movieId}-${activeServer}`}
                   src={STREAM_SERVERS[activeServer].url(movieId)}
@@ -122,9 +131,40 @@ const MovieDetail = () => {
                   allowFullScreen
                   allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
                   referrerPolicy="no-referrer"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
                 />
               </div>
+
+              {/* Rotated landscape overlay */}
+              {rotated && (
+                <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center">
+                  <div
+                    className="bg-black"
+                    style={{
+                      width: '100vh',
+                      height: '100vw',
+                      transform: 'rotate(90deg)',
+                      transformOrigin: 'center center',
+                    }}
+                  >
+                    <iframe
+                      key={`${movieId}-${activeServer}-rot`}
+                      src={STREAM_SERVERS[activeServer].url(movieId)}
+                      className="w-full h-full border-0"
+                      allowFullScreen
+                      allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="fixed top-3 right-3 z-[101] h-9 gap-1"
+                    onClick={() => setRotated(false)}
+                  >
+                    <X className="w-4 h-4" /> Exit
+                  </Button>
+                </div>
+              )}
               <div className="flex items-center gap-2 px-2 py-2 flex-wrap">
                 <Button size="sm" variant="secondary" className="text-xs h-8 gap-1" onClick={enterFullscreen}>
                   <Maximize className="w-3.5 h-3.5" /> Fullscreen
