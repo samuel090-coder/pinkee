@@ -14,7 +14,6 @@ import {
 import type { TMDbTVDetail, TMDbCast, TMDbVideo, TMDbWatchProviders, TMDbTVShow, MediaItem } from '@/types/tmdb';
 
 const STREAM_SERVERS = [
-  { name: 'VidLink', url: (id: number, s: number, e: number) => `https://vidlink.pro/tv/${id}/${s}/${e}?primaryColor=8b5cf6&autoplay=false` },
   { name: 'Embed.su', url: (id: number, s: number, e: number) => `https://embed.su/embed/tv/${id}/${s}/${e}` },
   { name: 'AutoEmbed', url: (id: number, s: number, e: number) => `https://player.autoembed.cc/embed/tv/${id}/${s}/${e}` },
   { name: 'VidSrc.to', url: (id: number, s: number, e: number) => `https://vidsrc.to/embed/tv/${id}/${s}/${e}` },
