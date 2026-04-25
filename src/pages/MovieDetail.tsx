@@ -14,7 +14,7 @@ import {
 import type { TMDbMovieDetail, TMDbCast, TMDbVideo, TMDbWatchProviders, TMDbMovie, MediaItem } from '@/types/tmdb';
 
 const STREAM_SERVERS = [
-  { name: 'VidLink', url: (id: number) => `https://vidlink.pro/movie/${id}?primaryColor=8b5cf6&autoplay=true` },
+  { name: 'VidLink', url: (id: number) => `https://vidlink.pro/movie/${id}?primaryColor=8b5cf6&autoplay=false` },
   { name: 'Embed.su', url: (id: number) => `https://embed.su/embed/movie/${id}` },
   { name: 'AutoEmbed', url: (id: number) => `https://player.autoembed.cc/embed/movie/${id}` },
   { name: 'VidSrc.to', url: (id: number) => `https://vidsrc.to/embed/movie/${id}` },
@@ -185,7 +185,7 @@ const MovieDetail = () => {
                 </Button>
               </div>
               <div className="px-3 pb-2 text-[10px] text-muted-foreground text-center">
-                Tip: Taps on the video are blocked to stop ad redirects. Use the floating <strong>Volume</strong> button (top-right of the player) to enable in-player volume, or your phone's volume keys to adjust playback.
+                Tip: The <strong>bottom strip of the player is always tappable</strong> — use it to press play and unmute the speaker icon. Then your phone's volume keys will control sound. The middle of the video is shielded to block ad redirects.
               </div>
             </div>
           </div>

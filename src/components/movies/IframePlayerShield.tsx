@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Volume2, MousePointerClick, Lock } from 'lucide-react';
+import { Volume2, VolumeX, MousePointerClick, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface IframePlayerShieldProps {
@@ -58,15 +58,17 @@ export function IframePlayerShield({
         referrerPolicy="no-referrer"
       />
 
-      {/* Transparent click-shield — blocks ad-redirect taps */}
+      {/* Click-shield — covers only the TOP portion of the video.
+          Leaves the bottom ~64px (where every player puts volume / play /
+          fullscreen) tappable so users can unmute naturally. */}
       {shieldActive && (
         <div
-          className="absolute inset-0 z-10 cursor-not-allowed"
-          style={{ background: 'transparent' }}
+          className="absolute left-0 right-0 top-0 z-10 cursor-not-allowed"
+          style={{ background: 'transparent', bottom: '64px' }}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            setUnlockHint('Tap protected. Use the Volume or Controls button below.');
+            setUnlockHint('Tap blocked here. Use the bottom of the player for volume / play.');
             if (unlockTimerRef.current) clearTimeout(unlockTimerRef.current);
             unlockTimerRef.current = setTimeout(() => setUnlockHint(null), 2200);
           }}
@@ -85,7 +87,7 @@ export function IframePlayerShield({
         >
           {shieldActive ? (
             <>
-              <Lock className="w-3 h-3" /> Tap-shield ON
+              <Lock className="w-3 h-3" /> Shield ON · Volume free
             </>
           ) : (
             <>
@@ -95,9 +97,9 @@ export function IframePlayerShield({
         </span>
       </div>
 
-      {/* Bottom hint toast */}
+      {/* Bottom hint toast (above the free zone) */}
       {unlockHint && (
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+        <div className="absolute left-1/2 -translate-x-1/2 z-20 pointer-events-none" style={{ bottom: '72px' }}>
           <span className="px-3 py-1.5 rounded-full bg-background/90 text-foreground text-[11px] shadow-lg">
             {unlockHint}
           </span>
@@ -110,10 +112,11 @@ export function IframePlayerShield({
           size="sm"
           variant="secondary"
           className="h-8 px-2 gap-1 text-xs shadow-lg"
-          onClick={() => temporaryUnlock('Tap the volume icon inside the player now')}
+          onClick={() => temporaryUnlock('Tap the speaker icon at the bottom of the player to unmute')}
           title="Enable volume controls"
         >
-          <Volume2 className="w-3.5 h-3.5" />
+          <VolumeX className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Unmute</span>
         </Button>
         <Button
           size="sm"
@@ -137,6 +140,15 @@ export function IframePlayerShield({
           {shieldActive ? <MousePointerClick className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
         </Button>
       </div>
+
+      {/* Visual indicator of the always-tappable bottom strip */}
+      {shieldActive && (
+        <div
+          className="absolute left-0 right-0 bottom-0 z-[5] pointer-events-none border-t border-primary/30"
+          style={{ height: '64px', background: 'linear-gradient(to top, hsl(var(--primary) / 0.08), transparent)' }}
+          aria-hidden="true"
+        />
+      )}
     </div>
   );
 }
