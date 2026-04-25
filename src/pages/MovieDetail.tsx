@@ -14,10 +14,12 @@ import {
 import type { TMDbMovieDetail, TMDbCast, TMDbVideo, TMDbWatchProviders, TMDbMovie, MediaItem } from '@/types/tmdb';
 
 const STREAM_SERVERS = [
+  { name: 'VidSrc.xyz', url: (id: number) => `https://vidsrc.xyz/embed/movie?tmdb=${id}` },
+  { name: 'VidSrc.cc', url: (id: number) => `https://vidsrc.cc/v2/embed/movie/${id}` },
+  { name: 'VidSrc.to', url: (id: number) => `https://vidsrc.to/embed/movie/${id}` },
+  { name: 'MultiEmbed', url: (id: number) => `https://multiembed.mov/?video_id=${id}&tmdb=1` },
   { name: 'Embed.su', url: (id: number) => `https://embed.su/embed/movie/${id}` },
   { name: 'AutoEmbed', url: (id: number) => `https://player.autoembed.cc/embed/movie/${id}` },
-  { name: 'VidSrc.to', url: (id: number) => `https://vidsrc.to/embed/movie/${id}` },
-  { name: 'VidSrc.cc', url: (id: number) => `https://vidsrc.cc/v2/embed/movie/${id}` },
   { name: '2Embed', url: (id: number) => `https://www.2embed.cc/embed/${id}` },
 ];
 
