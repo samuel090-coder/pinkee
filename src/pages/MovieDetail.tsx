@@ -185,7 +185,7 @@ const MovieDetail = () => {
                 </Button>
               </div>
               <div className="px-3 pb-2 text-[10px] text-muted-foreground text-center">
-                Tip: Taps on the video are blocked to stop ad redirects. Use the floating <strong>Volume</strong> button (top-right of the player) to enable in-player volume, or your phone's volume keys to adjust playback.
+                Tip: The <strong>bottom strip of the player is always tappable</strong> — use it to press play and unmute the speaker icon. Then your phone's volume keys will control sound. The middle of the video is shielded to block ad redirects.
               </div>
             </div>
           </div>
