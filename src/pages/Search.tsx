@@ -8,6 +8,9 @@ import {
   TrendingUp,
   Loader2,
   Users,
+  Film,
+  Tv as TvIcon,
+  Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,6 +26,8 @@ import { useVideo } from '@/contexts/VideoContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
+import { searchMulti, getTitle, getYear, getMediaType, poster } from '@/lib/tmdb';
+import type { MediaItem } from '@/types/tmdb';
 
 type SortType = 'relevance' | 'date' | 'views' | 'rating';
 type DurationFilter = 'any' | 'short' | 'medium' | 'long';
@@ -46,6 +51,9 @@ const Search = () => {
 
   const [channelResults, setChannelResults] = useState<ChannelResult[]>([]);
   const [channelsLoading, setChannelsLoading] = useState(false);
+
+  const [tmdbResults, setTmdbResults] = useState<MediaItem[]>([]);
+  const [tmdbLoading, setTmdbLoading] = useState(false);
 
   useEffect(() => {
     const q = query.trim();
@@ -77,6 +85,29 @@ const Search = () => {
 
     run();
   }, [query]);
+
+  // TMDb movie/TV search
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) {
+      setTmdbResults([]);
+      return;
+    }
+    setTmdbLoading(true);
+    searchMulti(q)
+      .then((res) => {
+        const filtered = (res.results || []).filter(
+          (r: any) => r.media_type === 'movie' || r.media_type === 'tv'
+        );
+        setTmdbResults(filtered.slice(0, 18));
+      })
+      .catch((e) => {
+        console.error('TMDb search error:', e);
+        setTmdbResults([]);
+      })
+      .finally(() => setTmdbLoading(false));
+  }, [query]);
+
   const searchResults = useMemo(() => {
     if (!query.trim()) return [];
 
@@ -145,7 +176,7 @@ const Search = () => {
               Search results for "{query}"
             </h1>
             <p className="text-sm text-muted-foreground">
-              {searchResults.length} results found
+              {tmdbResults.length + searchResults.length} results found
             </p>
           </div>
 
@@ -202,6 +233,58 @@ const Search = () => {
             </DropdownMenu>
           </div>
         </div>
+
+        {/* Movies & TV from TMDb */}
+        {(tmdbLoading || tmdbResults.length > 0) && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-3">
+              <Film className="w-4 h-4 text-muted-foreground" />
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                Movies & TV Shows
+              </h2>
+            </div>
+
+            {tmdbLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {tmdbResults.map((item) => {
+                  const type = getMediaType(item);
+                  const to = type === 'tv' ? `/tv/${item.id}` : `/movie/${item.id}`;
+                  const title = getTitle(item);
+                  const year = getYear(item);
+                  const rating = (item as any).vote_average || 0;
+                  return (
+                    <Link key={`${type}-${item.id}`} to={to} className="group">
+                      <div className="aspect-[2/3] rounded-lg overflow-hidden bg-muted relative">
+                        <img
+                          src={poster(item.poster_path)}
+                          alt={title}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                        <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-black/70 text-white text-[10px] uppercase font-semibold flex items-center gap-1">
+                          {type === 'tv' ? <TvIcon className="w-2.5 h-2.5" /> : <Film className="w-2.5 h-2.5" />}
+                          {type}
+                        </div>
+                        {rating > 0 && (
+                          <div className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/70 text-white text-[10px] flex items-center gap-1">
+                            <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
+                            {rating.toFixed(1)}
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs font-medium text-foreground mt-1.5 line-clamp-1">{title}</p>
+                      {year && <p className="text-[10px] text-muted-foreground">{year}</p>}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Channel results */}
         {(channelsLoading || channelResults.length > 0) && (
