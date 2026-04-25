@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Volume2, MousePointerClick, Lock } from 'lucide-react';
+import { Volume2, VolumeX, MousePointerClick, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface IframePlayerShieldProps {
