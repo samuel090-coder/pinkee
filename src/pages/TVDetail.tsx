@@ -14,12 +14,13 @@ import {
 import type { TMDbTVDetail, TMDbCast, TMDbVideo, TMDbWatchProviders, TMDbTVShow, MediaItem } from '@/types/tmdb';
 
 const STREAM_SERVERS = [
+  { name: 'VidSrc.dev', url: (id: number, s: number, e: number) => `https://vidsrc.dev/embed/tv/${id}/${s}/${e}` },
+  { name: 'VidBinge', url: (id: number, s: number, e: number) => `https://vidbinge.dev/embed/tv/${id}/${s}/${e}` },
+  { name: 'Smashy', url: (id: number, s: number, e: number) => `https://embed.smashy.stream/tv/${id}?s=${s}&e=${e}` },
+  { name: 'MoviesAPI', url: (id: number, s: number, e: number) => `https://moviesapi.club/tv/${id}-${s}-${e}` },
+  { name: 'SuperEmbed', url: (id: number, s: number, e: number) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}` },
+  { name: 'VidSrc.icu', url: (id: number, s: number, e: number) => `https://vidsrc.icu/embed/tv/${id}/${s}/${e}` },
   { name: 'VidSrc.xyz', url: (id: number, s: number, e: number) => `https://vidsrc.xyz/embed/tv?tmdb=${id}&season=${s}&episode=${e}` },
-  { name: 'VidSrc.cc', url: (id: number, s: number, e: number) => `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}` },
-  { name: 'VidSrc.to', url: (id: number, s: number, e: number) => `https://vidsrc.to/embed/tv/${id}/${s}/${e}` },
-  { name: 'MultiEmbed', url: (id: number, s: number, e: number) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}` },
-  { name: 'Embed.su', url: (id: number, s: number, e: number) => `https://embed.su/embed/tv/${id}/${s}/${e}` },
-  { name: 'AutoEmbed', url: (id: number, s: number, e: number) => `https://player.autoembed.cc/embed/tv/${id}/${s}/${e}` },
   { name: '2Embed', url: (id: number, s: number, e: number) => `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}` },
 ];
 
