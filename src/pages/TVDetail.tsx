@@ -6,6 +6,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { MovieRow } from '@/components/movies/MovieRow';
 import { IframePlayerShield } from '@/components/movies/IframePlayerShield';
+import { StreamingWelcomeGuide } from '@/components/movies/StreamingWelcomeGuide';
 import { TV_STREAM_SERVERS } from '@/lib/streaming';
 import {
   getTVDetail, getTVCredits, getTVVideos,
