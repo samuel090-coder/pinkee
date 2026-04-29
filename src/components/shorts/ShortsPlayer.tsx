@@ -597,3 +597,30 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
     </>
   );
 }
+
+interface ShortVideoProps {
+  src: string | null | undefined;
+  poster: string | null | undefined;
+  muted: boolean;
+  onClick: () => void;
+  refCallback: (el: HTMLVideoElement | null) => void;
+}
+
+function ShortVideo({ src, poster, muted, onClick, refCallback }: ShortVideoProps) {
+  const localRef = useRef<HTMLVideoElement>(null);
+  useAdaptivePlayback(localRef, src);
+  return (
+    <video
+      ref={(el) => {
+        localRef.current = el;
+        refCallback(el);
+      }}
+      poster={poster || undefined}
+      className="absolute inset-0 w-full h-full object-cover"
+      loop
+      muted={muted}
+      playsInline
+      onClick={onClick}
+    />
+  );
+}
