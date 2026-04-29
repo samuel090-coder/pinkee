@@ -969,6 +969,48 @@ export type Database = {
           },
         ]
       }
+      stream_failures: {
+        Row: {
+          created_at: string
+          embed_url: string | null
+          episode: number | null
+          error_reason: string | null
+          id: string
+          media_type: string
+          season: number | null
+          server_name: string
+          tmdb_id: number
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          embed_url?: string | null
+          episode?: number | null
+          error_reason?: string | null
+          id?: string
+          media_type: string
+          season?: number | null
+          server_name: string
+          tmdb_id: number
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          embed_url?: string | null
+          episode?: number | null
+          error_reason?: string | null
+          id?: string
+          media_type?: string
+          season?: number | null
+          server_name?: string
+          tmdb_id?: number
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           channel_id: string
