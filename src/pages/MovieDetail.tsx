@@ -6,23 +6,13 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { MovieRow } from '@/components/movies/MovieRow';
 import { IframePlayerShield } from '@/components/movies/IframePlayerShield';
+import { MOVIE_STREAM_SERVERS, isRecentlyReleased } from '@/lib/streaming';
 import {
   getMovieDetail, getMovieCredits, getMovieVideos,
   getSimilarMovies, getMovieWatchProviders, getMovieRecommendations,
   backdrop, posterLg, profile as profileImg,
 } from '@/lib/tmdb';
 import type { TMDbMovieDetail, TMDbCast, TMDbVideo, TMDbWatchProviders, TMDbMovie, MediaItem } from '@/types/tmdb';
-
-const STREAM_SERVERS = [
-  { name: 'VidSrc.dev', url: (id: number) => `https://vidsrc.dev/embed/movie/${id}` },
-  { name: 'VidBinge', url: (id: number) => `https://vidbinge.dev/embed/movie/${id}` },
-  { name: 'Smashy', url: (id: number) => `https://embed.smashy.stream/movie/${id}` },
-  { name: 'MoviesAPI', url: (id: number) => `https://moviesapi.club/movie/${id}` },
-  { name: 'SuperEmbed', url: (id: number) => `https://multiembed.mov/?video_id=${id}&tmdb=1` },
-  { name: 'VidSrc.icu', url: (id: number) => `https://vidsrc.icu/embed/movie/${id}` },
-  { name: 'VidSrc.xyz', url: (id: number) => `https://vidsrc.xyz/embed/movie?tmdb=${id}` },
-  { name: '2Embed', url: (id: number) => `https://www.2embed.cc/embed/${id}` },
-];
 
 const MovieDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -60,6 +50,7 @@ const MovieDetail = () => {
     const movieId = parseInt(id);
     setLoading(true);
     setShowPlayer(false);
+    setActiveServer(0);
 
     const wl: number[] = JSON.parse(localStorage.getItem('movie_watchlist') || '[]');
     setInWatchlist(wl.includes(movieId));
@@ -115,6 +106,8 @@ const MovieDetail = () => {
   }
 
   const movieId = parseInt(id!);
+  const streamServer = MOVIE_STREAM_SERVERS[activeServer] || MOVIE_STREAM_SERVERS[0];
+  const mayNotHaveStreams = isRecentlyReleased(movie.release_date) || movie.status !== 'Released';
 
   return (
     <MainLayout>
@@ -128,10 +121,15 @@ const MovieDetail = () => {
               </div>
               <div ref={playerWrapRef} className="relative w-full aspect-video bg-black">
                 <IframePlayerShield
-                  src={STREAM_SERVERS[activeServer].url(movieId)}
+                  src={streamServer.url(movieId)}
                   iframeKey={`${movieId}-${activeServer}`}
                 />
               </div>
+              {mayNotHaveStreams && (
+                <div className="bg-muted/70 border-b border-border px-3 py-2 text-[11px] text-muted-foreground text-center">
+                  This title is very new, so some free servers may not have the full stream yet. Try the server buttons below or check back later.
+                </div>
+              )}
 
               {/* Rotated landscape overlay */}
               {rotated && (
@@ -147,7 +145,7 @@ const MovieDetail = () => {
                   >
                     <div className="relative w-full h-full">
                       <IframePlayerShield
-                        src={STREAM_SERVERS[activeServer].url(movieId)}
+                        src={streamServer.url(movieId)}
                         iframeKey={`${movieId}-${activeServer}-rot`}
                       />
                     </div>
@@ -170,7 +168,7 @@ const MovieDetail = () => {
                   <RotateCw className="w-3.5 h-3.5" /> Rotate
                 </Button>
                 <div className="flex items-center gap-1.5 overflow-x-auto ml-auto">
-                  {STREAM_SERVERS.map((s, i) => (
+                  {MOVIE_STREAM_SERVERS.map((s, i) => (
                     <Button
                       key={s.name}
                       size="sm"
