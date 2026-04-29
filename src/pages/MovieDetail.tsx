@@ -121,8 +121,12 @@ const MovieDetail = () => {
               </div>
               <div ref={playerWrapRef} className="relative w-full aspect-video bg-black">
                 <IframePlayerShield
-                  src={streamServer.url(movieId)}
-                  iframeKey={`${movieId}-${activeServer}`}
+                  servers={MOVIE_STREAM_SERVERS.map(s => ({ name: s.name, build: () => s.url(movieId) }))}
+                  activeIndex={activeServer}
+                  onActiveIndexChange={setActiveServer}
+                  mediaType="movie"
+                  tmdbId={movieId}
+                  iframeKey={`${movieId}`}
                 />
               </div>
               {mayNotHaveStreams && (
@@ -145,8 +149,12 @@ const MovieDetail = () => {
                   >
                     <div className="relative w-full h-full">
                       <IframePlayerShield
-                        src={streamServer.url(movieId)}
-                        iframeKey={`${movieId}-${activeServer}-rot`}
+                        servers={MOVIE_STREAM_SERVERS.map(s => ({ name: s.name, build: () => s.url(movieId) }))}
+                        activeIndex={activeServer}
+                        onActiveIndexChange={setActiveServer}
+                        mediaType="movie"
+                        tmdbId={movieId}
+                        iframeKey={`${movieId}-rot`}
                       />
                     </div>
                   </div>
