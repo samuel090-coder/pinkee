@@ -109,7 +109,7 @@ const TVDetail = () => {
   const totalSeasons = show.number_of_seasons || 1;
   const currentSeasonData = show.seasons?.find(s => s.season_number === selectedSeason);
   const totalEpisodes = currentSeasonData?.episode_count || 24;
-  const streamServer = TV_STREAM_SERVERS[activeServer] || TV_STREAM_SERVERS[0];
+  // Server URL is built inside the player so it can auto-fallback.
 
   return (
     <MainLayout>
@@ -122,8 +122,14 @@ const TVDetail = () => {
               </div>
               <div ref={playerWrapRef} className="relative w-full aspect-video bg-black">
                 <IframePlayerShield
-                  src={streamServer.url(tvId, selectedSeason, selectedEpisode)}
-                  iframeKey={`${tvId}-${activeServer}-s${selectedSeason}e${selectedEpisode}`}
+                  servers={TV_STREAM_SERVERS.map(s => ({ name: s.name, build: () => s.url(tvId, selectedSeason, selectedEpisode) }))}
+                  activeIndex={activeServer}
+                  onActiveIndexChange={setActiveServer}
+                  mediaType="tv"
+                  tmdbId={tvId}
+                  season={selectedSeason}
+                  episode={selectedEpisode}
+                  iframeKey={`${tvId}-s${selectedSeason}e${selectedEpisode}`}
                 />
               </div>
 
@@ -140,8 +146,14 @@ const TVDetail = () => {
                   >
                     <div className="relative w-full h-full">
                       <IframePlayerShield
-                        src={streamServer.url(tvId, selectedSeason, selectedEpisode)}
-                        iframeKey={`${tvId}-${activeServer}-s${selectedSeason}e${selectedEpisode}-rot`}
+                        servers={TV_STREAM_SERVERS.map(s => ({ name: s.name, build: () => s.url(tvId, selectedSeason, selectedEpisode) }))}
+                        activeIndex={activeServer}
+                        onActiveIndexChange={setActiveServer}
+                        mediaType="tv"
+                        tmdbId={tvId}
+                        season={selectedSeason}
+                        episode={selectedEpisode}
+                        iframeKey={`${tvId}-s${selectedSeason}e${selectedEpisode}-rot`}
                       />
                     </div>
                   </div>
