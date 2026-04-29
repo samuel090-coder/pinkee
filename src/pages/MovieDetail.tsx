@@ -6,6 +6,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { MovieRow } from '@/components/movies/MovieRow';
 import { IframePlayerShield } from '@/components/movies/IframePlayerShield';
+import { StreamingWelcomeGuide } from '@/components/movies/StreamingWelcomeGuide';
 import { MOVIE_STREAM_SERVERS, isRecentlyReleased } from '@/lib/streaming';
 import {
   getMovieDetail, getMovieCredits, getMovieVideos,
@@ -111,6 +112,7 @@ const MovieDetail = () => {
 
   return (
     <MainLayout>
+      <StreamingWelcomeGuide />
       <div className="pb-20">
         {/* Streaming Player */}
         {showPlayer && (
