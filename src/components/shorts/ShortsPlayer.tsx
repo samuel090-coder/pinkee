@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { isExternalUrl, getEmbedUrl } from "@/lib/video-utils";
+import { useAdaptivePlayback } from "@/hooks/use-adaptive-playback";
 import {
   Sheet,
   SheetContent,
@@ -380,17 +381,14 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
                   title={short.title}
                 />
               ) : (
-                <video
-                  ref={(el) => {
+                <ShortVideo
+                  src={short.video_url}
+                  poster={short.thumbnail_url}
+                  muted={muted}
+                  onClick={() => togglePlay(index)}
+                  refCallback={(el) => {
                     videoRefs.current[index] = el;
                   }}
-                  src={short.video_url || undefined}
-                  poster={short.thumbnail_url || undefined}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  loop
-                  muted={muted}
-                  playsInline
-                  onClick={() => togglePlay(index)}
                 />
               )}
 
