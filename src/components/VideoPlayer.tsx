@@ -21,6 +21,7 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const watchTimeRef = useRef(0);
   const adContainerRef = useRef<HTMLDivElement>(null);
+  useAdaptivePlayback(videoRef, video.video_url);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
