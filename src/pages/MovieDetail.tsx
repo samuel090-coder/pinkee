@@ -106,7 +106,7 @@ const MovieDetail = () => {
   }
 
   const movieId = parseInt(id!);
-  const streamServer = MOVIE_STREAM_SERVERS[activeServer] || MOVIE_STREAM_SERVERS[0];
+  // Server URL is built inside the player so it can auto-fallback.
   const mayNotHaveStreams = isRecentlyReleased(movie.release_date) || movie.status !== 'Released';
 
   return (

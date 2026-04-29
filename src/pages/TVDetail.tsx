@@ -109,7 +109,7 @@ const TVDetail = () => {
   const totalSeasons = show.number_of_seasons || 1;
   const currentSeasonData = show.seasons?.find(s => s.season_number === selectedSeason);
   const totalEpisodes = currentSeasonData?.episode_count || 24;
-  const streamServer = TV_STREAM_SERVERS[activeServer] || TV_STREAM_SERVERS[0];
+  // Server URL is built inside the player so it can auto-fallback.
 
   return (
     <MainLayout>
