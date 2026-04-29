@@ -6,23 +6,13 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { MovieRow } from '@/components/movies/MovieRow';
 import { IframePlayerShield } from '@/components/movies/IframePlayerShield';
+import { TV_STREAM_SERVERS } from '@/lib/streaming';
 import {
   getTVDetail, getTVCredits, getTVVideos,
   getSimilarTV, getTVWatchProviders,
   backdrop, posterLg, profile as profileImg,
 } from '@/lib/tmdb';
 import type { TMDbTVDetail, TMDbCast, TMDbVideo, TMDbWatchProviders, TMDbTVShow, MediaItem } from '@/types/tmdb';
-
-const STREAM_SERVERS = [
-  { name: 'VidSrc.dev', url: (id: number, s: number, e: number) => `https://vidsrc.dev/embed/tv/${id}/${s}/${e}` },
-  { name: 'VidBinge', url: (id: number, s: number, e: number) => `https://vidbinge.dev/embed/tv/${id}/${s}/${e}` },
-  { name: 'Smashy', url: (id: number, s: number, e: number) => `https://embed.smashy.stream/tv/${id}?s=${s}&e=${e}` },
-  { name: 'MoviesAPI', url: (id: number, s: number, e: number) => `https://moviesapi.club/tv/${id}-${s}-${e}` },
-  { name: 'SuperEmbed', url: (id: number, s: number, e: number) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}` },
-  { name: 'VidSrc.icu', url: (id: number, s: number, e: number) => `https://vidsrc.icu/embed/tv/${id}/${s}/${e}` },
-  { name: 'VidSrc.xyz', url: (id: number, s: number, e: number) => `https://vidsrc.xyz/embed/tv?tmdb=${id}&season=${s}&episode=${e}` },
-  { name: '2Embed', url: (id: number, s: number, e: number) => `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}` },
-];
 
 const TVDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -60,6 +50,7 @@ const TVDetail = () => {
     const tvId = parseInt(id);
     setLoading(true);
     setShowPlayer(false);
+    setActiveServer(0);
 
     const wl: number[] = JSON.parse(localStorage.getItem('tv_watchlist') || '[]');
     setInWatchlist(wl.includes(tvId));
@@ -118,6 +109,7 @@ const TVDetail = () => {
   const totalSeasons = show.number_of_seasons || 1;
   const currentSeasonData = show.seasons?.find(s => s.season_number === selectedSeason);
   const totalEpisodes = currentSeasonData?.episode_count || 24;
+  const streamServer = TV_STREAM_SERVERS[activeServer] || TV_STREAM_SERVERS[0];
 
   return (
     <MainLayout>
@@ -130,7 +122,7 @@ const TVDetail = () => {
               </div>
               <div ref={playerWrapRef} className="relative w-full aspect-video bg-black">
                 <IframePlayerShield
-                  src={STREAM_SERVERS[activeServer].url(tvId, selectedSeason, selectedEpisode)}
+                  src={streamServer.url(tvId, selectedSeason, selectedEpisode)}
                   iframeKey={`${tvId}-${activeServer}-s${selectedSeason}e${selectedEpisode}`}
                 />
               </div>
@@ -148,7 +140,7 @@ const TVDetail = () => {
                   >
                     <div className="relative w-full h-full">
                       <IframePlayerShield
-                        src={STREAM_SERVERS[activeServer].url(tvId, selectedSeason, selectedEpisode)}
+                        src={streamServer.url(tvId, selectedSeason, selectedEpisode)}
                         iframeKey={`${tvId}-${activeServer}-s${selectedSeason}e${selectedEpisode}-rot`}
                       />
                     </div>
@@ -195,7 +187,7 @@ const TVDetail = () => {
                     <RotateCw className="w-3.5 h-3.5" /> Rotate
                   </Button>
                   <div className="flex items-center gap-1.5 overflow-x-auto ml-auto">
-                    {STREAM_SERVERS.map((s, i) => (
+                    {TV_STREAM_SERVERS.map((s, i) => (
                       <Button
                         key={s.name}
                         size="sm"
