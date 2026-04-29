@@ -8,6 +8,7 @@ import { Video } from '@/contexts/VideoContext';
 import { useVideo } from '@/contexts/VideoContext';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
+import { useAdaptivePlayback } from '@/hooks/use-adaptive-playback';
 
 interface VideoPlayerProps {
   video: Video;
@@ -20,6 +21,7 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const watchTimeRef = useRef(0);
   const adContainerRef = useRef<HTMLDivElement>(null);
+  useAdaptivePlayback(videoRef, video.video_url);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -286,7 +288,6 @@ export function VideoPlayer({ video, onClose }: VideoPlayerProps) {
           {video.video_url ? (
             <video
               ref={videoRef}
-              src={video.video_url}
               className="w-full h-full object-contain"
               onTimeUpdate={() => setCurrentTime(videoRef.current?.currentTime || 0)}
               onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}
