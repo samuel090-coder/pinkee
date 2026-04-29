@@ -114,6 +114,7 @@ const TVDetail = () => {
 
   return (
     <MainLayout>
+      <StreamingWelcomeGuide />
       <div className="pb-20">
         {showPlayer && (
           <div className="w-full bg-black">

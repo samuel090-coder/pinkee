@@ -112,6 +112,7 @@ const MovieDetail = () => {
 
   return (
     <MainLayout>
+      <StreamingWelcomeGuide />
       <div className="pb-20">
         {/* Streaming Player */}
         {showPlayer && (
