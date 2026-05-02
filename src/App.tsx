@@ -45,6 +45,12 @@ import TVShows from "./pages/TVShows";
 import MovieDetail from "./pages/MovieDetail";
 import TVDetail from "./pages/TVDetail";
 import NotFound from "./pages/NotFound";
+import { usePageViewTracking } from "@/hooks/useAnalyticsTracking";
+
+const PageViewTracker = () => {
+  usePageViewTracking();
+  return null;
+};
 
 const queryClient = new QueryClient();
 
@@ -60,6 +66,7 @@ const App = () => (
               <Sonner />
               <NotificationPrompt />
               <BrowserRouter>
+                <PageViewTracker />
                 <MiniPlayer />
                 <Routes>
                   <Route path="/" element={<Movies />} />

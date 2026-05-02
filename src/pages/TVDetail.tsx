@@ -8,6 +8,7 @@ import { MovieRow } from '@/components/movies/MovieRow';
 import { IframePlayerShield } from '@/components/movies/IframePlayerShield';
 import { StreamingWelcomeGuide } from '@/components/movies/StreamingWelcomeGuide';
 import { TV_STREAM_SERVERS } from '@/lib/streaming';
+import { supabase } from '@/integrations/supabase/client';
 import {
   getTVDetail, getTVCredits, getTVVideos,
   getSimilarTV, getTVWatchProviders,
@@ -45,6 +46,26 @@ const TVDetail = () => {
       return () => { document.body.style.overflow = prev; };
     }
   }, [rotated]);
+
+  useEffect(() => {
+    if (!showPlayer || !show) return;
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.from('video_watch_events' as any).insert({
+          user_id: user?.id ?? null,
+          tmdb_id: show.id,
+          media_type: 'tv',
+          title: `${show.name} S${selectedSeason}E${selectedEpisode}`,
+          watched_seconds: 0,
+          total_seconds: null,
+          percent_watched: 0,
+          reached_threshold: false,
+          completed: false,
+        });
+      } catch { /* ignore */ }
+    })();
+  }, [showPlayer, show, selectedSeason, selectedEpisode]);
 
   useEffect(() => {
     if (!id) return;

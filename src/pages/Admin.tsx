@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
+import { AnalyticsTab } from '@/components/admin/AnalyticsTab';
 
 interface Notification {
   id: string;
@@ -661,6 +662,10 @@ const Admin = () => {
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Dashboard</span>
             </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2">
+              <TrendingUp className="w-4 h-4" />
+              <span className="hidden sm:inline">Analytics</span>
+            </TabsTrigger>
             <TabsTrigger value="videos" className="gap-2">
               <Video className="w-4 h-4" />
               <span className="hidden sm:inline">Videos</span>
@@ -793,6 +798,11 @@ const Admin = () => {
                 </table>
               </div>
             </div>
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <AnalyticsTab />
           </TabsContent>
 
           {/* Videos Tab */}
