@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
+import { AnalyticsTab } from '@/components/admin/AnalyticsTab';
 
 interface Notification {
   id: string;
