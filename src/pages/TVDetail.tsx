@@ -8,6 +8,7 @@ import { MovieRow } from '@/components/movies/MovieRow';
 import { IframePlayerShield } from '@/components/movies/IframePlayerShield';
 import { StreamingWelcomeGuide } from '@/components/movies/StreamingWelcomeGuide';
 import { TV_STREAM_SERVERS } from '@/lib/streaming';
+import { supabase } from '@/integrations/supabase/client';
 import {
   getTVDetail, getTVCredits, getTVVideos,
   getSimilarTV, getTVWatchProviders,
