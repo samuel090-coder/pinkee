@@ -800,6 +800,11 @@ const Admin = () => {
             </div>
           </TabsContent>
 
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <AnalyticsTab />
+          </TabsContent>
+
           {/* Videos Tab */}
           <TabsContent value="videos" className="space-y-6">
             <div className="flex justify-between items-center">
