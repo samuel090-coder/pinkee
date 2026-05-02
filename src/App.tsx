@@ -66,6 +66,7 @@ const App = () => (
               <Sonner />
               <NotificationPrompt />
               <BrowserRouter>
+                <PageViewTracker />
                 <MiniPlayer />
                 <Routes>
                   <Route path="/" element={<Movies />} />
