@@ -564,6 +564,39 @@ export type Database = {
         }
         Relationships: []
       }
+      page_views: {
+        Row: {
+          created_at: string
+          device: string | null
+          id: string
+          path: string
+          referrer: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          device?: string | null
+          id?: string
+          path: string
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          device?: string | null
+          id?: string
+          path?: string
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       playlist_items: {
         Row: {
           added_at: string
@@ -1241,6 +1274,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      video_watch_events: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          media_type: string | null
+          percent_watched: number | null
+          reached_threshold: boolean
+          session_id: string | null
+          title: string | null
+          tmdb_id: number | null
+          total_seconds: number | null
+          user_id: string | null
+          video_id: string | null
+          watched_seconds: number
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          media_type?: string | null
+          percent_watched?: number | null
+          reached_threshold?: boolean
+          session_id?: string | null
+          title?: string | null
+          tmdb_id?: number | null
+          total_seconds?: number | null
+          user_id?: string | null
+          video_id?: string | null
+          watched_seconds?: number
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          media_type?: string | null
+          percent_watched?: number | null
+          reached_threshold?: boolean
+          session_id?: string | null
+          title?: string | null
+          tmdb_id?: number | null
+          total_seconds?: number | null
+          user_id?: string | null
+          video_id?: string | null
+          watched_seconds?: number
+        }
+        Relationships: []
       }
       videos: {
         Row: {
