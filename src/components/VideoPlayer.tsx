@@ -9,6 +9,7 @@ import { useVideo } from '@/contexts/VideoContext';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import { useAdaptivePlayback } from '@/hooks/use-adaptive-playback';
+import { useVideoWatchTracking } from '@/hooks/useAnalyticsTracking';
 
 interface VideoPlayerProps {
   video: Video;
