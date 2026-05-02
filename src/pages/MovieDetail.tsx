@@ -47,6 +47,27 @@ const MovieDetail = () => {
     }
   }, [rotated]);
 
+  // Log the start of a streaming session when the player opens
+  useEffect(() => {
+    if (!showPlayer || !movie) return;
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.from('video_watch_events' as any).insert({
+          user_id: user?.id ?? null,
+          tmdb_id: movie.id,
+          media_type: 'movie',
+          title: movie.title,
+          watched_seconds: 0,
+          total_seconds: (movie.runtime ?? 0) * 60 || null,
+          percent_watched: 0,
+          reached_threshold: false,
+          completed: false,
+        });
+      } catch { /* ignore */ }
+    })();
+  }, [showPlayer, movie]);
+
   useEffect(() => {
     if (!id) return;
     const movieId = parseInt(id);
