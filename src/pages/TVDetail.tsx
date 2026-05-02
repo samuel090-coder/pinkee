@@ -48,6 +48,26 @@ const TVDetail = () => {
   }, [rotated]);
 
   useEffect(() => {
+    if (!showPlayer || !show) return;
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.from('video_watch_events' as any).insert({
+          user_id: user?.id ?? null,
+          tmdb_id: show.id,
+          media_type: 'tv',
+          title: `${show.name} S${selectedSeason}E${selectedEpisode}`,
+          watched_seconds: 0,
+          total_seconds: null,
+          percent_watched: 0,
+          reached_threshold: false,
+          completed: false,
+        });
+      } catch { /* ignore */ }
+    })();
+  }, [showPlayer, show, selectedSeason, selectedEpisode]);
+
+  useEffect(() => {
     if (!id) return;
     const tvId = parseInt(id);
     setLoading(true);
