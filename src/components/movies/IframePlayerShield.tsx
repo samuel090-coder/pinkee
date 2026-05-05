@@ -143,8 +143,8 @@ export function IframePlayerShield({
           src={currentSrc}
           className="absolute inset-0 w-full h-full"
           allowFullScreen
-          allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-          referrerPolicy="no-referrer"
+          allow="autoplay; fullscreen; picture-in-picture; encrypted-media; clipboard-write"
+          referrerPolicy="origin"
           onLoad={handleIframeLoad}
           onError={handleIframeError}
         />
