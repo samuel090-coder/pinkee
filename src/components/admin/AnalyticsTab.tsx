@@ -20,6 +20,8 @@ interface PageView {
 interface WatchEvent {
   id: string;
   user_id: string | null;
+  tmdb_id: number | null;
+  video_id: string | null;
   title: string | null;
   media_type: string | null;
   watched_seconds: number;
