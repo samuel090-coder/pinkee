@@ -108,6 +108,16 @@ export function AnalyticsTab() {
   }, {});
   const topTitles = Object.entries(titleCounts).sort((a, b) => b[1].plays - a[1].plays).slice(0, 12);
 
+  // Per-user completion stats: count UNIQUE titles fully watched (≥90%) by each user
+  const userCompletionMap = watch.reduce<Record<string, { fullyWatched: Set<string>; started: Set<string> }>>((acc, w) => {
+    if (!w.user_id) return acc;
+    if (!acc[w.user_id]) acc[w.user_id] = { fullyWatched: new Set(), started: new Set() };
+    const key = w.video_id || (w.tmdb_id ? `${w.media_type}:${w.tmdb_id}` : w.title || w.id);
+    acc[w.user_id].started.add(key);
+    if (w.completed || (w.percent_watched ?? 0) >= 0.9) acc[w.user_id].fullyWatched.add(key);
+    return acc;
+  }, {});
+
   // ===== Users management =====
   const filteredUsers = users.filter(u => {
     if (!search) return true;
