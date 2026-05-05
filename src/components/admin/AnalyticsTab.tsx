@@ -20,6 +20,8 @@ interface PageView {
 interface WatchEvent {
   id: string;
   user_id: string | null;
+  tmdb_id: number | null;
+  video_id: string | null;
   title: string | null;
   media_type: string | null;
   watched_seconds: number;
@@ -105,6 +107,16 @@ export function AnalyticsTab() {
     return acc;
   }, {});
   const topTitles = Object.entries(titleCounts).sort((a, b) => b[1].plays - a[1].plays).slice(0, 12);
+
+  // Per-user completion stats: count UNIQUE titles fully watched (≥90%) by each user
+  const userCompletionMap = watch.reduce<Record<string, { fullyWatched: Set<string>; started: Set<string> }>>((acc, w) => {
+    if (!w.user_id) return acc;
+    if (!acc[w.user_id]) acc[w.user_id] = { fullyWatched: new Set(), started: new Set() };
+    const key = w.video_id || (w.tmdb_id ? `${w.media_type}:${w.tmdb_id}` : w.title || w.id);
+    acc[w.user_id].started.add(key);
+    if (w.completed || (w.percent_watched ?? 0) >= 0.9) acc[w.user_id].fullyWatched.add(key);
+    return acc;
+  }, {});
 
   // ===== Users management =====
   const filteredUsers = users.filter(u => {
@@ -297,12 +309,18 @@ export function AnalyticsTab() {
                 <th className="py-2 pr-2">User</th>
                 <th className="py-2 px-2">Joined</th>
                 <th className="py-2 px-2">Views</th>
+                <th className="py-2 px-2" title="Unique videos this user watched fully (≥90%)">Fully watched</th>
+                <th className="py-2 px-2">Started</th>
                 <th className="py-2 px-2">Role</th>
                 <th className="py-2 pl-2 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.slice(0, 100).map(u => (
+              {filteredUsers.slice(0, 100).map(u => {
+                const stats = userCompletionMap[u.user_id];
+                const fully = stats?.fullyWatched.size ?? 0;
+                const started = stats?.started.size ?? 0;
+                return (
                 <tr key={u.user_id} className="border-t border-border/40">
                   <td className="py-2 pr-2">
                     <div className="flex items-center gap-2">
@@ -321,6 +339,10 @@ export function AnalyticsTab() {
                     {u.joined_at ? formatDistanceToNow(new Date(u.joined_at), { addSuffix: true }) : '—'}
                   </td>
                   <td className="py-2 px-2 font-mono text-xs">{u.total_views ?? 0}</td>
+                  <td className="py-2 px-2 font-mono text-xs">
+                    <Badge variant={fully > 0 ? 'default' : 'secondary'} className="text-[10px]">{fully}</Badge>
+                  </td>
+                  <td className="py-2 px-2 font-mono text-xs text-muted-foreground">{started}</td>
                   <td className="py-2 px-2">
                     {u.is_admin
                       ? <Badge className="text-[10px]">admin</Badge>
@@ -337,9 +359,9 @@ export function AnalyticsTab() {
                     </Button>
                   </td>
                 </tr>
-              ))}
+              );})}
               {filteredUsers.length === 0 && (
-                <tr><td colSpan={5} className="py-3 text-muted-foreground text-xs">No users match your search</td></tr>
+                <tr><td colSpan={7} className="py-3 text-muted-foreground text-xs">No users match your search</td></tr>
               )}
             </tbody>
           </table>
