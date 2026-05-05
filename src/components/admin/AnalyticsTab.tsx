@@ -309,12 +309,18 @@ export function AnalyticsTab() {
                 <th className="py-2 pr-2">User</th>
                 <th className="py-2 px-2">Joined</th>
                 <th className="py-2 px-2">Views</th>
+                <th className="py-2 px-2" title="Unique videos this user watched fully (≥90%)">Fully watched</th>
+                <th className="py-2 px-2">Started</th>
                 <th className="py-2 px-2">Role</th>
                 <th className="py-2 pl-2 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.slice(0, 100).map(u => (
+              {filteredUsers.slice(0, 100).map(u => {
+                const stats = userCompletionMap[u.user_id];
+                const fully = stats?.fullyWatched.size ?? 0;
+                const started = stats?.started.size ?? 0;
+                return (
                 <tr key={u.user_id} className="border-t border-border/40">
                   <td className="py-2 pr-2">
                     <div className="flex items-center gap-2">
@@ -333,6 +339,10 @@ export function AnalyticsTab() {
                     {u.joined_at ? formatDistanceToNow(new Date(u.joined_at), { addSuffix: true }) : '—'}
                   </td>
                   <td className="py-2 px-2 font-mono text-xs">{u.total_views ?? 0}</td>
+                  <td className="py-2 px-2 font-mono text-xs">
+                    <Badge variant={fully > 0 ? 'default' : 'secondary'} className="text-[10px]">{fully}</Badge>
+                  </td>
+                  <td className="py-2 px-2 font-mono text-xs text-muted-foreground">{started}</td>
                   <td className="py-2 px-2">
                     {u.is_admin
                       ? <Badge className="text-[10px]">admin</Badge>
@@ -349,9 +359,9 @@ export function AnalyticsTab() {
                     </Button>
                   </td>
                 </tr>
-              ))}
+              );})}
               {filteredUsers.length === 0 && (
-                <tr><td colSpan={5} className="py-3 text-muted-foreground text-xs">No users match your search</td></tr>
+                <tr><td colSpan={7} className="py-3 text-muted-foreground text-xs">No users match your search</td></tr>
               )}
             </tbody>
           </table>
