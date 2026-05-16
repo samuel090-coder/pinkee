@@ -199,6 +199,14 @@ const MovieDetail = () => {
                 <Button size="sm" variant="secondary" className="text-xs h-8 gap-1" onClick={() => setRotated(r => !r)}>
                   <RotateCw className="w-3.5 h-3.5" /> Rotate
                 </Button>
+                <a
+                  href={MOVIE_STREAM_SERVERS[activeServer]?.url(movieId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs h-8 px-2.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" /> New tab
+                </a>
                 <div className="flex items-center gap-1.5 overflow-x-auto ml-auto">
                   {MOVIE_STREAM_SERVERS.map((s, i) => (
                     <Button

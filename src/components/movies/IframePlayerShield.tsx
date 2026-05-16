@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Volume2, VolumeX, MousePointerClick, Lock, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Volume2, VolumeX, MousePointerClick, Lock, Loader2, AlertTriangle, RefreshCw, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { logStreamFailure, SERVER_LOAD_TIMEOUT_MS } from '@/lib/streaming';
 
@@ -135,6 +135,12 @@ export function IframePlayerShield({
     .filter((s) => !attemptedNames.includes(s.name))
     .slice(0, 3);
 
+  // Detect nested-iframe context (e.g. Lovable preview). VidLink and similar
+  // providers often refuse to render inside a sandboxed parent frame and show a
+  // "please disable sandbox" warning. In that case we surface a clear CTA to
+  // open the stream in a new tab.
+  const isNestedFrame = typeof window !== 'undefined' && window.self !== window.top;
+
   return (
     <div className={`relative w-full h-full ${className}`}>
       {currentSrc && (
@@ -148,6 +154,22 @@ export function IframePlayerShield({
           onLoad={handleIframeLoad}
           onError={handleIframeError}
         />
+      )}
+
+      {/* Nested-frame banner: VidLink blocks playback inside Lovable's preview iframe.
+          On the published site this won't trigger. */}
+      {isNestedFrame && currentSrc && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 max-w-[90%]">
+          <a
+            href={currentSrc}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold shadow-lg"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            Stream blocked in preview — open in new tab
+          </a>
+        </div>
       )}
 
       {/* Loading overlay while we wait for the iframe load event */}
