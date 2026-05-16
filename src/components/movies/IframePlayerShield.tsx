@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Volume2, VolumeX, MousePointerClick, Lock, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Volume2, VolumeX, MousePointerClick, Lock, Loader2, AlertTriangle, RefreshCw, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { logStreamFailure, SERVER_LOAD_TIMEOUT_MS } from '@/lib/streaming';
 
