@@ -1656,7 +1656,37 @@ const Admin = () => {
                       placeholder="PlayStream"
                     />
                     <p className="text-xs text-muted-foreground">Use camelCase for two-tone logo (e.g., PlayStream)</p>
+              </div>
+
+              {/* YouTube Provider (RapidAPI) */}
+              <div className="shiny-card rounded-xl p-6 space-y-4 md:col-span-2">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-display font-semibold text-lg flex items-center gap-2">
+                      <Video className="w-5 h-5 text-primary" />
+                      YouTube Provider (RapidAPI)
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      When ON, the dashboard feed shows only RapidAPI YouTube videos. Other providers are hidden.
+                    </p>
                   </div>
+                  <Switch
+                    checked={settingsForm.youtube_enabled}
+                    onCheckedChange={(v) => setSettingsForm({ ...settingsForm, youtube_enabled: v })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>YouTube Channel ID</Label>
+                  <Input
+                    value={settingsForm.youtube_channel_id}
+                    onChange={(e) => setSettingsForm({ ...settingsForm, youtube_channel_id: e.target.value })}
+                    placeholder="UCJ5v_MCY6GNUBTO8-D3XoAg"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Fetches the channel's latest videos via the youtube138 RapidAPI endpoint.
+                  </p>
+                </div>
+              </div>
                 </div>
               </div>
 
