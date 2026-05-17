@@ -53,6 +53,8 @@ export type Database = {
           subscription_monthly_price: number | null
           subscription_yearly_price: number | null
           updated_at: string
+          youtube_channel_id: string | null
+          youtube_enabled: boolean
         }
         Insert: {
           ad_code?: string | null
@@ -68,6 +70,8 @@ export type Database = {
           subscription_monthly_price?: number | null
           subscription_yearly_price?: number | null
           updated_at?: string
+          youtube_channel_id?: string | null
+          youtube_enabled?: boolean
         }
         Update: {
           ad_code?: string | null
@@ -83,6 +87,8 @@ export type Database = {
           subscription_monthly_price?: number | null
           subscription_yearly_price?: number | null
           updated_at?: string
+          youtube_channel_id?: string | null
+          youtube_enabled?: boolean
         }
         Relationships: []
       }
