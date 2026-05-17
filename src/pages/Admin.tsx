@@ -1656,6 +1656,8 @@ const Admin = () => {
                       placeholder="PlayStream"
                     />
                     <p className="text-xs text-muted-foreground">Use camelCase for two-tone logo (e.g., PlayStream)</p>
+                  </div>
+                </div>
               </div>
 
               {/* YouTube Provider (RapidAPI) */}
@@ -1685,8 +1687,6 @@ const Admin = () => {
                   <p className="text-xs text-muted-foreground">
                     Fetches the channel's latest videos via the youtube138 RapidAPI endpoint.
                   </p>
-                </div>
-              </div>
                 </div>
               </div>
 
