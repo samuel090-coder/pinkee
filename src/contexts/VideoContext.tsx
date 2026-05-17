@@ -76,6 +76,8 @@ export interface AdminSettings {
   admin_password: string;
   ad_code: string;
   default_ad_frequency: number;
+  youtube_enabled?: boolean;
+  youtube_channel_id?: string | null;
 }
 
 export interface AdCode {
