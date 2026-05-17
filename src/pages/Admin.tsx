@@ -147,6 +147,8 @@ const Admin = () => {
     bank_account_number: '',
     admin_password: '',
     default_ad_frequency: 5,
+    youtube_enabled: false,
+    youtube_channel_id: '',
   });
 
   useEffect(() => {
@@ -158,6 +160,8 @@ const Admin = () => {
         bank_account_number: adminSettings.bank_account_number || '',
         admin_password: adminSettings.admin_password || '',
         default_ad_frequency: adminSettings.default_ad_frequency || 5,
+        youtube_enabled: adminSettings.youtube_enabled ?? false,
+        youtube_channel_id: adminSettings.youtube_channel_id ?? '',
       });
     }
   }, [adminSettings]);
