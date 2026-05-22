@@ -1082,6 +1082,92 @@ export type Database = {
           },
         ]
       }
+      support_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string
+          unread_admin: number
+          unread_user: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          unread_admin?: number
+          unread_user?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          unread_admin?: number
+          unread_user?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      support_messages: {
+        Row: {
+          content: string | null
+          conversation_id: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_ai_generated: boolean
+          sender: string
+        }
+        Insert: {
+          content?: string | null
+          conversation_id: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_ai_generated?: boolean
+          sender: string
+        }
+        Update: {
+          content?: string | null
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_ai_generated?: boolean
+          sender?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "support_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_settings: {
+        Row: {
+          ai_enabled: boolean
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          ai_enabled?: boolean
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          ai_enabled?: boolean
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_interests: {
         Row: {
           category: string
@@ -1587,6 +1673,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_public_profile_by_email: {
+        Args: { _email: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          username: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
