@@ -130,6 +130,7 @@ const App = () => (
                 </Routes>
               </BrowserRouter>
             </TooltipProvider>
+            </SupportProvider>
             </PiPProvider>
           </VideoProvider>
         </CurrencyProvider>
