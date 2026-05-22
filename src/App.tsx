@@ -10,6 +10,9 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { PiPProvider } from "@/contexts/PiPContext";
 import { MiniPlayer } from "@/components/video/MiniPlayer";
 import { NotificationPrompt } from "@/components/NotificationPrompt";
+import { SupportProvider } from "@/contexts/SupportContext";
+import { SupportLauncher } from "@/components/support/SupportLauncher";
+import ResetPassword from "./pages/ResetPassword";
 import Index from "./pages/Index";
 import Explore from "./pages/Explore";
 import ExploreCategory from "./pages/ExploreCategory";
@@ -61,6 +64,7 @@ const App = () => (
         <CurrencyProvider>
           <VideoProvider>
             <PiPProvider>
+            <SupportProvider>
             <TooltipProvider>
               <Toaster />
               <Sonner />
@@ -68,10 +72,12 @@ const App = () => (
               <BrowserRouter>
                 <PageViewTracker />
                 <MiniPlayer />
+                <SupportLauncher />
                 <Routes>
                   <Route path="/" element={<Movies />} />
                   <Route path="/feed" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
 
                 <Route path="/explore" element={<Explore />} />
                 <Route path="/shorts" element={<Shorts />} />
@@ -124,6 +130,7 @@ const App = () => (
                 </Routes>
               </BrowserRouter>
             </TooltipProvider>
+            </SupportProvider>
             </PiPProvider>
           </VideoProvider>
         </CurrencyProvider>

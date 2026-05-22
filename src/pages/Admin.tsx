@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { AnalyticsTab } from '@/components/admin/AnalyticsTab';
+import { SupportInbox } from '@/components/admin/SupportInbox';
 
 interface Notification {
   id: string;
@@ -699,6 +700,10 @@ const Admin = () => {
                   {subscriberCount > 99 ? '99+' : subscriberCount}
                 </span>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="support" className="gap-2">
+              <MessageCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">Support</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="w-4 h-4" />
@@ -1636,6 +1641,11 @@ const Admin = () => {
                 )}
               </div>
             </div>
+          </TabsContent>
+
+          {/* Support Tab */}
+          <TabsContent value="support" className="space-y-6">
+            <SupportInbox />
           </TabsContent>
 
           {/* Settings Tab */}
