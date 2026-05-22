@@ -64,6 +64,7 @@ const App = () => (
         <CurrencyProvider>
           <VideoProvider>
             <PiPProvider>
+            <SupportProvider>
             <TooltipProvider>
               <Toaster />
               <Sonner />
@@ -71,10 +72,12 @@ const App = () => (
               <BrowserRouter>
                 <PageViewTracker />
                 <MiniPlayer />
+                <SupportLauncher />
                 <Routes>
                   <Route path="/" element={<Movies />} />
                   <Route path="/feed" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
 
                 <Route path="/explore" element={<Explore />} />
                 <Route path="/shorts" element={<Shorts />} />
