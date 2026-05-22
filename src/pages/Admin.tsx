@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { AnalyticsTab } from '@/components/admin/AnalyticsTab';
+import { SupportInbox } from '@/components/admin/SupportInbox';
 
 interface Notification {
   id: string;
