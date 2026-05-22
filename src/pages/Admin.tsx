@@ -1643,6 +1643,11 @@ const Admin = () => {
             </div>
           </TabsContent>
 
+          {/* Support Tab */}
+          <TabsContent value="support" className="space-y-6">
+            <SupportInbox />
+          </TabsContent>
+
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
