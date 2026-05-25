@@ -48,6 +48,7 @@ export type Database = {
           created_at: string
           default_ad_frequency: number | null
           id: string
+          movies_enabled: boolean
           platform_fee_percent: number | null
           site_name: string | null
           subscription_monthly_price: number | null
@@ -65,6 +66,7 @@ export type Database = {
           created_at?: string
           default_ad_frequency?: number | null
           id?: string
+          movies_enabled?: boolean
           platform_fee_percent?: number | null
           site_name?: string | null
           subscription_monthly_price?: number | null
@@ -82,6 +84,7 @@ export type Database = {
           created_at?: string
           default_ad_frequency?: number | null
           id?: string
+          movies_enabled?: boolean
           platform_fee_percent?: number | null
           site_name?: string | null
           subscription_monthly_price?: number | null

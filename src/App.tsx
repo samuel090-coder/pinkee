@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { VideoProvider } from "@/contexts/VideoContext";
+import { VideoProvider, useVideo } from "@/contexts/VideoContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -55,6 +55,16 @@ const PageViewTracker = () => {
   return null;
 };
 
+const HomeRoute = () => {
+  const { adminSettings } = useVideo();
+  return adminSettings?.movies_enabled === false ? <Index /> : <Movies />;
+};
+
+const MoviesGuard = ({ children }: { children: JSX.Element }) => {
+  const { adminSettings } = useVideo();
+  return adminSettings?.movies_enabled === false ? <NotFound /> : children;
+};
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -74,7 +84,7 @@ const App = () => (
                 <MiniPlayer />
                 <SupportLauncher />
                 <Routes>
-                  <Route path="/" element={<Movies />} />
+                  <Route path="/" element={<HomeRoute />} />
                   <Route path="/feed" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
@@ -120,11 +130,10 @@ const App = () => (
                 <Route path="/wallet" element={<Wallet />} />
 
                 {/* Movies & TV */}
-                <Route path="/movies" element={<Movies />} />
-                
-                <Route path="/tv-shows" element={<TVShows />} />
-                <Route path="/movie/:id" element={<MovieDetail />} />
-                <Route path="/tv/:id" element={<TVDetail />} />
+                <Route path="/movies" element={<MoviesGuard><Movies /></MoviesGuard>} />
+                <Route path="/tv-shows" element={<MoviesGuard><TVShows /></MoviesGuard>} />
+                <Route path="/movie/:id" element={<MoviesGuard><MovieDetail /></MoviesGuard>} />
+                <Route path="/tv/:id" element={<MoviesGuard><TVDetail /></MoviesGuard>} />
 
                   <Route path="*" element={<NotFound />} />
                 </Routes>

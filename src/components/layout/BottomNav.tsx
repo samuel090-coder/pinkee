@@ -2,18 +2,27 @@ import { Link, useLocation } from "react-router-dom";
 import { Home, Clapperboard, PlusSquare, Tv, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-
-const NAV_ITEMS = [
-  { label: "Movies", icon: Clapperboard, path: "/" },
-  { label: "TV", icon: Tv, path: "/tv-shows" },
-  { label: "", icon: PlusSquare, path: "/upload", isCreate: true },
-  { label: "Feed", icon: Home, path: "/feed" },
-  { label: "You", icon: User, path: "/settings" },
-];
+import { useVideo } from "@/contexts/VideoContext";
 
 export function BottomNav() {
   const location = useLocation();
   const { user } = useAuth();
+  const { adminSettings } = useVideo();
+  const moviesEnabled = adminSettings?.movies_enabled !== false;
+
+  const NAV_ITEMS = moviesEnabled
+    ? [
+        { label: "Movies", icon: Clapperboard, path: "/" },
+        { label: "TV", icon: Tv, path: "/tv-shows" },
+        { label: "", icon: PlusSquare, path: "/upload", isCreate: true },
+        { label: "Feed", icon: Home, path: "/feed" },
+        { label: "You", icon: User, path: "/settings" },
+      ]
+    : [
+        { label: "Feed", icon: Home, path: "/" },
+        { label: "", icon: PlusSquare, path: "/upload", isCreate: true },
+        { label: "You", icon: User, path: "/settings" },
+      ];
 
   // Hide on shorts page (full-screen experience)
   if (location.pathname === "/shorts") return null;

@@ -5,7 +5,7 @@ import {
   BarChart3, Plus, Trash2, Edit, Save, X, Calendar,
   Download, Play, Heart, Clock, TrendingUp, CreditCard, Loader2, Megaphone,
   User, Users, MapPin, Mail, MessageCircle, Send, Bell, Image, Wand2,
-  Wallet, CheckCircle, AlertCircle, Ban, Upload
+  Wallet, CheckCircle, AlertCircle, Ban, Upload, Clapperboard
 } from 'lucide-react';
 import { useVideo, Video as VideoType, AdCode, PosterProfile } from '@/contexts/VideoContext';
 import { Button } from '@/components/ui/button';
@@ -150,6 +150,7 @@ const Admin = () => {
     default_ad_frequency: 5,
     youtube_enabled: false,
     youtube_channel_id: '',
+    movies_enabled: true,
   });
 
   useEffect(() => {
@@ -163,6 +164,7 @@ const Admin = () => {
         default_ad_frequency: adminSettings.default_ad_frequency || 5,
         youtube_enabled: adminSettings.youtube_enabled ?? false,
         youtube_channel_id: adminSettings.youtube_channel_id ?? '',
+        movies_enabled: adminSettings.movies_enabled ?? true,
       });
     }
   }, [adminSettings]);
@@ -1697,7 +1699,27 @@ const Admin = () => {
                   <p className="text-xs text-muted-foreground">
                     Fetches the channel's latest videos via the youtube138 RapidAPI endpoint.
                   </p>
+              </div>
+
+              {/* Movies & TV Section Toggle */}
+              <div className="shiny-card rounded-xl p-6 space-y-4 md:col-span-2">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-display font-semibold text-lg flex items-center gap-2">
+                      <Clapperboard className="w-5 h-5 text-primary" />
+                      Movies & TV Section
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      When OFF, the Movies and TV pages are hidden from the dashboard and the Feed becomes the homepage.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settingsForm.movies_enabled}
+                    onCheckedChange={(v) => setSettingsForm({ ...settingsForm, movies_enabled: v })}
+                  />
                 </div>
+              </div>
+
               </div>
 
               {/* Payment Settings */}
