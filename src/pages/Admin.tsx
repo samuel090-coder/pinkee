@@ -1699,7 +1699,27 @@ const Admin = () => {
                   <p className="text-xs text-muted-foreground">
                     Fetches the channel's latest videos via the youtube138 RapidAPI endpoint.
                   </p>
+              </div>
+
+              {/* Movies & TV Section Toggle */}
+              <div className="shiny-card rounded-xl p-6 space-y-4 md:col-span-2">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-display font-semibold text-lg flex items-center gap-2">
+                      <Clapperboard className="w-5 h-5 text-primary" />
+                      Movies & TV Section
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      When OFF, the Movies and TV pages are hidden from the dashboard and the Feed becomes the homepage.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settingsForm.movies_enabled}
+                    onCheckedChange={(v) => setSettingsForm({ ...settingsForm, movies_enabled: v })}
+                  />
                 </div>
+              </div>
+
               </div>
 
               {/* Payment Settings */}
