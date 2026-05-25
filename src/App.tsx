@@ -55,6 +55,11 @@ const PageViewTracker = () => {
   return null;
 };
 
+const HomeRoute = () => {
+  const { adminSettings } = useVideo();
+  return adminSettings?.movies_enabled === false ? <Index /> : <Movies />;
+};
+
 const queryClient = new QueryClient();
 
 const App = () => (
