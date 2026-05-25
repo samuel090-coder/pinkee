@@ -10,17 +10,14 @@ import { useVideo } from '@/contexts/VideoContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useContentAlgorithm } from '@/hooks/useContentAlgorithm';
 import { Button } from '@/components/ui/button';
-import { YouTubeFeed } from '@/components/dashboard/YouTubeFeed';
 
 const VIDEOS_PER_PAGE = 8;
 
 const Index = () => {
-  const { videos, loading, analytics, adminSettings } = useVideo();
+  const { videos, loading, analytics } = useVideo();
   const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [displayCount, setDisplayCount] = useState(VIDEOS_PER_PAGE);
-
-  const youtubeEnabled = adminSettings?.youtube_enabled === true;
 
   // AI-powered content algorithm for smart feed ordering
   const { longs: allLongs, shorts } = useContentAlgorithm(videos, selectedCategory);
