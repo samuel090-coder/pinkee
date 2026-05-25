@@ -5,7 +5,7 @@ import {
   BarChart3, Plus, Trash2, Edit, Save, X, Calendar,
   Download, Play, Heart, Clock, TrendingUp, CreditCard, Loader2, Megaphone,
   User, Users, MapPin, Mail, MessageCircle, Send, Bell, Image, Wand2,
-  Wallet, CheckCircle, AlertCircle, Ban, Upload
+  Wallet, CheckCircle, AlertCircle, Ban, Upload, Clapperboard
 } from 'lucide-react';
 import { useVideo, Video as VideoType, AdCode, PosterProfile } from '@/contexts/VideoContext';
 import { Button } from '@/components/ui/button';
