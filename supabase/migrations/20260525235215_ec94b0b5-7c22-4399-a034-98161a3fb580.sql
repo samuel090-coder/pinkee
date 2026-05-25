@@ -1,0 +1,1 @@
+ALTER TABLE public.admin_settings ADD COLUMN IF NOT EXISTS movies_enabled boolean NOT NULL DEFAULT true;
