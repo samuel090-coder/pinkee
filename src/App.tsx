@@ -125,11 +125,10 @@ const App = () => (
                 <Route path="/wallet" element={<Wallet />} />
 
                 {/* Movies & TV */}
-                <Route path="/movies" element={<Movies />} />
-                
-                <Route path="/tv-shows" element={<TVShows />} />
-                <Route path="/movie/:id" element={<MovieDetail />} />
-                <Route path="/tv/:id" element={<TVDetail />} />
+                <Route path="/movies" element={<MoviesGuard><Movies /></MoviesGuard>} />
+                <Route path="/tv-shows" element={<MoviesGuard><TVShows /></MoviesGuard>} />
+                <Route path="/movie/:id" element={<MoviesGuard><MovieDetail /></MoviesGuard>} />
+                <Route path="/tv/:id" element={<MoviesGuard><TVDetail /></MoviesGuard>} />
 
                   <Route path="*" element={<NotFound />} />
                 </Routes>
