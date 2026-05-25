@@ -74,7 +74,7 @@ const App = () => (
                 <MiniPlayer />
                 <SupportLauncher />
                 <Routes>
-                  <Route path="/" element={<Movies />} />
+                  <Route path="/" element={<HomeRoute />} />
                   <Route path="/feed" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
