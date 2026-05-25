@@ -78,6 +78,7 @@ export interface AdminSettings {
   default_ad_frequency: number;
   youtube_enabled?: boolean;
   youtube_channel_id?: string | null;
+  movies_enabled?: boolean;
 }
 
 export interface AdCode {
