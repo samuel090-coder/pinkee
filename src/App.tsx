@@ -60,6 +60,11 @@ const HomeRoute = () => {
   return adminSettings?.movies_enabled === false ? <Index /> : <Movies />;
 };
 
+const MoviesGuard = ({ children }: { children: JSX.Element }) => {
+  const { adminSettings } = useVideo();
+  return adminSettings?.movies_enabled === false ? <NotFound /> : children;
+};
+
 const queryClient = new QueryClient();
 
 const App = () => (
