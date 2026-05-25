@@ -125,19 +125,15 @@ const Index = () => {
         </section>
       )}
 
-      {/* Category Chips - hidden when YouTube provider is active */}
-      {!youtubeEnabled && (
-        <section className="container mx-auto px-3">
-          <CategoryChips selected={selectedCategory} onSelect={setSelectedCategory} />
-        </section>
-      )}
+      {/* Category Chips */}
+      <section className="container mx-auto px-3">
+        <CategoryChips selected={selectedCategory} onSelect={setSelectedCategory} />
+      </section>
 
-      {/* Videos Feed Section - YouTube mobile style */}
+      {/* Videos Feed Section */}
       <section className="py-4 pb-20">
         <div className="container mx-auto px-3">
-          {youtubeEnabled ? (
-            <YouTubeFeed channelId={adminSettings?.youtube_channel_id} />
-          ) : videos.length > 0 ? (
+          {videos.length > 0 ? (
             <div className="space-y-6">
               {/* Long Videos - First batch */}
               {longs.length > 0 && (
