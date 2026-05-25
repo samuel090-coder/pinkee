@@ -150,6 +150,7 @@ const Admin = () => {
     default_ad_frequency: 5,
     youtube_enabled: false,
     youtube_channel_id: '',
+    movies_enabled: true,
   });
 
   useEffect(() => {
@@ -163,6 +164,7 @@ const Admin = () => {
         default_ad_frequency: adminSettings.default_ad_frequency || 5,
         youtube_enabled: adminSettings.youtube_enabled ?? false,
         youtube_channel_id: adminSettings.youtube_channel_id ?? '',
+        movies_enabled: adminSettings.movies_enabled ?? true,
       });
     }
   }, [adminSettings]);
