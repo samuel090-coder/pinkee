@@ -861,6 +861,36 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+          rewarded_at: string | null
+          status: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+          rewarded_at?: string | null
+          status?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          rewarded_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           channel_id: string | null
@@ -924,6 +954,257 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reward_activities: {
+        Row: {
+          category: string
+          code: string
+          cooldown_seconds: number
+          created_at: string
+          daily_cap: number | null
+          description: string | null
+          enabled: boolean
+          icon: string | null
+          id: string
+          name: string
+          points: number
+          sort_order: number
+          total_cap: number | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          code: string
+          cooldown_seconds?: number
+          created_at?: string
+          daily_cap?: number | null
+          description?: string | null
+          enabled?: boolean
+          icon?: string | null
+          id?: string
+          name: string
+          points?: number
+          sort_order?: number
+          total_cap?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          code?: string
+          cooldown_seconds?: number
+          created_at?: string
+          daily_cap?: number | null
+          description?: string | null
+          enabled?: boolean
+          icon?: string | null
+          id?: string
+          name?: string
+          points?: number
+          sort_order?: number
+          total_cap?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reward_ledger: {
+        Row: {
+          activity_code: string | null
+          created_at: string
+          description: string | null
+          device_fingerprint: string | null
+          id: string
+          idempotency_key: string | null
+          ip_address: string | null
+          metadata: Json
+          mission_id: string | null
+          points: number
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string
+          status: Database["public"]["Enums"]["reward_status"]
+          user_id: string
+        }
+        Insert: {
+          activity_code?: string | null
+          created_at?: string
+          description?: string | null
+          device_fingerprint?: string | null
+          id?: string
+          idempotency_key?: string | null
+          ip_address?: string | null
+          metadata?: Json
+          mission_id?: string | null
+          points: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: Database["public"]["Enums"]["reward_status"]
+          user_id: string
+        }
+        Update: {
+          activity_code?: string | null
+          created_at?: string
+          description?: string | null
+          device_fingerprint?: string | null
+          id?: string
+          idempotency_key?: string | null
+          ip_address?: string | null
+          metadata?: Json
+          mission_id?: string | null
+          points?: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string
+          status?: Database["public"]["Enums"]["reward_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_ledger_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "reward_missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reward_missions: {
+        Row: {
+          activity_code: string | null
+          code: string
+          created_at: string
+          description: string | null
+          enabled: boolean
+          ends_at: string | null
+          icon: string | null
+          id: string
+          period: Database["public"]["Enums"]["mission_period"]
+          reward_points: number
+          sort_order: number
+          starts_at: string | null
+          target_count: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          activity_code?: string | null
+          code: string
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          ends_at?: string | null
+          icon?: string | null
+          id?: string
+          period?: Database["public"]["Enums"]["mission_period"]
+          reward_points?: number
+          sort_order?: number
+          starts_at?: string | null
+          target_count?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          activity_code?: string | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          ends_at?: string | null
+          icon?: string | null
+          id?: string
+          period?: Database["public"]["Enums"]["mission_period"]
+          reward_points?: number
+          sort_order?: number
+          starts_at?: string | null
+          target_count?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reward_redemptions: {
+        Row: {
+          created_at: string
+          id: string
+          ngn_amount: number
+          notes: string | null
+          points: number
+          processed_at: string | null
+          status: Database["public"]["Enums"]["redemption_status"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ngn_amount: number
+          notes?: string | null
+          points: number
+          processed_at?: string | null
+          status?: Database["public"]["Enums"]["redemption_status"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ngn_amount?: number
+          notes?: string | null
+          points?: number
+          processed_at?: string | null
+          status?: Database["public"]["Enums"]["redemption_status"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reward_settings: {
+        Row: {
+          daily_checkin_points: number
+          enabled: boolean
+          id: boolean
+          max_points_per_ip_per_day: number
+          max_points_per_user_per_day: number
+          min_redemption_points: number
+          ngn_per_point: number
+          referral_points_referred: number
+          referral_points_referrer: number
+          require_email_verified: boolean
+          streak_bonus_every: number
+          streak_bonus_points: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          daily_checkin_points?: number
+          enabled?: boolean
+          id?: boolean
+          max_points_per_ip_per_day?: number
+          max_points_per_user_per_day?: number
+          min_redemption_points?: number
+          ngn_per_point?: number
+          referral_points_referred?: number
+          referral_points_referrer?: number
+          require_email_verified?: boolean
+          streak_bonus_every?: number
+          streak_bonus_points?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          daily_checkin_points?: number
+          enabled?: boolean
+          id?: boolean
+          max_points_per_ip_per_day?: number
+          max_points_per_user_per_day?: number
+          min_redemption_points?: number
+          ngn_per_point?: number
+          referral_points_referred?: number
+          referral_points_referrer?: number
+          require_email_verified?: boolean
+          streak_bonus_every?: number
+          streak_bonus_points?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       sound_purchase_requests: {
         Row: {
@@ -1195,6 +1476,50 @@ export type Database = {
         }
         Relationships: []
       }
+      user_mission_progress: {
+        Row: {
+          claimed_at: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          mission_id: string
+          period_key: string
+          progress: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          mission_id: string
+          period_key: string
+          progress?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          mission_id?: string
+          period_key?: string
+          progress?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_mission_progress_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "reward_missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_notifications: {
         Row: {
           body: string
@@ -1227,6 +1552,48 @@ export type Database = {
           link?: string | null
           title?: string
           type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_rewards: {
+        Row: {
+          created_at: string
+          current_streak: number
+          flag_reason: string | null
+          flagged: boolean
+          last_checkin_at: string | null
+          lifetime_ngn: number
+          lifetime_points: number
+          longest_streak: number
+          points_balance: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          flag_reason?: string | null
+          flagged?: boolean
+          last_checkin_at?: string | null
+          lifetime_ngn?: number
+          lifetime_points?: number
+          longest_streak?: number
+          points_balance?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          flag_reason?: string | null
+          flagged?: boolean
+          last_checkin_at?: string | null
+          lifetime_ngn?: number
+          lifetime_points?: number
+          longest_streak?: number
+          points_balance?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -1676,6 +2043,33 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_activity: {
+        Args: {
+          _activity_code: string
+          _device?: string
+          _idempotency?: string
+          _metadata?: Json
+        }
+        Returns: Json
+      }
+      claim_daily_checkin: { Args: { _device?: string }; Returns: Json }
+      claim_mission_reward: { Args: { _mission_id: string }; Returns: Json }
+      credit_reward_points: {
+        Args: {
+          _activity_code: string
+          _description: string
+          _device: string
+          _idempotency: string
+          _ip: string
+          _metadata: Json
+          _mission_id: string
+          _points: number
+          _source: string
+          _user: string
+        }
+        Returns: Json
+      }
+      ensure_user_rewards: { Args: { _user: string }; Returns: undefined }
       get_public_profile_by_email: {
         Args: { _email: string }
         Returns: {
@@ -1691,7 +2085,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_mission_progress: {
+        Args: { _activity_code: string; _amount?: number }
+        Returns: Json
+      }
       is_moderator: { Args: { _user_id: string }; Returns: boolean }
+      mission_period_key: {
+        Args: {
+          _at?: string
+          _period: Database["public"]["Enums"]["mission_period"]
+        }
+        Returns: string
+      }
       process_wallet_payment: {
         Args: {
           p_amount: number
@@ -1702,9 +2107,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      redeem_points_to_wallet: { Args: { _points: number }; Returns: Json }
+      register_referral: { Args: { _code: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "moderator" | "creator" | "user"
+      mission_period: "daily" | "weekly" | "monthly" | "seasonal" | "one_time"
+      redemption_status: "pending" | "approved" | "rejected" | "paid"
+      reward_status: "pending" | "approved" | "rejected" | "reversed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1833,6 +2243,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "creator", "user"],
+      mission_period: ["daily", "weekly", "monthly", "seasonal", "one_time"],
+      redemption_status: ["pending", "approved", "rejected", "paid"],
+      reward_status: ["pending", "approved", "rejected", "reversed"],
     },
   },
 } as const
