@@ -23,6 +23,8 @@ import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 import { AnalyticsTab } from '@/components/admin/AnalyticsTab';
 import { SupportInbox } from '@/components/admin/SupportInbox';
+import { RewardsAdmin } from '@/components/admin/RewardsAdmin';
+import { Gift } from 'lucide-react';
 
 interface Notification {
   id: string;
@@ -706,6 +708,10 @@ const Admin = () => {
             <TabsTrigger value="support" className="gap-2">
               <MessageCircle className="w-4 h-4" />
               <span className="hidden sm:inline">Support</span>
+            </TabsTrigger>
+            <TabsTrigger value="rewards" className="gap-2">
+              <Gift className="w-4 h-4" />
+              <span className="hidden sm:inline">Rewards</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="gap-2">
               <Settings className="w-4 h-4" />
@@ -1648,6 +1654,10 @@ const Admin = () => {
           {/* Support Tab */}
           <TabsContent value="support" className="space-y-6">
             <SupportInbox />
+          </TabsContent>
+
+          <TabsContent value="rewards" className="space-y-6">
+            <RewardsAdmin />
           </TabsContent>
 
           {/* Settings Tab */}
