@@ -47,6 +47,7 @@ import Movies from "./pages/Movies";
 import TVShows from "./pages/TVShows";
 import MovieDetail from "./pages/MovieDetail";
 import TVDetail from "./pages/TVDetail";
+import Rewards from "./pages/Rewards";
 import NotFound from "./pages/NotFound";
 import { usePageViewTracking } from "@/hooks/useAnalyticsTracking";
 
@@ -128,6 +129,7 @@ const App = () => (
                 <Route path="/studio/monetization" element={<Monetization />} />
                 <Route path="/sound/:id" element={<SoundDetail />} />
                 <Route path="/wallet" element={<Wallet />} />
+                <Route path="/rewards" element={<Rewards />} />
 
                 {/* Movies & TV */}
                 <Route path="/movies" element={<MoviesGuard><Movies /></MoviesGuard>} />
