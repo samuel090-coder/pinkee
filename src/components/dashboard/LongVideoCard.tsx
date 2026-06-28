@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, Play, Eye } from "lucide-react";
 import { Video } from "@/contexts/VideoContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
