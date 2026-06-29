@@ -146,8 +146,17 @@ export function FileUpload({ type, onUploadComplete, currentUrl, className, buck
             ) : (
               <div className="w-full h-32 flex items-center justify-center bg-muted">
                 <div className="flex items-center gap-2 text-primary">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="text-sm font-medium">Video uploaded</span>
+                  {extracting ? (
+                    <>
+                      <Sparkles className="w-5 h-5 animate-pulse" />
+                      <span className="text-sm font-medium">Generating thumbnail…</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-5 h-5" />
+                      <span className="text-sm font-medium">Video uploaded</span>
+                    </>
+                  )}
                 </div>
               </div>
             )}
