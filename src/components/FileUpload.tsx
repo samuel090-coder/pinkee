@@ -16,8 +16,9 @@ interface FileUploadProps {
   onThumbnailExtracted?: (url: string) => void;
 }
 
-export function FileUpload({ type, onUploadComplete, currentUrl, className, bucket: customBucket }: FileUploadProps) {
+export function FileUpload({ type, onUploadComplete, currentUrl, className, bucket: customBucket, onThumbnailExtracted }: FileUploadProps) {
   const { uploadFile } = useVideo();
+  const [extracting, setExtracting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
