@@ -92,7 +92,7 @@ const App = () => (
                   <Route path="/reset-password" element={<ResetPassword />} />
 
                 <Route path="/explore" element={<Explore />} />
-                <Route path="/shorts" element={<Shorts />} />
+                <Route path="/shorts" element={<GuestGuard><Shorts /></GuestGuard>} />
                 <Route path="/trending" element={<ExploreCategory title="Trending" sort="views" />} />
                 <Route path="/music" element={<ExploreCategory title="Music" category="Music" />} />
                 <Route path="/gaming" element={<ExploreCategory title="Gaming" category="Gaming" />} />
