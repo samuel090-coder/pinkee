@@ -112,7 +112,7 @@ const App = () => (
 
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/poster/:id" element={<PosterProfile />} />
-                <Route path="/watch/:id" element={<Watch />} />
+                <Route path="/watch/:id" element={<GuestGuard><Watch /></GuestGuard>} />
                 <Route path="/upload" element={<Upload />} />
                 <Route path="/channel/:id" element={<Channel />} />
                 <Route path="/channels" element={<Channels />} />
