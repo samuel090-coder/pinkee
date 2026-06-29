@@ -1729,7 +1729,25 @@ const Admin = () => {
                     checked={settingsForm.movies_enabled}
                     onCheckedChange={(v) => setSettingsForm({ ...settingsForm, movies_enabled: v })}
                   />
+              </div>
+
+              <div className="shiny-card rounded-xl p-6 space-y-4 md:col-span-2">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-display font-semibold text-lg flex items-center gap-2">
+                      <Clapperboard className="w-5 h-5 text-primary" />
+                      Guest Browsing
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      When OFF, unauthenticated visitors must sign in before they can watch videos, open Shorts, or browse Movies/TV.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settingsForm.guest_browsing_enabled}
+                    onCheckedChange={(v) => setSettingsForm({ ...settingsForm, guest_browsing_enabled: v })}
+                  />
                 </div>
+              </div>
               </div>
 
               </div>
