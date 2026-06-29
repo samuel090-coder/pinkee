@@ -153,6 +153,7 @@ const Admin = () => {
     youtube_enabled: false,
     youtube_channel_id: '',
     movies_enabled: true,
+    guest_browsing_enabled: true,
   });
 
   useEffect(() => {
