@@ -875,6 +875,7 @@ const Admin = () => {
                         type="video"
                         currentUrl={newVideo.video_url}
                         onUploadComplete={(url) => setNewVideo({ ...newVideo, video_url: url })}
+                        onThumbnailExtracted={(url) => setNewVideo((prev) => prev.thumbnail_url ? prev : { ...prev, thumbnail_url: url })}
                       />
                     </div>
 
