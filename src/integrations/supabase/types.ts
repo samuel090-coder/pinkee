@@ -47,6 +47,7 @@ export type Database = {
           bank_name: string | null
           created_at: string
           default_ad_frequency: number | null
+          guest_browsing_enabled: boolean
           id: string
           movies_enabled: boolean
           platform_fee_percent: number | null
@@ -65,6 +66,7 @@ export type Database = {
           bank_name?: string | null
           created_at?: string
           default_ad_frequency?: number | null
+          guest_browsing_enabled?: boolean
           id?: string
           movies_enabled?: boolean
           platform_fee_percent?: number | null
@@ -83,6 +85,7 @@ export type Database = {
           bank_name?: string | null
           created_at?: string
           default_ad_frequency?: number | null
+          guest_browsing_enabled?: boolean
           id?: string
           movies_enabled?: boolean
           platform_fee_percent?: number | null
