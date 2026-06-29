@@ -70,6 +70,28 @@ export function FileUpload({ type, onUploadComplete, currentUrl, className, buck
     if (url) {
       setPreviewUrl(url);
       onUploadComplete(url);
+
+      // Auto-extract a poster frame from the uploaded video and push it
+      // to the thumbnails bucket so the homepage never shows a blank card.
+      if (type === 'video' && isVideo && onThumbnailExtracted) {
+        setExtracting(true);
+        try {
+          const best = await extractBestThumbnail(file, { frames: 5, maxWidth: 1280, quality: 0.82 });
+          if (best) {
+            const thumbFile = new File(
+              [best.blob],
+              `auto-thumb-${Date.now()}.jpg`,
+              { type: 'image/jpeg' },
+            );
+            const thumbUrl = await uploadFile(thumbFile, 'thumbnails');
+            if (thumbUrl) onThumbnailExtracted(thumbUrl);
+          }
+        } catch (err) {
+          console.warn('Auto-thumbnail extraction failed:', err);
+        } finally {
+          setExtracting(false);
+        }
+      }
     }
 
     setTimeout(() => {
