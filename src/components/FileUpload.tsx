@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, FileVideo, Image, Loader2, CheckCircle } from 'lucide-react';
+import { Upload, X, FileVideo, Image, Loader2, CheckCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useVideo } from '@/contexts/VideoContext';
+import { extractBestThumbnail } from '@/lib/thumbnail-extractor';
 
 interface FileUploadProps {
   type: 'video' | 'thumbnail';
@@ -11,6 +12,8 @@ interface FileUploadProps {
   currentUrl?: string;
   className?: string;
   bucket?: 'videos' | 'thumbnails' | 'avatars' | 'notification-images';
+  /** Called with an auto-extracted poster URL when a video is uploaded. */
+  onThumbnailExtracted?: (url: string) => void;
 }
 
 export function FileUpload({ type, onUploadComplete, currentUrl, className, bucket: customBucket }: FileUploadProps) {
