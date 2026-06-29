@@ -168,6 +168,7 @@ const Admin = () => {
         youtube_enabled: adminSettings.youtube_enabled ?? false,
         youtube_channel_id: adminSettings.youtube_channel_id ?? '',
         movies_enabled: adminSettings.movies_enabled ?? true,
+        guest_browsing_enabled: adminSettings.guest_browsing_enabled ?? true,
       });
     }
   }, [adminSettings]);
