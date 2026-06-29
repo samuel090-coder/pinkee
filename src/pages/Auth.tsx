@@ -37,12 +37,14 @@ const Auth = () => {
   const [errors, setErrors] = useState<{ email?: string; password?: string; displayName?: string }>({});
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('returnTo') || '/';
   const { toast } = useToast();
   const { signIn, signUp, user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (!authLoading && user) navigate('/');
-  }, [user, authLoading, navigate]);
+    if (!authLoading && user) navigate(returnTo, { replace: true });
+  }, [user, authLoading, navigate, returnTo]);
 
   // Boot: check cached user
   useEffect(() => {
