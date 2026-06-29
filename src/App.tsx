@@ -133,10 +133,10 @@ const App = () => (
                 <Route path="/rewards" element={<Rewards />} />
 
                 {/* Movies & TV */}
-                <Route path="/movies" element={<MoviesGuard><Movies /></MoviesGuard>} />
-                <Route path="/tv-shows" element={<MoviesGuard><TVShows /></MoviesGuard>} />
-                <Route path="/movie/:id" element={<MoviesGuard><MovieDetail /></MoviesGuard>} />
-                <Route path="/tv/:id" element={<MoviesGuard><TVDetail /></MoviesGuard>} />
+                <Route path="/movies" element={<GuestGuard><MoviesGuard><Movies /></MoviesGuard></GuestGuard>} />
+                <Route path="/tv-shows" element={<GuestGuard><MoviesGuard><TVShows /></MoviesGuard></GuestGuard>} />
+                <Route path="/movie/:id" element={<GuestGuard><MoviesGuard><MovieDetail /></MoviesGuard></GuestGuard>} />
+                <Route path="/tv/:id" element={<GuestGuard><MoviesGuard><TVDetail /></MoviesGuard></GuestGuard>} />
 
                   <Route path="*" element={<NotFound />} />
                 </Routes>
