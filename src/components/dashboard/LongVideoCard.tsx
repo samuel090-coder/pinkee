@@ -1,13 +1,16 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MoreVertical, Play, Eye } from "lucide-react";
+import { MoreVertical, Play, Eye, BadgeCheck, Crown, Sparkles } from "lucide-react";
 import { Video } from "@/contexts/VideoContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
 
 type Props = {
   video: Video;
   index: number;
+  /** "feature" makes the card large/cinematic for bento hero slots */
+  variant?: "default" | "feature";
 };
 
 function formatViews(views: number | null): string {
@@ -29,11 +32,13 @@ function formatDuration(seconds: number | null): string {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
-export function LongVideoCard({ video, index }: Props) {
+export function LongVideoCard({ video, index, variant = "default" }: Props) {
   const thumbnailUrl = video.thumbnail_url || video.video_url;
   const isVideoThumb = !!thumbnailUrl && (thumbnailUrl.includes(".mp4") || thumbnailUrl.includes(".webm"));
-  const channelName = video.poster?.name || "Unknown Channel";
-  const channelAvatar = video.poster?.avatar_url;
+  const channelName = video.poster?.name || video.uploader_profile?.display_name || "Unknown Channel";
+  const channelAvatar = video.poster?.avatar_url || video.uploader_profile?.avatar_url;
+  const isVerified = video.uploader_profile?.is_verified ?? false;
+  const isFeature = variant === "feature";
 
   return (
     <motion.article
@@ -43,13 +48,18 @@ export function LongVideoCard({ video, index }: Props) {
       className="group"
     >
       <Link to={`/watch/${video.id}`} className="block">
-        {/* Cinematic 16:9 Thumbnail */}
-        <div className="relative aspect-video rounded-2xl overflow-hidden bg-muted mb-3 ring-1 ring-border/40 shadow-card group-hover:shadow-glow transition-all duration-500">
+        {/* Cinematic thumbnail */}
+        <div
+          className={cn(
+            "relative aspect-video overflow-hidden bg-muted mb-3 ring-1 ring-border/50 shadow-card transition-all duration-500",
+            isFeature ? "rounded-3xl group-hover:shadow-glow" : "rounded-2xl group-hover:shadow-glow group-hover:ring-primary/40",
+          )}
+        >
           {thumbnailUrl ? (
             isVideoThumb ? (
               <video
                 src={thumbnailUrl}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] group-hover:scale-[1.06]"
                 muted
                 loop
                 playsInline
@@ -59,79 +69,122 @@ export function LongVideoCard({ video, index }: Props) {
               <img
                 src={thumbnailUrl}
                 alt={video.thumbnail_alt || video.title}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] group-hover:scale-[1.06]"
                 loading="lazy"
               />
             )
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-muted to-card">
-              <span className="text-muted-foreground text-sm">No thumbnail</span>
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-secondary via-muted to-card">
+              <Sparkles className="w-8 h-8 text-primary/60 animate-pulse" />
             </div>
           )}
 
-          {/* Cinematic gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/10 to-transparent opacity-80 group-hover:opacity-95 transition-opacity duration-500" />
+          {/* cinematic gradient — heavier on feature cards */}
+          <div
+            className={cn(
+              "absolute inset-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent transition-opacity duration-500",
+              isFeature ? "opacity-90 group-hover:opacity-100" : "opacity-75 group-hover:opacity-90",
+            )}
+          />
 
-          {/* Top-left views pill */}
+          {/* top-left badges */}
+          <div className="absolute top-2 left-2 flex items-center gap-1.5">
+            {video.is_premium && (
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-300 text-amber-950 text-[10px] font-bold shadow-md">
+                <Crown className="w-3 h-3" />
+                PREMIUM
+              </div>
+            )}
+            {!video.is_premium && video.category && (
+              <div className="px-2 py-0.5 rounded-full glass border border-primary/30 text-[10px] font-semibold text-primary uppercase tracking-wide">
+                {video.category}
+              </div>
+            )}
+          </div>
+
+          {/* top-right views */}
           {typeof video.views === "number" && video.views > 0 && (
-            <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full glass border border-border/40 text-[10px] font-medium text-foreground/90">
+            <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full glass border border-border/40 text-[10px] font-medium text-foreground/90">
               <Eye className="w-3 h-3" />
               {formatViews(video.views).replace(" views", "")}
             </div>
           )}
 
-          {/* Play hint */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 scale-90 group-hover:scale-100">
-            <div className="w-14 h-14 rounded-full glass border border-primary/40 flex items-center justify-center pink-glow">
-              <Play className="w-6 h-6 text-primary-foreground fill-primary-foreground translate-x-0.5" />
+          {/* center play */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 scale-75 group-hover:scale-100">
+            <div className={cn(
+              "rounded-full glass border border-primary/50 flex items-center justify-center pink-glow",
+              isFeature ? "w-20 h-20" : "w-16 h-16",
+            )}>
+              <Play className={cn("text-primary fill-primary translate-x-0.5", isFeature ? "w-8 h-8" : "w-6 h-6")} />
             </div>
           </div>
 
-          {/* Duration badge */}
+          {/* duration */}
           {video.duration && video.duration > 0 && (
-            <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-background/80 backdrop-blur-md text-foreground text-[11px] font-semibold tabular-nums ring-1 ring-border/40">
+            <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-md text-white text-[11px] font-semibold tabular-nums ring-1 ring-white/10">
               {formatDuration(video.duration)}
+            </div>
+          )}
+
+          {/* feature-only title overlay */}
+          {isFeature && (
+            <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
+              <div className="flex items-center gap-1.5 mb-2">
+                <span className="px-2 py-0.5 rounded-full bg-primary/90 text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
+                  Featured
+                </span>
+              </div>
+              <h2 className="font-display font-bold text-xl md:text-2xl text-white line-clamp-2 leading-tight drop-shadow-lg">
+                {video.title}
+              </h2>
             </div>
           )}
         </div>
 
-        {/* Info Row */}
-        <div className="flex gap-3 px-0.5">
-          <Link
-            to={video.poster_id ? `/poster/${video.poster_id}` : "#"}
-            onClick={(e) => e.stopPropagation()}
-            className="shrink-0"
-          >
-            <div className="relative">
-              <Avatar className="w-10 h-10 ring-2 ring-primary/40 ring-offset-2 ring-offset-background">
-                <AvatarImage src={channelAvatar || undefined} alt={channelName} />
-                <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-xs font-bold">
-                  {channelName.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+        {/* info row (hidden on feature variant since overlay handles it) */}
+        {!isFeature && (
+          <div className="flex gap-3 px-0.5">
+            <Link
+              to={video.poster_id ? `/poster/${video.poster_id}` : "#"}
+              onClick={(e) => e.stopPropagation()}
+              className="shrink-0"
+            >
+              <div className="relative">
+                <Avatar className="w-10 h-10 ring-2 ring-primary/30 ring-offset-2 ring-offset-background">
+                  <AvatarImage src={channelAvatar || undefined} alt={channelName} />
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground text-xs font-bold">
+                    {channelName.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                {isVerified && (
+                  <BadgeCheck className="absolute -bottom-0.5 -right-0.5 w-4 h-4 text-primary fill-background" />
+                )}
+              </div>
+            </Link>
+
+            <div className="flex-1 min-w-0">
+              <h3 className="font-display font-semibold text-foreground text-[15px] line-clamp-2 leading-snug mb-1 group-hover:text-primary transition-colors">
+                {video.title}
+              </h3>
+              <p className="text-xs text-muted-foreground line-clamp-1 font-medium flex items-center gap-1">
+                {channelName}
+                {isVerified && <BadgeCheck className="w-3 h-3 text-primary fill-background shrink-0" />}
+              </p>
+              <p className="text-xs text-muted-foreground/70">
+                {formatViews(video.views)} • {formatDistanceToNow(new Date(video.created_at), { addSuffix: true })}
+              </p>
             </div>
-          </Link>
 
-          <div className="flex-1 min-w-0">
-            <h3 className="font-display font-semibold text-foreground text-[15px] line-clamp-2 leading-snug mb-1 group-hover:text-gradient-pink transition-colors">
-              {video.title}
-            </h3>
-            <p className="text-xs text-muted-foreground line-clamp-1 font-medium">
-              {channelName}
-            </p>
-            <p className="text-xs text-muted-foreground/80">
-              {formatViews(video.views)} • {formatDistanceToNow(new Date(video.created_at), { addSuffix: true })}
-            </p>
+            <button
+              className="shrink-0 p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-secondary/60 transition-all"
+              onClick={(e) => e.preventDefault()}
+              aria-label="More options"
+            >
+              <MoreVertical className="w-5 h-5 text-muted-foreground" />
+            </button>
           </div>
-
-          <button
-            className="shrink-0 p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-secondary/60 transition-all"
-            onClick={(e) => e.preventDefault()}
-            aria-label="More options"
-          >
-            <MoreVertical className="w-5 h-5 text-muted-foreground" />
-          </button>
-        </div>
+        )}
       </Link>
     </motion.article>
   );

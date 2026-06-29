@@ -49,6 +49,7 @@ import MovieDetail from "./pages/MovieDetail";
 import TVDetail from "./pages/TVDetail";
 import Rewards from "./pages/Rewards";
 import NotFound from "./pages/NotFound";
+import { GuestGuard } from "@/components/auth/GuestGuard";
 import { usePageViewTracking } from "@/hooks/useAnalyticsTracking";
 
 const PageViewTracker = () => {
@@ -91,7 +92,7 @@ const App = () => (
                   <Route path="/reset-password" element={<ResetPassword />} />
 
                 <Route path="/explore" element={<Explore />} />
-                <Route path="/shorts" element={<Shorts />} />
+                <Route path="/shorts" element={<GuestGuard><Shorts /></GuestGuard>} />
                 <Route path="/trending" element={<ExploreCategory title="Trending" sort="views" />} />
                 <Route path="/music" element={<ExploreCategory title="Music" category="Music" />} />
                 <Route path="/gaming" element={<ExploreCategory title="Gaming" category="Gaming" />} />
@@ -111,7 +112,7 @@ const App = () => (
 
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/poster/:id" element={<PosterProfile />} />
-                <Route path="/watch/:id" element={<Watch />} />
+                <Route path="/watch/:id" element={<GuestGuard><Watch /></GuestGuard>} />
                 <Route path="/upload" element={<Upload />} />
                 <Route path="/channel/:id" element={<Channel />} />
                 <Route path="/channels" element={<Channels />} />
@@ -132,10 +133,10 @@ const App = () => (
                 <Route path="/rewards" element={<Rewards />} />
 
                 {/* Movies & TV */}
-                <Route path="/movies" element={<MoviesGuard><Movies /></MoviesGuard>} />
-                <Route path="/tv-shows" element={<MoviesGuard><TVShows /></MoviesGuard>} />
-                <Route path="/movie/:id" element={<MoviesGuard><MovieDetail /></MoviesGuard>} />
-                <Route path="/tv/:id" element={<MoviesGuard><TVDetail /></MoviesGuard>} />
+                <Route path="/movies" element={<GuestGuard><MoviesGuard><Movies /></MoviesGuard></GuestGuard>} />
+                <Route path="/tv-shows" element={<GuestGuard><MoviesGuard><TVShows /></MoviesGuard></GuestGuard>} />
+                <Route path="/movie/:id" element={<GuestGuard><MoviesGuard><MovieDetail /></MoviesGuard></GuestGuard>} />
+                <Route path="/tv/:id" element={<GuestGuard><MoviesGuard><TVDetail /></MoviesGuard></GuestGuard>} />
 
                   <Route path="*" element={<NotFound />} />
                 </Routes>

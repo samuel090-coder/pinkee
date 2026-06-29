@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, FileVideo, Image, Loader2, CheckCircle } from 'lucide-react';
+import { Upload, X, FileVideo, Image, Loader2, CheckCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useVideo } from '@/contexts/VideoContext';
+import { extractBestThumbnail } from '@/lib/thumbnail-extractor';
 
 interface FileUploadProps {
   type: 'video' | 'thumbnail';
@@ -11,10 +12,13 @@ interface FileUploadProps {
   currentUrl?: string;
   className?: string;
   bucket?: 'videos' | 'thumbnails' | 'avatars' | 'notification-images';
+  /** Called with an auto-extracted poster URL when a video is uploaded. */
+  onThumbnailExtracted?: (url: string) => void;
 }
 
-export function FileUpload({ type, onUploadComplete, currentUrl, className, bucket: customBucket }: FileUploadProps) {
+export function FileUpload({ type, onUploadComplete, currentUrl, className, bucket: customBucket, onThumbnailExtracted }: FileUploadProps) {
   const { uploadFile } = useVideo();
+  const [extracting, setExtracting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -66,6 +70,28 @@ export function FileUpload({ type, onUploadComplete, currentUrl, className, buck
     if (url) {
       setPreviewUrl(url);
       onUploadComplete(url);
+
+      // Auto-extract a poster frame from the uploaded video and push it
+      // to the thumbnails bucket so the homepage never shows a blank card.
+      if (type === 'video' && isVideo && onThumbnailExtracted) {
+        setExtracting(true);
+        try {
+          const best = await extractBestThumbnail(file, { frames: 5, maxWidth: 1280, quality: 0.82 });
+          if (best) {
+            const thumbFile = new File(
+              [best.blob],
+              `auto-thumb-${Date.now()}.jpg`,
+              { type: 'image/jpeg' },
+            );
+            const thumbUrl = await uploadFile(thumbFile, 'thumbnails');
+            if (thumbUrl) onThumbnailExtracted(thumbUrl);
+          }
+        } catch (err) {
+          console.warn('Auto-thumbnail extraction failed:', err);
+        } finally {
+          setExtracting(false);
+        }
+      }
     }
 
     setTimeout(() => {
@@ -120,8 +146,17 @@ export function FileUpload({ type, onUploadComplete, currentUrl, className, buck
             ) : (
               <div className="w-full h-32 flex items-center justify-center bg-muted">
                 <div className="flex items-center gap-2 text-primary">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="text-sm font-medium">Video uploaded</span>
+                  {extracting ? (
+                    <>
+                      <Sparkles className="w-5 h-5 animate-pulse" />
+                      <span className="text-sm font-medium">Generating thumbnail…</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-5 h-5" />
+                      <span className="text-sm font-medium">Video uploaded</span>
+                    </>
+                  )}
                 </div>
               </div>
             )}

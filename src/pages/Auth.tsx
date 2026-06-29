@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, User, Eye, EyeOff, Loader2, Play, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -37,12 +37,14 @@ const Auth = () => {
   const [errors, setErrors] = useState<{ email?: string; password?: string; displayName?: string }>({});
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('returnTo') || '/';
   const { toast } = useToast();
   const { signIn, signUp, user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (!authLoading && user) navigate('/');
-  }, [user, authLoading, navigate]);
+    if (!authLoading && user) navigate(returnTo, { replace: true });
+  }, [user, authLoading, navigate, returnTo]);
 
   // Boot: check cached user
   useEffect(() => {

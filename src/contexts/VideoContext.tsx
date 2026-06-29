@@ -79,6 +79,7 @@ export interface AdminSettings {
   youtube_enabled?: boolean;
   youtube_channel_id?: string | null;
   movies_enabled?: boolean;
+  guest_browsing_enabled?: boolean;
 }
 
 export interface AdCode {
