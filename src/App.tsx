@@ -49,6 +49,7 @@ import MovieDetail from "./pages/MovieDetail";
 import TVDetail from "./pages/TVDetail";
 import Rewards from "./pages/Rewards";
 import NotFound from "./pages/NotFound";
+import { GuestGuard } from "@/components/auth/GuestGuard";
 import { usePageViewTracking } from "@/hooks/useAnalyticsTracking";
 
 const PageViewTracker = () => {
