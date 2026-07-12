@@ -12,6 +12,9 @@ import { MiniPlayer } from "@/components/video/MiniPlayer";
 import { NotificationPrompt } from "@/components/NotificationPrompt";
 import { SupportProvider } from "@/contexts/SupportContext";
 import { SupportLauncher } from "@/components/support/SupportLauncher";
+import { UploadQueueProvider } from "@/contexts/UploadQueueContext";
+import { UploadDock } from "@/components/upload/UploadDock";
+import BulkUpload from "./pages/BulkUpload";
 import ResetPassword from "./pages/ResetPassword";
 import Index from "./pages/Index";
 import Explore from "./pages/Explore";
@@ -77,6 +80,7 @@ const App = () => (
           <VideoProvider>
             <PiPProvider>
             <SupportProvider>
+            <UploadQueueProvider>
             <TooltipProvider>
               <Toaster />
               <Sonner />
@@ -85,6 +89,7 @@ const App = () => (
                 <PageViewTracker />
                 <MiniPlayer />
                 <SupportLauncher />
+                <UploadDock />
                 <Routes>
                   <Route path="/" element={<HomeRoute />} />
                   <Route path="/feed" element={<Index />} />
@@ -114,6 +119,7 @@ const App = () => (
                 <Route path="/poster/:id" element={<PosterProfile />} />
                 <Route path="/watch/:id" element={<GuestGuard><Watch /></GuestGuard>} />
                 <Route path="/upload" element={<Upload />} />
+                <Route path="/upload/bulk" element={<BulkUpload />} />
                 <Route path="/channel/:id" element={<Channel />} />
                 <Route path="/channels" element={<Channels />} />
                 <Route path="/studio" element={<Studio />} />
@@ -142,6 +148,7 @@ const App = () => (
                 </Routes>
               </BrowserRouter>
             </TooltipProvider>
+            </UploadQueueProvider>
             </SupportProvider>
             </PiPProvider>
           </VideoProvider>
