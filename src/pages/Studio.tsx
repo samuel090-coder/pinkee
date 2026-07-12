@@ -189,12 +189,20 @@ const Studio = () => {
             <h1 className="text-2xl font-bold text-foreground">Channel Dashboard</h1>
             <p className="text-muted-foreground">Welcome back, {profile?.display_name}</p>
           </div>
-          <Link to="/upload">
-            <Button className="bg-primary hover:bg-primary/90">
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Video
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link to="/upload/bulk">
+              <Button variant="outline">
+                <Upload className="w-4 h-4 mr-2" />
+                Bulk Upload
+              </Button>
+            </Link>
+            <Link to="/upload">
+              <Button className="bg-primary hover:bg-primary/90">
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Video
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Stats Cards */}
