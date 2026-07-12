@@ -473,9 +473,14 @@ const Upload = () => {
             <span>{selectedSound ? selectedSound.title : 'Add sound'}</span>
           </Button>
 
-          <div className="bg-secondary/80 rounded-full px-3 py-1 text-sm font-medium">
-            {selectedDuration}
-          </div>
+          <Button
+            variant="ghost"
+            className="flex items-center gap-1.5 bg-primary/15 text-primary rounded-full px-3 py-1 text-xs font-semibold"
+            onClick={() => navigate('/upload/bulk')}
+          >
+            <FolderOpen className="w-3.5 h-3.5" />
+            Bulk
+          </Button>
         </div>
 
         {/* Camera Preview Area */}
