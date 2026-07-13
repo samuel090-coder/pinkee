@@ -133,7 +133,7 @@ export const CommentSection = ({ videoId }: CommentSectionProps) => {
         });
       }
 
-      const commentsWithReplies = (topLevel || []).map((comment: any) => ({
+      const realComments = (topLevel || []).map((comment: any) => ({
         ...comment,
         user: profilesMap.get(comment.user_id),
         replies: (repliesByParent.get(comment.id) || []).map((r: any) => ({
@@ -142,7 +142,38 @@ export const CommentSection = ({ videoId }: CommentSectionProps) => {
         })),
       }));
 
-      setComments(commentsWithReplies);
+      // Merge in seed (auto-generated) comments so new videos feel alive
+      const { data: seeds } = await (supabase as any)
+        .from('seed_comments')
+        .select('*')
+        .eq('video_id', videoId)
+        .order(sortBy === 'top' ? 'likes_count' : 'created_at', { ascending: false });
+
+      const seedComments: Comment[] = (seeds || []).map((s: any) => ({
+        id: `seed_${s.id}`,
+        content: s.content,
+        user_id: `seed_${s.id}`,
+        video_id: s.video_id,
+        parent_id: null,
+        likes_count: s.likes_count || 0,
+        is_pinned: false,
+        is_hearted: false,
+        is_edited: false,
+        created_at: s.created_at,
+        user: {
+          display_name: s.display_name,
+          avatar_url: s.avatar_url,
+          username: s.display_name.toLowerCase().replace(/\s+/g, ''),
+        },
+        replies: [],
+      }));
+
+      const merged = [...realComments, ...seedComments].sort((a: any, b: any) => {
+        if (sortBy === 'top') return (b.likes_count || 0) - (a.likes_count || 0);
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+
+      setComments(merged);
     } catch (error) {
       console.error('Error fetching comments:', error);
     } finally {
