@@ -298,11 +298,20 @@ export function VideoProvider({ children }: { children: ReactNode }) {
         .getPublicUrl(filePath);
 
       return publicUrl;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading file:', error);
+      const raw = error?.message || error?.error || '';
+      let description = raw || 'Failed to upload file. Please try again.';
+      if (/exceeded|too large|payload|size/i.test(raw)) {
+        description = `File is too large for the storage limit. Try a smaller file or contact support to raise the ${bucket} bucket limit.`;
+      } else if (/duplicate|already exists/i.test(raw)) {
+        description = 'A file with the same name already exists. Please retry.';
+      } else if (/permission|policy|unauthor/i.test(raw)) {
+        description = 'You do not have permission to upload here. Please sign in again.';
+      }
       toast({
         title: 'Upload Error',
-        description: 'Failed to upload file. Please try again.',
+        description,
         variant: 'destructive'
       });
       return null;
