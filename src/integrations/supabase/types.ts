@@ -1209,6 +1209,44 @@ export type Database = {
         }
         Relationships: []
       }
+      seed_comments: {
+        Row: {
+          avatar_url: string | null
+          content: string
+          created_at: string
+          display_name: string
+          id: string
+          likes_count: number
+          video_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          content: string
+          created_at?: string
+          display_name: string
+          id?: string
+          likes_count?: number
+          video_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          content?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          likes_count?: number
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seed_comments_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sound_purchase_requests: {
         Row: {
           admin_notes: string | null
@@ -2046,6 +2084,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      boost_new_video_engagement: { Args: never; Returns: undefined }
       claim_activity: {
         Args: {
           _activity_code: string
