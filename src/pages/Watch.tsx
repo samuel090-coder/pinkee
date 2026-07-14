@@ -810,4 +810,15 @@ const Watch = () => {
   );
 };
 
+interface AdaptiveWatchVideoProps extends React.VideoHTMLAttributes<HTMLVideoElement> {
+  videoRef: React.RefObject<HTMLVideoElement>;
+  src?: string;
+}
+
+function AdaptiveWatchVideo({ videoRef, src, ...rest }: AdaptiveWatchVideoProps) {
+  useAdaptivePlayback(videoRef, src);
+  return <video ref={videoRef} poster={rest.poster} playsInline {...rest} />;
+}
+
 export default Watch;
+
