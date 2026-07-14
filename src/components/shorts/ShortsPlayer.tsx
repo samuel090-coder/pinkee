@@ -496,7 +496,7 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
                 >
                   <Bookmark className={cn("w-9 h-9 drop-shadow-md", isSaved ? "text-yellow-400 fill-yellow-400" : "text-white fill-white/95")} />
                   <span className="text-white text-[12px] font-semibold drop-shadow">
-                    {formatNumber((short.views_count || 0) > 100 ? Math.floor((short.likes_count || 0) * 0.35) : 0) || "Save"}
+                    {formatNumber(Math.floor((short.likes_count || 0) * 0.35)) || "Save"}
                   </span>
                 </button>
 
