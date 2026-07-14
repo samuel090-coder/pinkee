@@ -68,7 +68,10 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
   const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
   const [subscribedChannels, setSubscribedChannels] = useState<Set<string>>(new Set());
   const [subscribing, setSubscribing] = useState(false);
-  
+  const [savedVideos, setSavedVideos] = useState<Set<string>>(new Set());
+  const [expandedCaptions, setExpandedCaptions] = useState<Set<string>>(new Set());
+  const [topTab, setTopTab] = useState<"explore" | "following" | "foryou">("foryou");
+
   // Comments
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
