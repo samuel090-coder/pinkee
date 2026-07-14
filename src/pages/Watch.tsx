@@ -32,7 +32,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { isExternalUrl, getEmbedUrl } from '@/lib/video-utils';
+import { useAdaptivePlayback } from '@/hooks/use-adaptive-playback';
 import { formatDistanceToNow } from 'date-fns';
+import { Loader2 as Spinner } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,6 +62,7 @@ const Watch = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [buffered, setBuffered] = useState(0);
+  const [isBuffering, setIsBuffering] = useState(false);
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const watchTimeRef = useRef(0);
 
@@ -504,8 +507,8 @@ const Watch = () => {
                   onDoubleTapRight={() => skip(10)}
                   onSingleTap={() => hasAccess && togglePlay()}
                 >
-                  <video
-                    ref={videoRef}
+                  <AdaptiveWatchVideo
+                    videoRef={videoRef}
                     src={hasAccess ? (video.video_url || undefined) : undefined}
                     poster={video.thumbnail_url || undefined}
                     className={cn(
@@ -529,8 +532,10 @@ const Watch = () => {
                         setBuffered(videoRef.current.buffered.end(0));
                       }
                     }}
+                    onWaiting={() => setIsBuffering(true)}
+                    onPlaying={() => setIsBuffering(false)}
+                    onCanPlay={() => setIsBuffering(false)}
                     onEnded={() => setIsPlaying(false)}
-                    playsInline
                   />
                 </DoubleTapOverlay>
               )}
@@ -558,6 +563,16 @@ const Watch = () => {
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {/* Buffering Spinner */}
+              {isBuffering && !showAd && hasAccess && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                  <div className="w-14 h-14 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                    <Spinner className="w-8 h-8 text-white animate-spin" />
+                  </div>
+                </div>
+              )}
+
 
               {/* Center Play Button */}
               <AnimatePresence>
@@ -795,4 +810,15 @@ const Watch = () => {
   );
 };
 
+interface AdaptiveWatchVideoProps extends React.VideoHTMLAttributes<HTMLVideoElement> {
+  videoRef: React.RefObject<HTMLVideoElement>;
+  src?: string;
+}
+
+function AdaptiveWatchVideo({ videoRef, src, ...rest }: AdaptiveWatchVideoProps) {
+  useAdaptivePlayback(videoRef, src);
+  return <video ref={videoRef} poster={rest.poster} playsInline {...rest} />;
+}
+
 export default Watch;
+

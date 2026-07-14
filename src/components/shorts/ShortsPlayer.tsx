@@ -15,6 +15,7 @@ import {
   ArrowLeft,
   Search,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -386,10 +387,14 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
                   poster={short.thumbnail_url}
                   muted={muted}
                   onClick={() => togglePlay(index)}
+                  onDoubleTap={() => {
+                    if (!likedVideos.has(short.id)) handleLike(short.id);
+                  }}
                   refCallback={(el) => {
                     videoRefs.current[index] = el;
                   }}
                 />
+
               )}
 
               {/* Gradient overlays */}
@@ -603,24 +608,106 @@ interface ShortVideoProps {
   poster: string | null | undefined;
   muted: boolean;
   onClick: () => void;
+  onDoubleTap?: () => void;
   refCallback: (el: HTMLVideoElement | null) => void;
 }
 
-function ShortVideo({ src, poster, muted, onClick, refCallback }: ShortVideoProps) {
+function ShortVideo({ src, poster, muted, onClick, onDoubleTap, refCallback }: ShortVideoProps) {
   const localRef = useRef<HTMLVideoElement>(null);
+  const [buffering, setBuffering] = useState(true);
+  const [tapBurst, setTapBurst] = useState<null | "play" | "pause">(null);
+  const [heartBurst, setHeartBurst] = useState<{ x: number; y: number } | null>(null);
+  const lastTapRef = useRef<number>(0);
+  const singleTapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useAdaptivePlayback(localRef, src);
+
+  const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
+    const now = Date.now();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    if (now - lastTapRef.current < 280) {
+      if (singleTapTimerRef.current) {
+        clearTimeout(singleTapTimerRef.current);
+        singleTapTimerRef.current = null;
+      }
+      lastTapRef.current = 0;
+      setHeartBurst({ x, y });
+      setTimeout(() => setHeartBurst(null), 800);
+      onDoubleTap?.();
+      return;
+    }
+    lastTapRef.current = now;
+    singleTapTimerRef.current = setTimeout(() => {
+      const v = localRef.current;
+      setTapBurst(v && !v.paused ? "pause" : "play");
+      setTimeout(() => setTapBurst(null), 500);
+      onClick();
+      singleTapTimerRef.current = null;
+    }, 260);
+  };
+
   return (
-    <video
-      ref={(el) => {
-        localRef.current = el;
-        refCallback(el);
-      }}
-      poster={poster || undefined}
-      className="absolute inset-0 w-full h-full object-cover"
-      loop
-      muted={muted}
-      playsInline
-      onClick={onClick}
-    />
+    <div className="absolute inset-0" onClick={handleTap}>
+      <video
+        ref={(el) => {
+          localRef.current = el;
+          refCallback(el);
+        }}
+        poster={poster || undefined}
+        className="absolute inset-0 w-full h-full object-cover"
+        loop
+        muted={muted}
+        playsInline
+        onWaiting={() => setBuffering(true)}
+        onPlaying={() => setBuffering(false)}
+        onCanPlay={() => setBuffering(false)}
+      />
+
+      {buffering && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <Loader2 className="w-10 h-10 text-white/80 animate-spin" />
+        </div>
+      )}
+
+      <AnimatePresence>
+        {tapBurst && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.2 }}
+            transition={{ duration: 0.25 }}
+            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          >
+            <div className="w-20 h-20 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+              {tapBurst === "play" ? (
+                <Play className="w-10 h-10 text-white ml-1" fill="currentColor" />
+              ) : (
+                <Pause className="w-10 h-10 text-white" fill="currentColor" />
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {heartBurst && (
+          <motion.div
+            key={`${heartBurst.x}-${heartBurst.y}`}
+            initial={{ opacity: 0, scale: 0.4, y: 0 }}
+            animate={{ opacity: 1, scale: 1.2, y: -20 }}
+            exit={{ opacity: 0, scale: 1.6, y: -60 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="absolute pointer-events-none"
+            style={{ left: heartBurst.x - 40, top: heartBurst.y - 40 }}
+          >
+            <Heart className="w-20 h-20 text-white fill-white drop-shadow-[0_0_12px_rgba(236,72,153,0.9)]" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
+
