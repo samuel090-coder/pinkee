@@ -4,18 +4,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
   MessageCircle,
-  Share2,
-  ThumbsDown,
   Music,
   Volume2,
   VolumeX,
   Play,
   Pause,
-  MoreVertical,
-  ArrowLeft,
   Search,
-  Sparkles,
   Loader2,
+  Bookmark,
+  Plus,
+  Share,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
