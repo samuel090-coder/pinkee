@@ -364,19 +364,35 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
 
   return (
     <>
-      {/* Top bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/50 to-transparent">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-white">
-          <ArrowLeft className="w-6 h-6" />
-        </Button>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="text-white">
-            <Search className="w-6 h-6" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-white">
-            <MoreVertical className="w-6 h-6" />
-          </Button>
+      {/* Top bar - TikTok style tabs */}
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 pt-3 pb-4 bg-gradient-to-b from-black/60 to-transparent">
+        <div className="w-8" />
+        <div className="flex items-center gap-5 text-[15px] font-semibold">
+          {(["explore", "following", "foryou"] as const).map((tab) => {
+            const label = tab === "explore" ? "Explore" : tab === "following" ? "Following" : "For You";
+            const active = topTab === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setTopTab(tab)}
+                className="relative flex flex-col items-center"
+              >
+                <span className={cn("relative", active ? "text-white" : "text-white/60")}>
+                  {label}
+                  {tab === "following" && (
+                    <span className="absolute -top-0.5 -right-2 w-1.5 h-1.5 rounded-full bg-primary" />
+                  )}
+                </span>
+                {active && (
+                  <span className="mt-1 h-[3px] w-6 rounded-full bg-white" />
+                )}
+              </button>
+            );
+          })}
         </div>
+        <button className="text-white p-1" aria-label="Search">
+          <Search className="w-6 h-6" />
+        </button>
       </div>
 
       {/* Videos container */}
@@ -393,6 +409,8 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
           const uploaderId = uploader?.user_id || short.uploader_id;
           const isSub = uploaderId ? subscribedChannels.has(uploaderId) : false;
           const isOwnVideo = user && uploaderId === user.id;
+          const isSaved = savedVideos.has(short.id);
+          const isExpanded = expandedCaptions.has(short.id);
           const isExternal = isExternalUrl(short.video_url);
           if (isExternal) {
             videoRefs.current[index] = null;
@@ -422,65 +440,80 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
                     videoRefs.current[index] = el;
                   }}
                 />
-
               )}
 
               {/* Gradient overlays */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
 
-              {/* Right side actions - YouTube style */}
-              <div className="absolute right-3 bottom-28 flex flex-col items-center gap-5">
+              {/* Right side actions - TikTok style */}
+              <div className="absolute right-2.5 bottom-24 flex flex-col items-center gap-5">
+                {/* Avatar + subscribe pill */}
+                <div className="relative mb-2">
+                  <Link to={uploaderId ? `/channel/${uploaderId}` : "#"}>
+                    <Avatar className="w-12 h-12 border-2 border-white">
+                      <AvatarImage src={avatarUrl || undefined} />
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        {channelName.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
+                  {!isOwnVideo && !isSub && (
+                    <button
+                      onClick={() => handleSubscribe(uploaderId)}
+                      disabled={subscribing}
+                      className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-primary flex items-center justify-center border-2 border-black shadow-lg"
+                      aria-label="Subscribe"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                    </button>
+                  )}
+                </div>
+
                 {/* Like */}
                 <button onClick={() => handleLike(short.id)} className="flex flex-col items-center gap-1">
-                  <div className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center",
-                    isLiked ? "bg-transparent" : "bg-transparent"
-                  )}>
-                    <Heart className={cn("w-7 h-7", isLiked ? "text-white fill-white" : "text-white")} />
-                  </div>
-                  <span className="text-white text-xs font-medium">{formatNumber(likeCount)}</span>
-                </button>
-
-                {/* Dislike */}
-                <button className="flex flex-col items-center gap-1">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center">
-                    <ThumbsDown className="w-7 h-7 text-white" />
-                  </div>
-                  <span className="text-white text-xs font-medium">Dislike</span>
+                  <Heart className={cn("w-9 h-9 drop-shadow-md transition-transform active:scale-125", isLiked ? "text-primary fill-primary" : "text-white fill-white/95")} />
+                  <span className="text-white text-[12px] font-semibold drop-shadow">{formatNumber(likeCount)}</span>
                 </button>
 
                 {/* Comment */}
                 <button onClick={() => openComments(short.id)} className="flex flex-col items-center gap-1">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center">
-                    <MessageCircle className="w-7 h-7 text-white" />
-                  </div>
-                  <span className="text-white text-xs font-medium">{formatNumber(short.comments_count || 0)}</span>
+                  <MessageCircle className="w-9 h-9 text-white fill-white/95 drop-shadow-md" />
+                  <span className="text-white text-[12px] font-semibold drop-shadow">{formatNumber(short.comments_count || 0)}</span>
+                </button>
+
+                {/* Bookmark / Save */}
+                <button
+                  onClick={() => {
+                    setSavedVideos((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(short.id)) next.delete(short.id);
+                      else next.add(short.id);
+                      return next;
+                    });
+                    toast({ title: isSaved ? "Removed from favorites" : "Saved to favorites" });
+                  }}
+                  className="flex flex-col items-center gap-1"
+                >
+                  <Bookmark className={cn("w-9 h-9 drop-shadow-md", isSaved ? "text-yellow-400 fill-yellow-400" : "text-white fill-white/95")} />
+                  <span className="text-white text-[12px] font-semibold drop-shadow">
+                    {formatNumber((short.views_count || 0) > 100 ? Math.floor((short.likes_count || 0) * 0.35) : 0) || "Save"}
+                  </span>
                 </button>
 
                 {/* Share */}
                 <button onClick={() => handleShare(short.id)} className="flex flex-col items-center gap-1">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center">
-                    <Share2 className="w-7 h-7 text-white" />
-                  </div>
-                  <span className="text-white text-xs font-medium">Share</span>
-                </button>
-
-                {/* Remix */}
-                <button className="flex flex-col items-center gap-1">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-7 h-7 text-white" />
-                  </div>
-                  <span className="text-white text-xs font-medium">Remix</span>
+                  <Share className="w-9 h-9 text-white fill-white/95 drop-shadow-md" />
+                  <span className="text-white text-[12px] font-semibold drop-shadow">Share</span>
                 </button>
 
                 {/* Sound Disc */}
                 <motion.div
                   animate={{ rotate: playing && index === currentIndex ? 360 : 0 }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                  className="w-10 h-10 rounded-lg overflow-hidden border-2 border-white/30"
+                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                  className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/70 shadow-lg mt-1"
                 >
-                  {short.thumbnail_url ? (
-                    <img src={short.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center">
                       <Music className="w-5 h-5 text-white" />
@@ -489,61 +522,40 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
                 </motion.div>
               </div>
 
-              {/* Bottom info - YouTube style */}
-              <div className="absolute left-4 right-20 bottom-20 space-y-3">
-                {/* Category tag */}
-                {short.category && (
-                  <div className="inline-block px-2 py-1 bg-primary/80 rounded text-xs font-medium text-primary-foreground">
-                    {short.category}
-                  </div>
-                )}
-
-                {/* Channel info */}
-                <div className="flex items-center gap-3">
-                  <Link to={uploaderId ? `/channel/${uploaderId}` : "#"}>
-                    <Avatar className="w-10 h-10 border-2 border-foreground/20">
-                      <AvatarImage src={avatarUrl || undefined} />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                        {channelName.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Link>
-                  <Link to={uploaderId ? `/channel/${uploaderId}` : "#"} className="flex-1 min-w-0">
-                    <p className="text-white font-semibold text-sm truncate">
-                      @{uploader?.username || channelName}
-                    </p>
-                  </Link>
-                  {!isOwnVideo && (
-                    <Button 
-                      size="sm" 
-                      variant="secondary" 
-                      onClick={() => handleSubscribe(uploaderId)}
-                      disabled={subscribing}
-                      className={cn(
-                        "rounded-full px-4 h-8",
-                        isSub 
-                          ? "bg-secondary text-secondary-foreground hover:bg-secondary/80" 
-                          : "bg-white text-black hover:bg-white/90"
-                      )}
-                    >
-                      {isSub ? "Subscribed" : "Subscribe"}
-                    </Button>
+              {/* Bottom info - TikTok style */}
+              <div className="absolute left-4 right-20 bottom-6 space-y-2">
+                <Link to={uploaderId ? `/channel/${uploaderId}` : "#"}>
+                  <p className="text-white font-bold text-base drop-shadow">
+                    {channelName}
+                  </p>
+                </Link>
+                <p className="text-white/95 text-sm leading-snug drop-shadow">
+                  {isExpanded || (short.title?.length || 0) <= 80 ? (
+                    short.title
+                  ) : (
+                    <>
+                      {short.title?.slice(0, 80)}...{" "}
+                      <button
+                        onClick={() =>
+                          setExpandedCaptions((prev) => new Set(prev).add(short.id))
+                        }
+                        className="text-white/80 font-semibold"
+                      >
+                        more
+                      </button>
+                    </>
                   )}
-                </div>
-
-                {/* Title/Description */}
-                <p className="text-white/90 text-sm line-clamp-2">{short.title}</p>
-
-                {/* Sound bar */}
-                <div className="flex items-center gap-2 max-w-[250px]">
-                  <Music className="w-4 h-4 text-white shrink-0" />
+                </p>
+                <div className="flex items-center gap-2 max-w-[260px] pt-0.5">
+                  <Music className="w-3.5 h-3.5 text-white shrink-0" />
                   <div className="flex-1 overflow-hidden">
-                    <p className="text-white text-xs truncate animate-marquee">
+                    <p className="text-white text-xs truncate">
                       Original Sound - {channelName}
                     </p>
                   </div>
                 </div>
               </div>
+
 
               {/* Volume toggle */}
               {!isExternal && (
