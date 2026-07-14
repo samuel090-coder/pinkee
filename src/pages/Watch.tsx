@@ -564,6 +564,16 @@ const Watch = () => {
                 )}
               </AnimatePresence>
 
+              {/* Buffering Spinner */}
+              {isBuffering && !showAd && hasAccess && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                  <div className="w-14 h-14 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                    <Spinner className="w-8 h-8 text-white animate-spin" />
+                  </div>
+                </div>
+              )}
+
+
               {/* Center Play Button */}
               <AnimatePresence>
                 {!isPlaying && !showAd && (
