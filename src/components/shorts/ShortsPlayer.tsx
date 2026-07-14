@@ -209,27 +209,54 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
     setCommentsOpen(true);
     setLoadingComments(true);
     try {
-      const { data } = await supabase
-        .from("comments")
-        .select("id, content, user_id, created_at")
-        .eq("video_id", videoId)
-        .is("parent_id", null)
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (data) {
-        const userIds = [...new Set(data.map((c) => c.user_id))];
+      const [realRes, seedRes] = await Promise.all([
+        supabase
+          .from("comments")
+          .select("id, content, user_id, created_at")
+          .eq("video_id", videoId)
+          .is("parent_id", null)
+          .order("created_at", { ascending: false })
+          .limit(50),
+        (supabase as any)
+          .from("seed_comments")
+          .select("*")
+          .eq("video_id", videoId)
+          .order("created_at", { ascending: false })
+          .limit(50),
+      ]);
+
+      const real = realRes.data || [];
+      const userIds = [...new Set(real.map((c: any) => c.user_id))];
+      let profileMap = new Map<string, any>();
+      if (userIds.length) {
         const { data: profiles } = await supabase
           .from("profiles")
           .select("user_id, display_name, username, avatar_url")
           .in("user_id", userIds);
-        const profileMap = new Map(profiles?.map((p) => [p.user_id, p]));
-        setComments(
-          data.map((c) => ({
-            ...c,
-            profile: profileMap.get(c.user_id) || undefined,
-          }))
-        );
+        profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p]));
       }
+
+      const realComments: Comment[] = real.map((c: any) => ({
+        ...c,
+        profile: profileMap.get(c.user_id) || undefined,
+      }));
+
+      const seedComments: Comment[] = (seedRes.data || []).map((s: any) => ({
+        id: `seed_${s.id}`,
+        content: s.content,
+        user_id: `seed_${s.id}`,
+        created_at: s.created_at,
+        profile: {
+          display_name: s.display_name,
+          username: (s.display_name || "user").toLowerCase().replace(/\s+/g, ""),
+          avatar_url: s.avatar_url,
+        },
+      }));
+
+      const merged = [...realComments, ...seedComments].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setComments(merged);
     } catch (e) {
       console.error("Error fetching comments:", e);
     } finally {
