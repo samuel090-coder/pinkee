@@ -387,10 +387,14 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
                   poster={short.thumbnail_url}
                   muted={muted}
                   onClick={() => togglePlay(index)}
+                  onDoubleTap={() => {
+                    if (!likedVideos.has(short.id)) handleLike(short.id);
+                  }}
                   refCallback={(el) => {
                     videoRefs.current[index] = el;
                   }}
                 />
+
               )}
 
               {/* Gradient overlays */}
