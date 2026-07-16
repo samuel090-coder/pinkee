@@ -51,6 +51,8 @@ import TVShows from "./pages/TVShows";
 import MovieDetail from "./pages/MovieDetail";
 import TVDetail from "./pages/TVDetail";
 import Rewards from "./pages/Rewards";
+import WatchParties from "./pages/WatchParties";
+import WatchPartyRoom from "./pages/WatchPartyRoom";
 import NotFound from "./pages/NotFound";
 import { GuestGuard } from "@/components/auth/GuestGuard";
 import { usePageViewTracking } from "@/hooks/useAnalyticsTracking";
