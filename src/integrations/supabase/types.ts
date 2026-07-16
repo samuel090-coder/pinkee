@@ -355,6 +355,48 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_tips: {
+        Row: {
+          amount: number
+          color_tier: string | null
+          created_at: string
+          creator_amount: number
+          from_user_id: string
+          id: string
+          is_super_chat: boolean
+          message: string | null
+          platform_fee: number
+          to_creator_id: string
+          video_id: string | null
+        }
+        Insert: {
+          amount: number
+          color_tier?: string | null
+          created_at?: string
+          creator_amount: number
+          from_user_id: string
+          id?: string
+          is_super_chat?: boolean
+          message?: string | null
+          platform_fee?: number
+          to_creator_id: string
+          video_id?: string | null
+        }
+        Update: {
+          amount?: number
+          color_tier?: string | null
+          created_at?: string
+          creator_amount?: number
+          from_user_id?: string
+          id?: string
+          is_super_chat?: boolean
+          message?: string | null
+          platform_fee?: number
+          to_creator_id?: string
+          video_id?: string | null
+        }
+        Relationships: []
+      }
       creator_withdrawals: {
         Row: {
           account_name: string | null
@@ -1160,6 +1202,7 @@ export type Database = {
       }
       reward_settings: {
         Row: {
+          daily_checkin_ngn: number
           daily_checkin_points: number
           enabled: boolean
           id: boolean
@@ -1171,11 +1214,15 @@ export type Database = {
           referral_points_referrer: number
           require_email_verified: boolean
           streak_bonus_every: number
+          streak_bonus_ngn_100: number
+          streak_bonus_ngn_30: number
+          streak_bonus_ngn_7: number
           streak_bonus_points: number
           updated_at: string
           updated_by: string | null
         }
         Insert: {
+          daily_checkin_ngn?: number
           daily_checkin_points?: number
           enabled?: boolean
           id?: boolean
@@ -1187,11 +1234,15 @@ export type Database = {
           referral_points_referrer?: number
           require_email_verified?: boolean
           streak_bonus_every?: number
+          streak_bonus_ngn_100?: number
+          streak_bonus_ngn_30?: number
+          streak_bonus_ngn_7?: number
           streak_bonus_points?: number
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
+          daily_checkin_ngn?: number
           daily_checkin_points?: number
           enabled?: boolean
           id?: boolean
@@ -1203,6 +1254,9 @@ export type Database = {
           referral_points_referrer?: number
           require_email_verified?: boolean
           streak_bonus_every?: number
+          streak_bonus_ngn_100?: number
+          streak_bonus_ngn_30?: number
+          streak_bonus_ngn_7?: number
           streak_bonus_points?: number
           updated_at?: string
           updated_by?: string | null
@@ -2034,6 +2088,160 @@ export type Database = {
           },
         ]
       }
+      watch_parties: {
+        Row: {
+          content_poster: string | null
+          content_ref: string
+          content_title: string | null
+          content_type: string
+          created_at: string
+          current_time_seconds: number
+          ended_at: string | null
+          host_id: string
+          id: string
+          is_active: boolean
+          is_playing: boolean
+          is_public: boolean
+          last_sync_at: string
+          participant_count: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content_poster?: string | null
+          content_ref: string
+          content_title?: string | null
+          content_type: string
+          created_at?: string
+          current_time_seconds?: number
+          ended_at?: string | null
+          host_id: string
+          id?: string
+          is_active?: boolean
+          is_playing?: boolean
+          is_public?: boolean
+          last_sync_at?: string
+          participant_count?: number
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          content_poster?: string | null
+          content_ref?: string
+          content_title?: string | null
+          content_type?: string
+          created_at?: string
+          current_time_seconds?: number
+          ended_at?: string | null
+          host_id?: string
+          id?: string
+          is_active?: boolean
+          is_playing?: boolean
+          is_public?: boolean
+          last_sync_at?: string
+          participant_count?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      watch_party_messages: {
+        Row: {
+          content: string
+          created_at: string
+          emoji: string | null
+          id: string
+          message_type: string
+          party_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          message_type?: string
+          party_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          message_type?: string
+          party_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watch_party_messages_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "watch_parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      watch_party_participants: {
+        Row: {
+          id: string
+          joined_at: string
+          left_at: string | null
+          party_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          left_at?: string | null
+          party_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          left_at?: string | null
+          party_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watch_party_participants_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "watch_parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekly_digests: {
+        Row: {
+          content: Json
+          id: string
+          opened_at: string | null
+          sent_at: string
+          user_id: string
+          week_key: string
+        }
+        Insert: {
+          content: Json
+          id?: string
+          opened_at?: string | null
+          sent_at?: string
+          user_id: string
+          week_key: string
+        }
+        Update: {
+          content?: Json
+          id?: string
+          opened_at?: string | null
+          sent_at?: string
+          user_id?: string
+          week_key?: string
+        }
+        Relationships: []
+      }
       withdrawal_requests: {
         Row: {
           account_name: string | null
@@ -2095,6 +2303,7 @@ export type Database = {
         Returns: Json
       }
       claim_daily_checkin: { Args: { _device?: string }; Returns: Json }
+      claim_daily_wallet_checkin: { Args: never; Returns: Json }
       claim_mission_reward: { Args: { _mission_id: string }; Returns: Json }
       credit_reward_points: {
         Args: {
@@ -2151,6 +2360,16 @@ export type Database = {
       }
       redeem_points_to_wallet: { Args: { _points: number }; Returns: Json }
       register_referral: { Args: { _code: string }; Returns: Json }
+      send_creator_tip: {
+        Args: {
+          _amount: number
+          _is_super_chat?: boolean
+          _message?: string
+          _to_creator_id: string
+          _video_id?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "creator" | "user"

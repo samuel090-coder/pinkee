@@ -41,6 +41,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { TipButton } from '@/components/tips/TipButton';
 
 const Watch = () => {
   const { id } = useParams<{ id: string }>();
@@ -676,20 +677,30 @@ const Watch = () => {
                   </div>
 
                   {uploader?.id && (
-                    <Button
-                      onClick={handleSubscribe}
-                      variant={isSubscribed ? 'secondary' : 'default'}
-                      className={isSubscribed ? '' : 'bg-primary hover:bg-primary/90'}
-                    >
-                      {isSubscribed ? (
-                        <>
-                          <BellOff className="w-4 h-4 mr-2" />
-                          Subscribed
-                        </>
-                      ) : (
-                        'Subscribe'
+                    <div className="flex items-center gap-2">
+                      {uploader.user_id && user && user.id !== uploader.user_id && (
+                        <TipButton
+                          creatorId={uploader.user_id}
+                          creatorName={uploader.channel_name || uploader.display_name || uploader.username || 'Creator'}
+                          videoId={video.id}
+                          variant="outline"
+                        />
                       )}
-                    </Button>
+                      <Button
+                        onClick={handleSubscribe}
+                        variant={isSubscribed ? 'secondary' : 'default'}
+                        className={isSubscribed ? '' : 'bg-primary hover:bg-primary/90'}
+                      >
+                        {isSubscribed ? (
+                          <>
+                            <BellOff className="w-4 h-4 mr-2" />
+                            Subscribed
+                          </>
+                        ) : (
+                          'Subscribe'
+                        )}
+                      </Button>
+                    </div>
                   )}
                 </div>
 

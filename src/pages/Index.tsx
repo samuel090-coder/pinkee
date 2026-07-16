@@ -11,6 +11,9 @@ import { useVideo } from '@/contexts/VideoContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useContentAlgorithm } from '@/hooks/useContentAlgorithm';
 import { Button } from '@/components/ui/button';
+import { DailyCheckinWidget } from '@/components/rewards/DailyCheckinWidget';
+import { WeeklyDigestCard } from '@/components/digest/WeeklyDigestCard';
+import { Users } from 'lucide-react';
 
 const VIDEOS_PER_PAGE = 9;
 
@@ -94,6 +97,27 @@ const Index = () => {
               </div>
             </motion.div>
           </div>
+        </section>
+      )}
+
+      {/* Retention widgets — logged in only */}
+      {user && (
+        <section className="container mx-auto px-3 pt-3 space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <DailyCheckinWidget />
+            <Link to="/watch-parties" className="block">
+              <div className="h-full rounded-lg border p-4 bg-gradient-to-br from-blue-500/10 via-cyan-500/10 to-teal-500/10 border-blue-500/20 flex items-center gap-3 hover:ring-2 hover:ring-primary transition">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shrink-0">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="font-bold text-lg leading-tight">Watch Parties</p>
+                  <p className="text-xs text-muted-foreground">Watch together, chat live, react with emojis →</p>
+                </div>
+              </div>
+            </Link>
+          </div>
+          <WeeklyDigestCard />
         </section>
       )}
 
