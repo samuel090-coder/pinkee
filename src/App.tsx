@@ -139,6 +139,8 @@ const App = () => (
                 <Route path="/sound/:id" element={<SoundDetail />} />
                 <Route path="/wallet" element={<Wallet />} />
                 <Route path="/rewards" element={<Rewards />} />
+                <Route path="/watch-parties" element={<GuestGuard><WatchParties /></GuestGuard>} />
+                <Route path="/watch-party/:id" element={<GuestGuard><WatchPartyRoom /></GuestGuard>} />
 
                 {/* Movies & TV */}
                 <Route path="/movies" element={<GuestGuard><MoviesGuard><Movies /></MoviesGuard></GuestGuard>} />
