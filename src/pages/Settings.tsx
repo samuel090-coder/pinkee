@@ -546,6 +546,17 @@ const Settings = () => {
                   <Switch checked={pushNotifications} onCheckedChange={setPushNotifications} />
                 </div>
 
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-foreground">Weekly digest on home</p>
+                    <p className="text-sm text-muted-foreground">
+                      Show your AI-generated weekly recap card on the home page
+                    </p>
+                  </div>
+                  <Switch checked={!hideWeeklyDigest} onCheckedChange={(v) => setHideWeeklyDigest(!v)} />
+                </div>
+
+
                 <Button onClick={handleSaveSettings} disabled={saving}>
                   {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
                   Save Preferences
