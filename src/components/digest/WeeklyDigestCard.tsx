@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, Play, TrendingUp, Heart, Flame } from 'lucide-react';
+import { Sparkles, Play, TrendingUp, Heart, Flame, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +17,21 @@ export function WeeklyDigestCard() {
   const { user } = useAuth();
   const [digest, setDigest] = useState<{ id: string; content: DigestContent; week_key: string; opened_at: string | null } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [hidden, setHidden] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase.from('user_settings').select('hide_weekly_digest' as any).eq('user_id', user.id).maybeSingle();
+      setHidden(!!(data as any)?.hide_weekly_digest);
+    })();
+  }, [user?.id]);
+
+  const hide = async () => {
+    if (!user) return;
+    setHidden(true);
+    await (supabase.from('user_settings') as any).update({ hide_weekly_digest: true }).eq('user_id', user.id);
+  };
 
   useEffect(() => {
     if (!user) return;

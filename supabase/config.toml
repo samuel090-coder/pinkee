@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.generate-weekly-digest]
 verify_jwt = false
+
+[functions.seed-watch-party]
+verify_jwt = false
