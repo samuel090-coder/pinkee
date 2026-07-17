@@ -73,6 +73,8 @@ const Settings = () => {
   const [autoplay, setAutoplay] = useState(true);
   const [restrictedMode, setRestrictedMode] = useState(false);
   const [showWatchHistory, setShowWatchHistory] = useState(true);
+  const [hideWeeklyDigest, setHideWeeklyDigest] = useState(false);
+
 
   // Creator request
   const [creatorRequest, setCreatorRequest] = useState<CreatorRequest | null>(null);
@@ -155,20 +157,32 @@ const Settings = () => {
     }
   };
 
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase.from('user_settings').select('*').eq('user_id', user.id).maybeSingle();
+      if (data) {
+        setEmailNotifications((data as any).email_notifications ?? true);
+        setPushNotifications((data as any).push_notifications ?? true);
+        setAutoplay((data as any).autoplay ?? true);
+        setRestrictedMode((data as any).restricted_mode ?? false);
+        setShowWatchHistory((data as any).show_watch_history ?? true);
+        setHideWeeklyDigest((data as any).hide_weekly_digest ?? false);
+      }
+    })();
+  }, [user?.id]);
+
   const handleSaveSettings = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('user_settings')
-        .update({
-          email_notifications: emailNotifications,
-          push_notifications: pushNotifications,
-          autoplay,
-          restricted_mode: restrictedMode,
-          show_watch_history: showWatchHistory,
-        })
-        .eq('user_id', user.id);
-
+      const { error } = await (supabase.from('user_settings') as any).update({
+        email_notifications: emailNotifications,
+        push_notifications: pushNotifications,
+        autoplay,
+        restricted_mode: restrictedMode,
+        show_watch_history: showWatchHistory,
+        hide_weekly_digest: hideWeeklyDigest,
+      }).eq('user_id', user.id);
       if (error) throw error;
       toast({ title: 'Settings saved!' });
     } catch (error) {
@@ -178,6 +192,7 @@ const Settings = () => {
       setSaving(false);
     }
   };
+
 
   const handleSignOut = async () => {
     await signOut();
