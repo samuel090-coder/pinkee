@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, Play, TrendingUp, Heart, Flame } from 'lucide-react';
+import { Sparkles, Play, TrendingUp, Heart, Flame, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +17,21 @@ export function WeeklyDigestCard() {
   const { user } = useAuth();
   const [digest, setDigest] = useState<{ id: string; content: DigestContent; week_key: string; opened_at: string | null } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [hidden, setHidden] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase.from('user_settings').select('hide_weekly_digest' as any).eq('user_id', user.id).maybeSingle();
+      setHidden(!!(data as any)?.hide_weekly_digest);
+    })();
+  }, [user?.id]);
+
+  const hide = async () => {
+    if (!user) return;
+    setHidden(true);
+    await (supabase.from('user_settings') as any).update({ hide_weekly_digest: true }).eq('user_id', user.id);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -40,7 +55,7 @@ export function WeeklyDigestCard() {
     if (digest && !digest.opened_at) await supabase.from('weekly_digests').update({ opened_at: new Date().toISOString() }).eq('id', digest.id);
   };
 
-  if (!user) return null;
+  if (!user || hidden) return null;
 
   if (!digest) {
     return (
@@ -53,7 +68,10 @@ export function WeeklyDigestCard() {
               <p className="text-xs text-muted-foreground">AI-generated highlights & picks</p>
             </div>
           </div>
-          <Button size="sm" onClick={generate} disabled={loading}>{loading ? 'Generating…' : 'Generate'}</Button>
+          <div className="flex items-center gap-1">
+            <Button size="sm" onClick={generate} disabled={loading}>{loading ? 'Generating…' : 'Generate'}</Button>
+            <Button size="icon" variant="ghost" onClick={hide} title="Hide (manage in Settings)"><X className="w-4 h-4" /></Button>
+          </div>
         </div>
       </Card>
     );
@@ -68,7 +86,9 @@ export function WeeklyDigestCard() {
             <p className="text-xs text-purple-400 font-medium uppercase tracking-wider flex items-center gap-1"><Sparkles className="w-3 h-3" /> Your week</p>
             <h3 className="text-xl font-bold mt-1">{c.headline}</h3>
           </div>
+          <Button size="icon" variant="ghost" onClick={(e) => { e.stopPropagation(); hide(); }} title="Hide"><X className="w-4 h-4" /></Button>
         </div>
+
 
         <div className="grid grid-cols-3 gap-2">
           <div className="text-center rounded-lg bg-background/50 p-2">

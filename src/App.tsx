@@ -140,7 +140,9 @@ const App = () => (
                 <Route path="/wallet" element={<Wallet />} />
                 <Route path="/rewards" element={<Rewards />} />
                 <Route path="/watch-parties" element={<GuestGuard><WatchParties /></GuestGuard>} />
-                <Route path="/watch-party/:id" element={<GuestGuard><WatchPartyRoom /></GuestGuard>} />
+                {/* Public: anyone can view a party. Chat/reactions gated inside the room. */}
+                <Route path="/watch-party/:id" element={<WatchPartyRoom />} />
+                <Route path="/wp/:id" element={<WatchPartyRoom />} />
 
                 {/* Movies & TV */}
                 <Route path="/movies" element={<GuestGuard><MoviesGuard><Movies /></MoviesGuard></GuestGuard>} />

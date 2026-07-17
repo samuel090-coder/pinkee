@@ -1721,6 +1721,7 @@ export type Database = {
           currency: string
           default_quality: string | null
           email_notifications: boolean | null
+          hide_weekly_digest: boolean
           id: string
           language: string | null
           playback_speed: number | null
@@ -1738,6 +1739,7 @@ export type Database = {
           currency?: string
           default_quality?: string | null
           email_notifications?: boolean | null
+          hide_weekly_digest?: boolean
           id?: string
           language?: string | null
           playback_speed?: number | null
@@ -1755,6 +1757,7 @@ export type Database = {
           currency?: string
           default_quality?: string | null
           email_notifications?: boolean | null
+          hide_weekly_digest?: boolean
           id?: string
           language?: string | null
           playback_speed?: number | null
@@ -2090,6 +2093,8 @@ export type Database = {
       }
       watch_parties: {
         Row: {
+          ai_seed_enabled: boolean
+          ai_viewer_count: number
           content_poster: string | null
           content_ref: string
           content_title: string | null
@@ -2097,17 +2102,22 @@ export type Database = {
           created_at: string
           current_time_seconds: number
           ended_at: string | null
+          expires_at: string | null
           host_id: string
           id: string
           is_active: boolean
           is_playing: boolean
           is_public: boolean
+          last_ai_seed_at: string | null
           last_sync_at: string
           participant_count: number
+          short_code: string | null
           title: string
           updated_at: string
         }
         Insert: {
+          ai_seed_enabled?: boolean
+          ai_viewer_count?: number
           content_poster?: string | null
           content_ref: string
           content_title?: string | null
@@ -2115,17 +2125,22 @@ export type Database = {
           created_at?: string
           current_time_seconds?: number
           ended_at?: string | null
+          expires_at?: string | null
           host_id: string
           id?: string
           is_active?: boolean
           is_playing?: boolean
           is_public?: boolean
+          last_ai_seed_at?: string | null
           last_sync_at?: string
           participant_count?: number
+          short_code?: string | null
           title?: string
           updated_at?: string
         }
         Update: {
+          ai_seed_enabled?: boolean
+          ai_viewer_count?: number
           content_poster?: string | null
           content_ref?: string
           content_title?: string | null
@@ -2133,17 +2148,61 @@ export type Database = {
           created_at?: string
           current_time_seconds?: number
           ended_at?: string | null
+          expires_at?: string | null
           host_id?: string
           id?: string
           is_active?: boolean
           is_playing?: boolean
           is_public?: boolean
+          last_ai_seed_at?: string | null
           last_sync_at?: string
           participant_count?: number
+          short_code?: string | null
           title?: string
           updated_at?: string
         }
         Relationships: []
+      }
+      watch_party_ai_comments: {
+        Row: {
+          avatar_seed: string
+          content: string
+          created_at: string
+          display_name: string
+          emoji: string | null
+          id: string
+          message_type: string
+          party_id: string
+        }
+        Insert: {
+          avatar_seed: string
+          content: string
+          created_at?: string
+          display_name: string
+          emoji?: string | null
+          id?: string
+          message_type?: string
+          party_id: string
+        }
+        Update: {
+          avatar_seed?: string
+          content?: string
+          created_at?: string
+          display_name?: string
+          emoji?: string | null
+          id?: string
+          message_type?: string
+          party_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watch_party_ai_comments_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "watch_parties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       watch_party_messages: {
         Row: {
@@ -2321,6 +2380,8 @@ export type Database = {
         Returns: Json
       }
       ensure_user_rewards: { Args: { _user: string }; Returns: undefined }
+      expire_watch_parties: { Args: never; Returns: number }
+      generate_party_short_code: { Args: never; Returns: string }
       get_public_profile_by_email: {
         Args: { _email: string }
         Returns: {
