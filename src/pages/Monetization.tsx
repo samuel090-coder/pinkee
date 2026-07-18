@@ -62,7 +62,9 @@ const Monetization = () => {
   const [loading, setLoading] = useState(true);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
   const [withdrawing, setWithdrawing] = useState(false);
-  
+  const [subscriberCount, setSubscriberCount] = useState(0);
+  const [watchSeconds, setWatchSeconds] = useState(0);
+
   // Bank details
   const [bankName, setBankName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
@@ -71,6 +73,12 @@ const Monetization = () => {
   const totalEarned = earnings.reduce((sum, e) => sum + e.total_earned, 0);
   const pendingWithdrawal = earnings.reduce((sum, e) => sum + e.pending_withdrawal, 0);
   const totalViews = earnings.reduce((sum, e) => sum + e.views_counted, 0);
+
+  const SUB_THRESHOLD = 10_000;
+  const HOURS_THRESHOLD = 100_000;
+  const watchHours = watchSeconds / 3600;
+  const isMonetizationEligible =
+    subscriberCount >= SUB_THRESHOLD && watchHours >= HOURS_THRESHOLD;
 
   useEffect(() => {
     if (!user) return;
@@ -124,6 +132,22 @@ const Monetization = () => {
           setAccountNumber(profileData.account_number || '');
           setAccountName(profileData.account_name || '');
         }
+
+        // Eligibility: subscribers + watch hours
+        const { data: profileMetrics } = await supabase
+          .from('profiles')
+          .select('subscriber_count')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        setSubscriberCount(profileMetrics?.subscriber_count || 0);
+
+        const { data: watchData } = await supabase
+          .from('videos')
+          .select('watch_time')
+          .eq('uploader_id', user.id);
+        setWatchSeconds(
+          (watchData || []).reduce((s, v: any) => s + (v.watch_time || 0), 0),
+        );
       } catch (error) {
         console.error('Error fetching monetization data:', error);
       } finally {
@@ -223,12 +247,59 @@ const Monetization = () => {
           </div>
           <Button 
             onClick={() => setShowWithdrawDialog(true)}
-            disabled={pendingWithdrawal < 100}
+            disabled={pendingWithdrawal < 100 || !isMonetizationEligible}
           >
             <Wallet className="w-4 h-4 mr-2" />
             Withdraw ${pendingWithdrawal.toFixed(2)}
           </Button>
         </div>
+
+        {/* Eligibility Banner */}
+        <Card className={`border ${isMonetizationEligible ? 'border-primary/40 bg-primary/5' : 'border-border bg-card'}`}>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <h3 className="font-semibold text-foreground">
+                  {isMonetizationEligible ? '✅ You\'re monetized' : 'Monetization eligibility'}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Unlock withdrawals at 10,000 subscribers and 100,000 watch hours.
+                </p>
+              </div>
+              {isMonetizationEligible && <CheckCircle className="w-6 h-6 text-primary" />}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-muted-foreground">Subscribers</span>
+                  <span className="font-semibold">
+                    {subscriberCount.toLocaleString()} / 10,000
+                  </span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${Math.min(100, (subscriberCount / SUB_THRESHOLD) * 100)}%` }}
+                  />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-muted-foreground">Watch hours</span>
+                  <span className="font-semibold">
+                    {Math.floor(watchHours).toLocaleString()} / 100,000
+                  </span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${Math.min(100, (watchHours / HOURS_THRESHOLD) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

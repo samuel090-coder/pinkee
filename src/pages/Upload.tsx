@@ -175,9 +175,14 @@ const Upload = () => {
       return;
     }
 
-    const maxSize = mode === 'short' ? 100 * 1024 * 1024 : 500 * 1024 * 1024;
+    // Platform storage limit is 50MB per file; keep short-form even tighter.
+    const maxSize = mode === 'short' ? 50 * 1024 * 1024 : 50 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast({ title: 'File too large', description: `Video must be under ${mode === 'short' ? '100MB' : '500MB'}`, variant: 'destructive' });
+      toast({
+        title: 'File too large',
+        description: `Video must be under 50MB. Compress it (try HandBrake or a mobile compressor) and try again.`,
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -325,9 +330,36 @@ const Upload = () => {
       toast({ title: 'Missing video file or link', variant: 'destructive' });
       return;
     }
-    if (!title.trim()) {
-      toast({ title: 'Title is required', variant: 'destructive' });
+    if (!title.trim() || title.trim().length < 5) {
+      toast({
+        title: 'Add a proper title',
+        description: 'Titles under 5 characters rarely go viral. Give it a hook!',
+        variant: 'destructive',
+      });
       return;
+    }
+    const tagList = tags.split(',').map((t) => t.trim()).filter(Boolean);
+    if (mode !== 'short' && !category) {
+      toast({
+        title: 'Pick a category',
+        description: 'Without a category your video won\'t be recommended in the right feed.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (tagList.length < 2) {
+      toast({
+        title: 'Add hashtags',
+        description: 'Videos without at least 2 hashtags almost never go viral. Add some tags (e.g. funny, comedy, viral).',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (mode === 'short' && !selectedSound && !isLinkPost) {
+      const proceed = window.confirm(
+        'Shorts without a trending sound rarely go viral. Post anyway?',
+      );
+      if (!proceed) return;
     }
 
     setStep('processing');
