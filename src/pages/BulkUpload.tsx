@@ -165,7 +165,10 @@ const BulkUpload = () => {
               {isDragging ? 'Drop your videos' : 'Drop videos or tap to browse'}
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
-              MP4, MOV, WebM · up to 500MB each · unlimited files
+              MP4, MOV, WebM · up to 50MB each · unlimited files
+            </p>
+            <p className="text-xs text-primary/80 mt-1">
+              Pro tip: add a strong title, category & at least 2 hashtags — videos without them rarely go viral.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 mt-2 justify-center">
