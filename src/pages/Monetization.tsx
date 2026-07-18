@@ -62,7 +62,9 @@ const Monetization = () => {
   const [loading, setLoading] = useState(true);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
   const [withdrawing, setWithdrawing] = useState(false);
-  
+  const [subscriberCount, setSubscriberCount] = useState(0);
+  const [watchSeconds, setWatchSeconds] = useState(0);
+
   // Bank details
   const [bankName, setBankName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
@@ -71,6 +73,12 @@ const Monetization = () => {
   const totalEarned = earnings.reduce((sum, e) => sum + e.total_earned, 0);
   const pendingWithdrawal = earnings.reduce((sum, e) => sum + e.pending_withdrawal, 0);
   const totalViews = earnings.reduce((sum, e) => sum + e.views_counted, 0);
+
+  const SUB_THRESHOLD = 10_000;
+  const HOURS_THRESHOLD = 100_000;
+  const watchHours = watchSeconds / 3600;
+  const isMonetizationEligible =
+    subscriberCount >= SUB_THRESHOLD && watchHours >= HOURS_THRESHOLD;
 
   useEffect(() => {
     if (!user) return;
@@ -124,6 +132,22 @@ const Monetization = () => {
           setAccountNumber(profileData.account_number || '');
           setAccountName(profileData.account_name || '');
         }
+
+        // Eligibility: subscribers + watch hours
+        const { data: profileMetrics } = await supabase
+          .from('profiles')
+          .select('subscriber_count')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        setSubscriberCount(profileMetrics?.subscriber_count || 0);
+
+        const { data: watchData } = await supabase
+          .from('videos')
+          .select('watch_time')
+          .eq('uploader_id', user.id);
+        setWatchSeconds(
+          (watchData || []).reduce((s, v: any) => s + (v.watch_time || 0), 0),
+        );
       } catch (error) {
         console.error('Error fetching monetization data:', error);
       } finally {
