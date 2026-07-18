@@ -157,8 +157,17 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
 
   const addFiles = useCallback(
     (files: File[]) => {
+      const MAX = 50 * 1024 * 1024; // 50MB platform cap
+      const rejected: string[] = [];
       const additions: QueuedUpload[] = files
-        .filter((f) => f.type.startsWith('video/'))
+        .filter((f) => {
+          if (!f.type.startsWith('video/')) return false;
+          if (f.size > MAX) {
+            rejected.push(`${f.name} (${(f.size / (1024 * 1024)).toFixed(0)}MB)`);
+            return false;
+          }
+          return true;
+        })
         .map((file) => ({
           id: makeId(),
           file,
@@ -172,12 +181,22 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
           visibility: 'public' as const,
         }));
 
-      if (additions.length === 0) {
+      if (rejected.length > 0) {
         toast({
-          title: 'No videos found',
-          description: 'Only video files can be added to the queue.',
+          title: `${rejected.length} file(s) too large`,
+          description: `50MB max per video. Skipped: ${rejected.slice(0, 3).join(', ')}${rejected.length > 3 ? '…' : ''}`,
           variant: 'destructive',
         });
+      }
+
+      if (additions.length === 0) {
+        if (rejected.length === 0) {
+          toast({
+            title: 'No videos found',
+            description: 'Only video files can be added to the queue.',
+            variant: 'destructive',
+          });
+        }
         return;
       }
 
@@ -229,6 +248,32 @@ export function UploadQueueProvider({ children }: { children: ReactNode }) {
       const item = itemsRef.current.find((i) => i.id === id);
       if (!item) return;
       if (item.status === 'uploading' || item.status === 'saving') return;
+
+      // Soft virality validation
+      if (!item.title.trim() || item.title.trim().length < 5) {
+        toast({
+          title: 'Title too short',
+          description: 'Give this video a proper title (min 5 chars) so it can go viral.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      if (!item.isShort && !item.category) {
+        toast({
+          title: 'Pick a category',
+          description: 'A category helps the algorithm recommend your video.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      if ((item.tags || []).length < 2) {
+        toast({
+          title: 'Add hashtags',
+          description: 'Videos without hashtags rarely reach new viewers. Add at least 2 tags.',
+          variant: 'destructive',
+        });
+        return;
+      }
 
       try {
         patch(id, { status: 'uploading', progress: 65, error: undefined });
