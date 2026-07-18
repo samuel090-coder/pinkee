@@ -247,12 +247,59 @@ const Monetization = () => {
           </div>
           <Button 
             onClick={() => setShowWithdrawDialog(true)}
-            disabled={pendingWithdrawal < 100}
+            disabled={pendingWithdrawal < 100 || !isMonetizationEligible}
           >
             <Wallet className="w-4 h-4 mr-2" />
             Withdraw ${pendingWithdrawal.toFixed(2)}
           </Button>
         </div>
+
+        {/* Eligibility Banner */}
+        <Card className={`border ${isMonetizationEligible ? 'border-primary/40 bg-primary/5' : 'border-border bg-card'}`}>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <h3 className="font-semibold text-foreground">
+                  {isMonetizationEligible ? '✅ You\'re monetized' : 'Monetization eligibility'}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Unlock withdrawals at 10,000 subscribers and 100,000 watch hours.
+                </p>
+              </div>
+              {isMonetizationEligible && <CheckCircle className="w-6 h-6 text-primary" />}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-muted-foreground">Subscribers</span>
+                  <span className="font-semibold">
+                    {subscriberCount.toLocaleString()} / 10,000
+                  </span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${Math.min(100, (subscriberCount / SUB_THRESHOLD) * 100)}%` }}
+                  />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-muted-foreground">Watch hours</span>
+                  <span className="font-semibold">
+                    {Math.floor(watchHours).toLocaleString()} / 100,000
+                  </span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${Math.min(100, (watchHours / HOURS_THRESHOLD) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
