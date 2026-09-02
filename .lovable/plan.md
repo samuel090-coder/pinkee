@@ -1,82 +1,49 @@
+# Capacitor-ready architecture and mobile UX modernization
 
-## 1. Forgot Password
+## Goal
+Prepare Pinkee for Android and iOS packaging while preserving the current web experience, backend, authentication, wallet, rewards, support, movies, analytics, streaming, profiles, feed, search, admin tools, and existing business rules.
 
-- Add "Forgot password?" link on `src/pages/Auth.tsx` login form.
-- Inline form calls `supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/reset-password' })`.
-- Set up Lovable auth email templates (branded, Pinkee pink) so the reset email comes from the project.
-- New page `src/pages/ResetPassword.tsx` (public route in `App.tsx`):
-  - Detects `type=recovery` in URL hash.
-  - Form with new password + confirm, calls `supabase.auth.updateUser({ password })`.
-  - On success → redirect to `/`.
+## Delivery phases
 
-## 2. Welcome Back screen
+### Phase 1 — Native foundation and shared app contracts
+- Add Capacitor core, CLI, Android, and iOS packages and initialize the project with the approved Pinkee app identity.
+- Add a single runtime configuration module for app name, public base URL, API/function names, deep-link paths, and platform detection; remove scattered hardcoded origins and navigation assignments.
+- Add a platform capability layer with safe web fallbacks for sharing, clipboard, file picking, media/fullscreen, network status, storage, and opening external links.
+- Keep React Router for web, but centralize route definitions and navigation helpers so native deep links map to the same screens without route-specific browser assumptions.
+- Add an app lifecycle bridge for foreground/background, resume, and network changes without changing current business logic.
 
-Behavior: combination of "remember last device user" + "email-first lookup" fallback.
+### Phase 2 — Authentication, redirects, and deep links
+- Preserve the current email/password auth flow and automatic refresh while making redirect targets derive from the runtime/deep-link configuration rather than `window.location` assumptions.
+- Add a stable public callback route and deep-link route resolver for shared videos, watch parties, profiles, password reset, notifications, and support links.
+- Preserve the Welcome Back experience and forgot-password flow on web and native.
+- Ensure protected routes wait for session hydration before redirecting, and preserve intended destinations across sign-in.
+- Add Android App Links/iOS Universal Links metadata/configuration placeholders and document the final published-domain association step.
 
-- On successful login, store `{ user_id, email, display_name, avatar_url }` in `localStorage` under `pinkee:lastUser`.
-- `Auth.tsx` boot logic:
-  - If `lastUser` exists → render **Welcome Back** card: avatar, display name, `@username` tag, password field, big **"Login"** CTA, plus "Not you? Use another account" link that clears the cache and shows the normal form.
-  - If no cached user → show normal email input. After user types email and blurs/submits, query `profiles` by joining via a tiny edge function (or just call `profiles` directly using a publicly readable `email` lookup → we'll add a SECURITY DEFINER RPC `get_public_profile_by_email(email)` returning only `display_name`, `avatar_url`, `username` so we don't leak full rows). Render the same Welcome Back card with password field.
-- After login the user is taken directly to `/` (dashboard), Facebook-style.
+### Phase 3 — Mobile navigation and responsive UX
+- Refactor the existing top nav, sidebar, and bottom nav into a shared navigation shell with native-mappable tab, stack, and drawer concepts.
+- Add safe-area handling, orientation-aware layouts, touch-sized controls, keyboard-aware forms, scroll locking, and mobile-friendly dialog/sheet behavior.
+- Audit fixed overlays including support, upload dock, mini-player, notifications, watch parties, comments, and auth walls so they do not cover system bars or bottom navigation.
+- Preserve desktop layouts while improving phone and tablet behavior across the existing routes.
 
-## 3. AI Support Chat
+### Phase 4 — Media, upload, and notifications capability adapters
+- Route video/image/music uploads through a reusable picker and upload service that supports browser input today and Capacitor Camera/Filesystem/File Picker integration later, without changing storage paths or database records.
+- Preserve thumbnail extraction, bulk queue, metadata suggestions, upload progress, cancellation, and retry behavior; add lifecycle-safe recovery for interrupted mobile connectivity.
+- Keep the existing HLS and streaming architecture, adding mobile-safe media settings and external-player fallbacks where platform restrictions require them.
+- Separate web push from native push integration: keep the existing browser notification behavior, and add a clean device-token registration contract for future FCM/APNs delivery without exposing private credentials.
 
-### Database (migration)
+### Phase 5 — Performance, resilience, and validation
+- Add route-level lazy loading/code splitting for the large page surface, image loading/compression improvements, request cancellation, and low-bandwidth-friendly query behavior where it does not alter results.
+- Add consistent client error/loading/empty states and offline/network recovery signals.
+- Validate web at phone, tablet, and desktop sizes; build and lint the web app; verify deep-link refreshes, auth redirects, uploads, media playback, support persistence, notifications, and share/copy fallbacks.
+- Finish Capacitor configuration with the approved hot-reload URL for development and provide the exact Android/iOS sync and run steps after native-capability edits.
 
-- `support_conversations` — one row per user (`user_id` unique, `last_message_at`, `unread_admin`, `unread_user`).
-- `support_messages` — `conversation_id`, `sender` (`user` | `ai` | `admin`), `content`, `image_url`, `created_at`, `is_ai_generated`.
-- `support_settings` — single row: `ai_enabled` (bool). Default `true`. Only admins can update.
-- RLS:
-  - User can `SELECT/INSERT` their own conversation + messages.
-  - Moderators/admins can read/write all.
-- New storage bucket `support-attachments` (private), with policies letting a user upload to their own folder and read attachments tied to their own conversation; mods read all.
-- Realtime enabled on `support_messages` and `support_conversations`.
+## Technical constraints
+- No replacement backend, database, authentication provider, payment provider, storage system, or streaming provider.
+- Do not edit generated integration files, environment files, auth/storage schemas, or project-level backend config unless required by the Capacitor setup.
+- Keep browser push service worker behavior separate from any future native notification implementation.
+- Keep all private keys server-side; use existing Lovable Cloud functions and secrets.
+- Use semantic design tokens and existing UI components; no parallel mobile-only product redesign.
 
-### Edge function `support-ai`
-
-- Auth-gated. Input: `{ conversation_id, user_message, image_url? }`.
-- Reads `support_settings.ai_enabled` → if **off**, just stores the user message and returns (no AI reply; waits for admin).
-- If **on**, builds context by querying for the calling user:
-  - `profiles` (name, joined, channel info)
-  - `wallets` + last 5 `wallet_transactions`
-  - `creator_earnings` + `artist_earnings` + pending `withdrawal_requests` / `creator_withdrawals`
-  - last 10 uploaded `videos`, last 10 `watch_history`, last 10 `video_likes`
-  - prior `support_messages` (last 20) for thread continuity
-- Calls Lovable AI Gateway (`google/gemini-3-flash-preview` default, multimodal so images work). Vision when `image_url` provided.
-- System prompt: warm, human Pinkee support agent; never reveal it's AI unless asked; can refer to user's real data; can request more info; can return an `image_url` field if it generated an image (uses `google/gemini-2.5-flash-image` via a follow-up call when the model decides to send an image — gated by a tool-call schema).
-- Inserts the assistant message with `sender = 'ai'`.
-
-### Edge function `support-polish`
-
-- Admin-only (checks `is_moderator`).
-- Input: `{ draft }`. Calls Lovable AI to rewrite into intensive, official, grammatically polished English while preserving meaning. Returns `{ polished }`.
-- Admin UI calls this on send to replace draft text with polished version before insert.
-
-### UI
-
-- New `src/contexts/SupportContext.tsx` — manages conversation id, messages, realtime subscription, unread count. Lives at the App level so chat state survives navigation (no refresh on close).
-- `src/components/support/SupportLauncher.tsx` — round floating button, bottom-right, fixed, sits ~16px above the mobile bottom nav (margin-bottom calc'd per `lg:hidden` breakpoint). Customer-service headset icon. Unread dot. Mounted in `MainLayout`.
-  - Hidden on `/shorts`, `/watch/*`, `/movie/*`, `/tv/*` detail/player pages.
-  - Hidden when not signed in.
-- `src/components/support/SupportChat.tsx` — slide-up sheet/dialog. Message list, input with image upload (uses `support-attachments` bucket), typing dots while waiting for AI. Closing it only hides the sheet — provider keeps state, messages aren't refetched.
-- Admin: new **Support** tab in `src/pages/Admin.tsx` (`src/components/admin/SupportInbox.tsx`):
-  - Left: list of conversations sorted by `last_message_at`, unread badges.
-  - Right: thread view, same message bubbles, image previews.
-  - Toggle at top: **AI auto-reply** (writes to `support_settings.ai_enabled`).
-  - Compose box: when admin hits Send, call `support-polish` first → preview polished text in a confirm step → send as `sender = 'admin'`.
-
-### Notifications
-
-- When admin replies and user isn't viewing the chat, insert a `user_notifications` row + push notification ("New reply from Pinkee Support").
-- When user sends a message and AI is off, insert a `user_notifications` row to admins (or surface count in Admin sidebar).
-
-## Technical notes
-
-- Files touched/added:
-  - Auth: `src/pages/Auth.tsx`, new `src/pages/ResetPassword.tsx`, `src/App.tsx` route, `src/components/auth/WelcomeBack.tsx`.
-  - Email: scaffold auth email templates + branding (pink palette).
-  - Support: `src/contexts/SupportContext.tsx`, `src/components/support/SupportLauncher.tsx`, `src/components/support/SupportChat.tsx`, `src/components/admin/SupportInbox.tsx`, `src/pages/Admin.tsx` (add tab), `src/components/layout/MainLayout.tsx` (mount launcher + provider).
-  - Edge functions: `supabase/functions/support-ai/index.ts`, `supabase/functions/support-polish/index.ts`.
-  - Migration: tables, RLS, storage bucket + policies, realtime publication, `get_public_profile_by_email` RPC, seed `support_settings` row.
-- Uses existing `LOVABLE_API_KEY` (no new secrets).
-- Existing `BottomNav` z-index is 60; launcher uses z-50 with bottom offset so it never overlaps the create button.
+## Main implementation areas
+- `package.json`, Capacitor config, `src/lib/` runtime/capability/navigation modules, `src/App.tsx`, auth context/pages, app shell/navigation components, upload/media hooks/components, notification adapters, and selected route pages.
+- Add only the minimum native platform metadata/configuration and association placeholders needed for a future Android/iOS build.
