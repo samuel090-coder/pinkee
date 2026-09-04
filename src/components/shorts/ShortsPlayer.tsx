@@ -37,6 +37,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getShareUrl } from "@/lib/navigation";
+import { shareLink } from "@/lib/native-capabilities";
 
 interface Comment {
   id: string;
@@ -340,13 +342,11 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
   };
 
   const handleShare = async (videoId: string) => {
-    const url = `${window.location.origin}/shorts?start=${videoId}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "Check out this short", url });
-      } catch (e) {}
-    } else {
-      await navigator.clipboard.writeText(url);
+    const result = await shareLink({
+      title: "Check out this short",
+      url: getShareUrl(`/shorts?start=${encodeURIComponent(videoId)}`),
+    });
+    if (result === 'copied') {
       toast({ title: "Link copied!" });
     }
   };
@@ -365,7 +365,7 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
   return (
     <>
       {/* Top bar - TikTok style tabs */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 pt-3 pb-4 bg-gradient-to-b from-black/60 to-transparent">
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 pt-[calc(0.75rem+var(--safe-area-top))] pb-4 bg-gradient-to-b from-black/60 to-transparent">
         <div className="w-8" />
         <div className="flex items-center gap-5 text-[15px] font-semibold">
           {(["explore", "following", "foryou"] as const).map((tab) => {

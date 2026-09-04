@@ -23,7 +23,7 @@ export const SupportLauncher = () => {
         className={cn(
           'fixed right-4 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg pink-glow',
           'flex items-center justify-center hover:scale-105 active:scale-95 transition-transform',
-          'bottom-[72px] lg:bottom-6',
+           'bottom-[calc(4.5rem+var(--safe-area-bottom)] lg:bottom-6',
         )}
       >
         <Headphones className="w-6 h-6" />

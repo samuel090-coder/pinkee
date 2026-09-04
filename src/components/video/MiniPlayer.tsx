@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play, Pause, Maximize2 } from 'lucide-react';
 import { usePiP } from '@/contexts/PiPContext';
 import { Button } from '@/components/ui/button';
+import { routePaths } from '@/lib/navigation';
 
 export function MiniPlayer() {
   const { pipVideo, isMinimized, exitPiP, updateTime } = usePiP();
@@ -28,7 +29,8 @@ export function MiniPlayer() {
     if (pipVideo) {
       const time = videoRef.current?.currentTime || 0;
       exitPiP();
-      window.location.assign(`/watch/${pipVideo.id}?t=${Math.floor(time)}`);
+      window.history.pushState({}, '', `${routePaths.watch(pipVideo.id)}?t=${Math.floor(time)}`);
+      window.dispatchEvent(new PopStateEvent('popstate'));
     }
   };
 

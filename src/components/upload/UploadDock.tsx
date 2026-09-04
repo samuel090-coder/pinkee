@@ -68,7 +68,7 @@ export function UploadDock() {
   if (items.length === 0) return null;
 
   return (
-    <div className="fixed bottom-20 lg:bottom-6 right-4 z-50 w-[min(380px,calc(100vw-2rem))]">
+    <div className="fixed bottom-[calc(5rem+var(--safe-area-bottom))] lg:bottom-6 right-4 z-50 w-[min(380px,calc(100vw-2rem))]">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}

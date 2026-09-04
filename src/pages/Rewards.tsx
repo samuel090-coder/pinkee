@@ -16,6 +16,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { copyToClipboard } from '@/lib/native-capabilities';
+import { getShareUrl } from '@/lib/navigation';
 
 interface RewardSettings {
   ngn_per_point: number;
@@ -162,9 +164,10 @@ const Rewards = () => {
 
   const copyReferral = () => {
     const code = user?.user_metadata?.username || user?.id;
-    const link = `${window.location.origin}/auth?ref=${code}`;
-    navigator.clipboard.writeText(link);
-    toast({ title: 'Referral link copied' });
+    const link = getShareUrl(`/auth?ref=${encodeURIComponent(code)}`);
+    void copyToClipboard(link).then((copied) => {
+      if (copied) toast({ title: 'Referral link copied' });
+    });
   };
 
   if (loading || !rewards || !settings) {

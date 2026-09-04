@@ -66,8 +66,8 @@ export const TopNav = ({ onMenuToggle }: TopNavProps) => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-sm border-b border-border z-50">
-      <div className="flex items-center justify-between h-full px-4">
+    <header className="fixed top-0 left-0 right-0 h-[calc(4rem+var(--safe-area-top))] bg-background/95 backdrop-blur-sm border-b border-border z-50 safe-area-top">
+      <div className="flex items-center justify-between h-16 px-4">
         {/* Left Section */}
         <div className="flex items-center gap-4">
           <Button
