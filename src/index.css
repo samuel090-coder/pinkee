@@ -12,6 +12,8 @@
 @layer base {
   :root,
   .dark {
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
     /* Dark theme with pink accents */
     --background: 270 50% 4%;
     --foreground: 300 20% 98%;
@@ -74,6 +76,8 @@
   }
 
   .light {
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
     --background: 0 0% 98%;
     --foreground: 270 30% 10%;
 
@@ -136,11 +140,14 @@
 
   html {
     scroll-behavior: smooth;
+    min-height: 100%;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', sans-serif;
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -278,6 +285,18 @@
 }
 
 @layer utilities {
+  .safe-area-top {
+    padding-top: var(--safe-area-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: var(--safe-area-bottom);
+  }
+
+  .safe-area-inset-bottom {
+    bottom: var(--safe-area-bottom);
+  }
+
   .text-gradient-pink {
     background: var(--gradient-pink);
     -webkit-background-clip: text;
