@@ -113,7 +113,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    const handleAppResume = () => {
+      void supabase.auth.startAutoRefresh();
+      void supabase.auth.getSession();
+    };
+    window.addEventListener('pinkee:app-resume', handleAppResume);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('pinkee:app-resume', handleAppResume);
+    };
   }, []);
 
   const signUp = async (email: string, password: string, displayName?: string) => {
