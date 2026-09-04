@@ -3,10 +3,10 @@ import type {
   TMDbCast, TMDbCrew, TMDbVideo, TMDbGenre, TMDbWatchProviders,
   TMDbResponse, MediaItem,
 } from '@/types/tmdb';
+import { appConfig } from '@/lib/app-config';
 
 export type { MediaItem } from '@/types/tmdb';
 
-const API_KEY = '272139592cd689eae0663d4ed7dfdb39';
 const BASE = 'https://api.themoviedb.org/3';
 const IMG_BASE = 'https://image.tmdb.org/t/p';
 
@@ -24,7 +24,7 @@ const CACHE_TTL = 5 * 60 * 1000;
 
 async function get<T>(path: string, params: Record<string, string> = {}): Promise<T> {
   const url = new URL(`${BASE}${path}`);
-  url.searchParams.set('api_key', API_KEY);
+  url.searchParams.set('api_key', appConfig.tmdbApiKey);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
 
   const key = url.toString();

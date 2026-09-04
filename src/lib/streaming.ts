@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { appConfig } from '@/lib/app-config';
 
 export interface MovieStreamServer {
   name: string;
@@ -11,11 +12,11 @@ export interface TVStreamServer {
 }
 
 export const MOVIE_STREAM_SERVERS: MovieStreamServer[] = [
-  { name: 'VidLink', url: (id) => `https://vidlink.pro/movie/${id}` },
+  { name: 'VidLink', url: (id) => `${appConfig.streamingBaseUrl}/movie/${id}` },
 ];
 
 export const TV_STREAM_SERVERS: TVStreamServer[] = [
-  { name: 'VidLink', url: (id, s, e) => `https://vidlink.pro/tv/${id}/${s}/${e}` },
+  { name: 'VidLink', url: (id, s, e) => `${appConfig.streamingBaseUrl}/tv/${id}/${s}/${e}` },
 ];
 
 export const isRecentlyReleased = (date?: string | null, days = 45) => {

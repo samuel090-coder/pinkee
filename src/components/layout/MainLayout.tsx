@@ -47,7 +47,7 @@ export const MainLayout = ({ children, hideSidebar = false }: MainLayoutProps) =
 
       <main
         className={cn(
-          'pt-16 min-h-screen transition-all duration-300 pb-16 lg:pb-0',
+          'pt-[calc(4rem+var(--safe-area-top))] min-h-screen transition-all duration-300 pb-[calc(4rem+var(--safe-area-bottom))] lg:pb-0',
           !hideSidebar && 'lg:pl-[72px]',
           !hideSidebar && sidebarExpanded && 'xl:pl-[240px]'
         )}

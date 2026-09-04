@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { getAuthRedirect } from '@/lib/navigation';
 
 interface Profile {
   id: string;
@@ -112,11 +113,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    const handleAppResume = () => {
+      void supabase.auth.startAutoRefresh();
+      void supabase.auth.getSession();
+    };
+    window.addEventListener('pinkee:app-resume', handleAppResume);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('pinkee:app-resume', handleAppResume);
+    };
   }, []);
 
   const signUp = async (email: string, password: string, displayName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = getAuthRedirect();
     
     const { error } = await supabase.auth.signUp({
       email,

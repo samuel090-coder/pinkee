@@ -2,7 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { App as CapacitorApp } from "@capacitor/app";
 import { VideoProvider, useVideo } from "@/contexts/VideoContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
@@ -56,9 +58,30 @@ import WatchPartyRoom from "./pages/WatchPartyRoom";
 import NotFound from "./pages/NotFound";
 import { GuestGuard } from "@/components/auth/GuestGuard";
 import { usePageViewTracking } from "@/hooks/useAnalyticsTracking";
+import { AppLifecycleBridge } from "@/components/AppLifecycleBridge";
+import { isNativeApp } from "@/lib/platform";
+import { resolveDeepLink } from "@/lib/navigation";
 
 const PageViewTracker = () => {
   usePageViewTracking();
+  return null;
+};
+
+const NativeDeepLinkBridge = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isNativeApp()) return;
+    const listener = CapacitorApp.addListener('appUrlOpen', ({ url }) => {
+      try {
+        navigate(resolveDeepLink(url), { replace: true });
+      } catch {
+        // Ignore malformed links from outside the app.
+      }
+    });
+    return () => { void listener.then((handle) => handle.remove()); };
+  }, [navigate]);
+
   return null;
 };
 
@@ -88,6 +111,8 @@ const App = () => (
               <Sonner />
               <NotificationPrompt />
               <BrowserRouter>
+                <AppLifecycleBridge />
+                <NativeDeepLinkBridge />
                 <PageViewTracker />
                 <MiniPlayer />
                 <SupportLauncher />

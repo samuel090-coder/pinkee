@@ -42,6 +42,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { TipButton } from '@/components/tips/TipButton';
+import { getShareUrl } from '@/lib/navigation';
+import { shareLink } from '@/lib/native-capabilities';
 
 const Watch = () => {
   const { id } = useParams<{ id: string }>();
@@ -426,13 +428,9 @@ const Watch = () => {
   };
 
   const handleShare = async () => {
-    try {
-      await navigator.share({
-        title: video?.title,
-        url: window.location.href,
-      });
-    } catch {
-      await navigator.clipboard.writeText(window.location.href);
+    if (!video) return;
+    const result = await shareLink({ title: video.title, url: getShareUrl(`/watch/${video.id}`) });
+    if (result === 'copied') {
       toast({ title: 'Link copied!' });
     }
   };

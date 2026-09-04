@@ -9,6 +9,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useVideo } from '@/contexts/VideoContext';
 import { toast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { copyToClipboard } from '@/lib/native-capabilities';
+import { getShareUrl } from '@/lib/navigation';
 
 const REACTION_EMOJIS = ['❤️', '😂', '🔥', '😮', '👏', '💯'];
 
@@ -178,9 +180,10 @@ export default function WatchPartyRoom() {
     await supabase.from('watch_party_messages').insert({ party_id: party.id, user_id: user!.id, content: emoji, emoji, message_type: 'reaction' });
   };
   const copyLink = () => {
-    const url = party?.short_code ? `${window.location.origin}/wp/${party.short_code}` : window.location.href;
-    navigator.clipboard.writeText(url);
-    toast({ title: 'Share link copied!', description: url });
+    const url = party?.short_code ? getShareUrl(`/wp/${party.short_code}`) : getShareUrl(`/watch-party/${party?.id || ''}`);
+    void copyToClipboard(url).then((copied) => {
+      if (copied) toast({ title: 'Share link copied!', description: url });
+    });
   };
   const leave = async () => {
     if (isHost && party) await (supabase.from('watch_parties') as any).update({ is_active: false, ended_at: new Date().toISOString() }).eq('id', party.id);
