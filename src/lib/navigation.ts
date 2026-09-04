@@ -12,7 +12,7 @@ export const routePaths = {
   profile: (id: string) => `/poster/${encodeURIComponent(id)}`,
 } as const;
 
-export function getAuthRedirect(path = routePaths.home) {
+export function getAuthRedirect(path: string = routePaths.home) {
   return getPublicUrl(path);
 }
 
