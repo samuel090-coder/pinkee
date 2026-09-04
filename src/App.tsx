@@ -60,6 +60,7 @@ import { GuestGuard } from "@/components/auth/GuestGuard";
 import { usePageViewTracking } from "@/hooks/useAnalyticsTracking";
 import { AppLifecycleBridge } from "@/components/AppLifecycleBridge";
 import { isNativeApp } from "@/lib/platform";
+import { resolveDeepLink } from "@/lib/navigation";
 
 const PageViewTracker = () => {
   usePageViewTracking();
@@ -73,8 +74,7 @@ const NativeDeepLinkBridge = () => {
     if (!isNativeApp()) return;
     const listener = CapacitorApp.addListener('appUrlOpen', ({ url }) => {
       try {
-        const parsed = new URL(url);
-        navigate(`${parsed.pathname}${parsed.search}${parsed.hash}` || '/', { replace: true });
+        navigate(resolveDeepLink(url), { replace: true });
       } catch {
         // Ignore malformed links from outside the app.
       }

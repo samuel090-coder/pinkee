@@ -20,4 +20,12 @@ export function getShareUrl(path: string) {
   return getPublicUrl(path);
 }
 
+export function resolveDeepLink(url: string) {
+  const parsed = new URL(url);
+  const path = parsed.protocol === 'http:' || parsed.protocol === 'https:'
+    ? parsed.pathname
+    : `/${parsed.hostname}${parsed.pathname}`;
+  return `${path}${parsed.search}${parsed.hash}` || '/';
+}
+
 export { appConfig };
