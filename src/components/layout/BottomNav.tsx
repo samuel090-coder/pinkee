@@ -28,7 +28,7 @@ export function BottomNav() {
   if (location.pathname === "/shorts") return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[60] bg-background border-t border-border lg:hidden safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-[60] border-t border-border/80 bg-card/90 shadow-[0_-8px_30px_hsl(var(--background)/0.5)] backdrop-blur-2xl lg:hidden safe-area-bottom">
       <div className="flex items-center justify-around h-14 max-w-lg mx-auto pb-1">
         {NAV_ITEMS.map((item) => {
           const isActive = location.pathname === item.path;
@@ -59,7 +59,7 @@ export function BottomNav() {
               to={href}
               className={cn(
                 "flex flex-col items-center justify-center gap-0.5 p-2 min-w-[64px] min-h-12",
-                isActive ? "text-foreground" : "text-muted-foreground"
+                isActive ? "text-primary drop-shadow-[0_0_10px_hsl(var(--primary)/0.65)]" : "text-muted-foreground"
               )}
             >
               <Icon className={cn("w-5 h-5", isActive && "fill-current")} />

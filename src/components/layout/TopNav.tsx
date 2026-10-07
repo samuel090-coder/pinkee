@@ -66,7 +66,7 @@ export const TopNav = ({ onMenuToggle }: TopNavProps) => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-[calc(4rem+var(--safe-area-top))] bg-background/95 backdrop-blur-sm border-b border-border z-50 safe-area-top">
+    <header className="fixed top-0 left-0 right-0 z-50 h-[calc(4rem+var(--safe-area-top))] border-b border-border/70 bg-background/90 shadow-sm backdrop-blur-xl safe-area-top">
       <div className="flex items-center justify-between h-16 px-4">
         {/* Left Section */}
         <div className="flex items-center gap-4">
@@ -82,7 +82,7 @@ export const TopNav = ({ onMenuToggle }: TopNavProps) => {
           <Link to="/" className="flex items-center gap-2">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center pink-glow"
+              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center pink-glow"
             >
               <Play className="w-5 h-5 text-primary-foreground" fill="currentColor" />
             </motion.div>
