@@ -119,6 +119,7 @@ const App = () => (
                 <UploadDock />
                 <Routes>
                   <Route path="/" element={<HomeRoute />} />
+                  <Route path="/index" element={<Index />} />
                   <Route path="/feed" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/reset-password" element={<ResetPassword />} />

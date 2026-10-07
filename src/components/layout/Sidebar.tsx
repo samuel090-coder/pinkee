@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useVideo } from '@/contexts/VideoContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -50,7 +51,7 @@ interface NavItemProps {
 
 const NavItem = ({ to, icon, label, isExpanded }: NavItemProps) => {
   const location = useLocation();
-  const isActive = location.pathname === to;
+  const isActive = location.pathname === to || (to === '/feed' && location.pathname === '/index');
 
   return (
     <NavLink to={to}>
@@ -99,6 +100,8 @@ const SectionTitle = ({ title, isExpanded }: { title: string; isExpanded: boolea
 
 export const Sidebar = ({ isExpanded, onToggle }: SidebarProps) => {
   const { user, isModerator } = useAuth();
+  const { adminSettings } = useVideo();
+  const moviesEnabled = adminSettings?.movies_enabled !== false;
 
   return (
     <>
@@ -139,9 +142,15 @@ export const Sidebar = ({ isExpanded, onToggle }: SidebarProps) => {
         <ScrollArea className="flex-1 py-4">
           <nav className="space-y-1 px-2">
             {/* Main Navigation */}
-            <NavItem to="/" icon={<Clapperboard className="w-full h-full" />} label="Movies" isExpanded={isExpanded} />
-            <NavItem to="/tv-shows" icon={<Tv className="w-full h-full" />} label="TV Shows" isExpanded={isExpanded} />
-            <NavItem to="/feed" icon={<Home className="w-full h-full" />} label="Feed" isExpanded={isExpanded} />
+            {moviesEnabled ? (
+              <>
+                <NavItem to="/" icon={<Clapperboard className="w-full h-full" />} label="Movies" isExpanded={isExpanded} />
+                <NavItem to="/tv-shows" icon={<Tv className="w-full h-full" />} label="TV Shows" isExpanded={isExpanded} />
+                <NavItem to="/feed" icon={<Home className="w-full h-full" />} label="Feed" isExpanded={isExpanded} />
+              </>
+            ) : (
+              <NavItem to="/" icon={<Home className="w-full h-full" />} label="Feed" isExpanded={isExpanded} />
+            )}
             <NavItem to="/explore" icon={<Compass className="w-full h-full" />} label="Explore" isExpanded={isExpanded} />
             <NavItem to="/shorts" icon={<PlaySquare className="w-full h-full" />} label="Shorts" isExpanded={isExpanded} />
             <NavItem to="/subscriptions" icon={<Users className="w-full h-full" />} label="Subscriptions" isExpanded={isExpanded} />

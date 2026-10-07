@@ -142,8 +142,10 @@ export function LongVideoCard({ video, index, variant = "default" }: Props) {
           )}
         </div>
 
-        {/* info row (hidden on feature variant since overlay handles it) */}
-        {!isFeature && (
+      </Link>
+
+      {/* info row (hidden on feature variant since overlay handles it) */}
+      {!isFeature && (
           <div className="flex gap-3 px-0.5">
             <Link
               to={video.poster_id ? `/poster/${video.poster_id}` : "#"}
@@ -184,8 +186,7 @@ export function LongVideoCard({ video, index, variant = "default" }: Props) {
               <MoreVertical className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
-        )}
-      </Link>
+      )}
     </motion.article>
   );
 }
