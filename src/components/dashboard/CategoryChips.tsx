@@ -39,7 +39,7 @@ export function CategoryChips({ selected, onSelect }: Props) {
   };
 
   return (
-    <div className="relative flex items-center gap-2 py-3 bg-background sticky top-16 z-30">
+    <div className="relative flex items-center gap-2 border-b border-border/70 bg-background/90 py-3 backdrop-blur-xl">
       {/* Left scroll button - desktop only */}
       <Button
         variant="ghost"
@@ -61,10 +61,10 @@ export function CategoryChips({ selected, onSelect }: Props) {
             key={cat}
             onClick={() => onSelect(cat)}
             className={cn(
-              "shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap",
+              "shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-all whitespace-nowrap",
               selected === cat
-                ? "bg-foreground text-background"
-                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                ? "border-primary/50 bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.22)]"
+                : "border-border/80 bg-card/70 text-muted-foreground hover:border-primary/40 hover:text-foreground"
             )}
           >
             {cat}

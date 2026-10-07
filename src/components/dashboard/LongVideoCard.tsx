@@ -51,8 +51,8 @@ export function LongVideoCard({ video, index, variant = "default" }: Props) {
         {/* Cinematic thumbnail */}
         <div
           className={cn(
-            "relative aspect-video overflow-hidden bg-muted mb-3 ring-1 ring-border/50 shadow-card transition-all duration-500",
-            isFeature ? "rounded-3xl group-hover:shadow-glow" : "rounded-2xl group-hover:shadow-glow group-hover:ring-primary/40",
+            "relative aspect-video overflow-hidden border border-border/80 bg-muted shadow-card transition-all duration-500",
+            isFeature ? "rounded-[1.5rem] group-hover:shadow-glow" : "rounded-[1.1rem] group-hover:shadow-glow group-hover:border-primary/50",
           )}
         >
           {thumbnailUrl ? (
@@ -82,8 +82,8 @@ export function LongVideoCard({ video, index, variant = "default" }: Props) {
           {/* cinematic gradient — heavier on feature cards */}
           <div
             className={cn(
-              "absolute inset-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent transition-opacity duration-500",
-              isFeature ? "opacity-90 group-hover:opacity-100" : "opacity-75 group-hover:opacity-90",
+              "absolute inset-0 bg-gradient-to-t from-background/95 via-background/10 to-transparent transition-opacity duration-500",
+              isFeature ? "opacity-90 group-hover:opacity-100" : "opacity-55 group-hover:opacity-80",
             )}
           />
 
@@ -122,7 +122,7 @@ export function LongVideoCard({ video, index, variant = "default" }: Props) {
 
           {/* duration */}
           {video.duration && video.duration > 0 && (
-            <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-md text-white text-[11px] font-semibold tabular-nums ring-1 ring-white/10">
+            <div className="absolute bottom-2 right-2 rounded-md bg-background/85 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-foreground shadow-sm backdrop-blur-md">
               {formatDuration(video.duration)}
             </div>
           )}
@@ -130,12 +130,12 @@ export function LongVideoCard({ video, index, variant = "default" }: Props) {
           {/* feature-only title overlay */}
           {isFeature && (
             <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
-              <div className="flex items-center gap-1.5 mb-2">
-                <span className="px-2 py-0.5 rounded-full bg-primary/90 text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
+                <div className="mb-2 flex items-center gap-1.5">
+                <span className="rounded-full border border-primary/40 bg-background/70 px-2 py-0.5 text-[10px] font-bold uppercase text-primary backdrop-blur-md">
                   Featured
                 </span>
               </div>
-              <h2 className="font-display font-bold text-xl md:text-2xl text-white line-clamp-2 leading-tight drop-shadow-lg">
+              <h2 className="font-display text-xl font-bold leading-tight text-foreground line-clamp-2 drop-shadow-lg md:text-2xl">
                 {video.title}
               </h2>
             </div>
@@ -146,7 +146,7 @@ export function LongVideoCard({ video, index, variant = "default" }: Props) {
 
       {/* info row (hidden on feature variant since overlay handles it) */}
       {!isFeature && (
-          <div className="flex gap-3 px-0.5">
+          <div className="flex gap-3 px-0.5 pt-1">
             <Link
               to={video.poster_id ? `/poster/${video.poster_id}` : "#"}
               onClick={(e) => e.stopPropagation()}
