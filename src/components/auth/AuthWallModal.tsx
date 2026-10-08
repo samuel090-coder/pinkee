@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Lock, Sparkles, Play } from 'lucide-react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
 interface AuthWallModalProps {
@@ -21,6 +21,7 @@ export function AuthWallModal({ open, onClose, reason }: AuthWallModalProps) {
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-md border-primary/30 bg-card/95 backdrop-blur-2xl p-0 overflow-hidden">
+        <DialogTitle className="sr-only">Sign in to keep watching</DialogTitle>
         <div className="relative">
           {/* aurora background */}
           <div className="absolute inset-0 pointer-events-none">
