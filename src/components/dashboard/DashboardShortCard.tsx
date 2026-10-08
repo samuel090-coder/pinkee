@@ -36,7 +36,7 @@ export function DashboardShortCard({ video, index }: Props) {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.04, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-        className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-muted ring-1 ring-border/50 shadow-card transition-all duration-500 group-hover:ring-primary/50 group-hover:shadow-glow group-hover:-translate-y-1"
+        className="relative aspect-[9/16] overflow-hidden rounded-[1.1rem] border border-border/80 bg-muted shadow-card transition-all duration-500 group-hover:-translate-y-1 group-hover:border-primary/50 group-hover:shadow-glow"
       >
         {thumbnailUrl ? (
           isVideoThumb ? (
@@ -63,7 +63,7 @@ export function DashboardShortCard({ video, index }: Props) {
         )}
 
         {/* dual gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/10 to-background/20" />
 
         {/* top-left trending */}
         {isTrending && (
@@ -74,7 +74,7 @@ export function DashboardShortCard({ video, index }: Props) {
         )}
 
         {/* top-right views */}
-        <div className="absolute top-2 right-2 flex items-center gap-1 px-1.5 py-0.5 rounded-full glass border border-white/20 text-[10px] font-medium text-white">
+        <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full border border-border/60 bg-background/65 px-1.5 py-0.5 text-[10px] font-medium text-foreground backdrop-blur-md">
           <Eye className="w-3 h-3" />
           {shortViews(video.views)}
         </div>
@@ -87,11 +87,11 @@ export function DashboardShortCard({ video, index }: Props) {
         </div>
 
         {/* bottom title + creator */}
-        <div className="absolute bottom-0 left-0 right-0 p-2.5 space-y-0.5">
-          <p className="text-[13px] font-semibold text-white line-clamp-2 drop-shadow leading-tight">
+        <div className="absolute bottom-0 left-0 right-0 space-y-0.5 p-2.5">
+          <p className="text-[13px] font-semibold leading-tight text-foreground line-clamp-2 drop-shadow">
             {video.title}
           </p>
-          <p className="text-[10px] text-white/70 line-clamp-1 font-medium">@{channelName}</p>
+          <p className="text-[10px] font-medium text-muted-foreground line-clamp-1">@{channelName}</p>
         </div>
       </motion.article>
     </button>

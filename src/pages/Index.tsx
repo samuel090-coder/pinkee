@@ -72,6 +72,23 @@ const Index = () => {
                   </Button>
                 </Link>
               </div>
+              <div className="flex gap-5 border-t border-border/60 pt-3 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+                {[
+                  { value: `${analytics.videosCount}+`, label: 'Videos' },
+                  {
+                    value: analytics.totalViews >= 1000
+                      ? `${(analytics.totalViews / 1000).toFixed(1)}K+`
+                      : `${analytics.totalViews}+`,
+                    label: 'Views',
+                  },
+                  { value: '4.9', label: 'Rating' },
+                ].map((stat) => (
+                  <div key={stat.label} className="text-center">
+                    <div className="font-display text-lg font-bold text-foreground">{stat.value}</div>
+                    <div className="text-[10px] uppercase text-muted-foreground">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
             </motion.div>
           </div>
         </section>

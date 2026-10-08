@@ -353,7 +353,7 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
 
   if (!shorts.length) {
     return (
-      <div className="fixed inset-0 bg-black flex flex-col items-center justify-center text-center px-4">
+      <div className="fixed inset-0 bg-background flex flex-col items-center justify-center text-center px-4">
         <Play className="w-16 h-16 text-muted-foreground mb-4" />
         <h2 className="text-2xl font-semibold text-white mb-2">No Shorts yet</h2>
         <p className="text-white/70 mb-4">Upload a video under 60 seconds to see it here</p>
@@ -398,7 +398,7 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
       {/* Videos container */}
       <div
         ref={containerRef}
-        className="fixed inset-0 bg-black snap-y snap-mandatory overflow-y-scroll"
+        className="fixed inset-0 bg-background snap-y snap-mandatory overflow-y-scroll scrollbar-hide"
       >
         {shorts.map((short, index) => {
           const uploader = short.uploader_profile;
@@ -417,7 +417,7 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
           }
 
           return (
-            <div key={short.id} className="relative h-screen w-full snap-start">
+            <div key={short.id} className="relative mx-auto h-[100dvh] w-full max-w-[520px] snap-start overflow-hidden bg-card md:my-3 md:h-[calc(100dvh-1.5rem)] md:rounded-[1.5rem] md:border md:border-primary/30 md:shadow-glow">
               {/* Video */}
               {isExternal ? (
                 <iframe
@@ -443,14 +443,15 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
               )}
 
               {/* Gradient overlays */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-background/10" />
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-background/65 to-transparent" />
 
               {/* Right side actions - TikTok style */}
-              <div className="absolute right-2.5 bottom-24 flex flex-col items-center gap-5">
+              <div className="absolute bottom-24 right-2.5 flex flex-col items-center gap-4 sm:right-4 sm:gap-5">
                 {/* Avatar + subscribe pill */}
                 <div className="relative mb-2">
                   <Link to={uploaderId ? `/channel/${uploaderId}` : "#"}>
-                    <Avatar className="w-12 h-12 border-2 border-white">
+                    <Avatar className="w-12 h-12 border-2 border-primary shadow-glow">
                       <AvatarImage src={avatarUrl || undefined} />
                       <AvatarFallback className="bg-primary text-primary-foreground">
                         {channelName.charAt(0)}
@@ -470,13 +471,13 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
                 </div>
 
                 {/* Like */}
-                <button onClick={() => handleLike(short.id)} className="flex flex-col items-center gap-1">
+                <button onClick={() => handleLike(short.id)} className="flex min-w-12 flex-col items-center gap-1 rounded-full border border-border/30 bg-background/25 px-1.5 py-2 backdrop-blur-md transition-transform active:scale-95">
                   <Heart className={cn("w-9 h-9 drop-shadow-md transition-transform active:scale-125", isLiked ? "text-primary fill-primary" : "text-white fill-white/95")} />
                   <span className="text-white text-[12px] font-semibold drop-shadow">{formatNumber(likeCount)}</span>
                 </button>
 
                 {/* Comment */}
-                <button onClick={() => openComments(short.id)} className="flex flex-col items-center gap-1">
+                <button onClick={() => openComments(short.id)} className="flex min-w-12 flex-col items-center gap-1 rounded-full border border-border/30 bg-background/25 px-1.5 py-2 backdrop-blur-md transition-transform active:scale-95">
                   <MessageCircle className="w-9 h-9 text-white fill-white/95 drop-shadow-md" />
                   <span className="text-white text-[12px] font-semibold drop-shadow">{formatNumber(short.comments_count || 0)}</span>
                 </button>
@@ -492,7 +493,7 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
                     });
                     toast({ title: isSaved ? "Removed from favorites" : "Saved to favorites" });
                   }}
-                  className="flex flex-col items-center gap-1"
+                  className="flex min-w-12 flex-col items-center gap-1 rounded-full border border-border/30 bg-background/25 px-1.5 py-2 backdrop-blur-md transition-transform active:scale-95"
                 >
                   <Bookmark className={cn("w-9 h-9 drop-shadow-md", isSaved ? "text-yellow-400 fill-yellow-400" : "text-white fill-white/95")} />
                   <span className="text-white text-[12px] font-semibold drop-shadow">
@@ -501,7 +502,7 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
                 </button>
 
                 {/* Share */}
-                <button onClick={() => handleShare(short.id)} className="flex flex-col items-center gap-1">
+                <button onClick={() => handleShare(short.id)} className="flex min-w-12 flex-col items-center gap-1 rounded-full border border-border/30 bg-background/25 px-1.5 py-2 backdrop-blur-md transition-transform active:scale-95">
                   <Share className="w-9 h-9 text-white fill-white/95 drop-shadow-md" />
                   <span className="text-white text-[12px] font-semibold drop-shadow">Share</span>
                 </button>
@@ -510,7 +511,7 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
                 <motion.div
                   animate={{ rotate: playing && index === currentIndex ? 360 : 0 }}
                   transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                  className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/70 shadow-lg mt-1"
+                  className="mt-1 h-10 w-10 overflow-hidden rounded-full border-2 border-primary/70 shadow-glow"
                 >
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
@@ -523,9 +524,9 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
               </div>
 
               {/* Bottom info - TikTok style */}
-              <div className="absolute left-4 right-20 bottom-6 space-y-2">
+              <div className="absolute bottom-6 left-4 right-20 space-y-2 sm:left-6 sm:right-24">
                 <Link to={uploaderId ? `/channel/${uploaderId}` : "#"}>
-                  <p className="text-white font-bold text-base drop-shadow">
+                  <p className="text-base font-bold text-white drop-shadow">
                     {channelName}
                   </p>
                 </Link>
@@ -546,7 +547,7 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
                     </>
                   )}
                 </p>
-                <div className="flex items-center gap-2 max-w-[260px] pt-0.5">
+                <div className="flex max-w-[260px] items-center gap-2 rounded-full border border-white/15 bg-background/30 px-3 py-1.5 backdrop-blur-md">
                   <Music className="w-3.5 h-3.5 text-white shrink-0" />
                   <div className="flex-1 overflow-hidden">
                     <p className="text-white text-xs truncate">
@@ -561,7 +562,7 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
               {!isExternal && (
                 <button
                   onClick={() => setMuted(!muted)}
-                  className="absolute top-20 right-4 w-9 h-9 bg-black/30 rounded-full flex items-center justify-center"
+                  className="absolute right-4 top-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-background/40 backdrop-blur-md"
                 >
                   {muted ? <VolumeX className="w-5 h-5 text-white" /> : <Volume2 className="w-5 h-5 text-white" />}
                 </button>

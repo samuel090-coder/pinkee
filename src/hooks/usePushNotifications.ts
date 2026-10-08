@@ -21,6 +21,15 @@ export const usePushNotifications = () => {
       }
 
       try {
+        const workerResponse = await fetch('/sw.js', { cache: 'no-store' });
+        if (!workerResponse.ok) {
+          if (!cancelled) {
+            setIsSupported(false);
+            setIsLoading(false);
+          }
+          return;
+        }
+
         // Fetch VAPID public key from server
         const { data, error } = await supabase.functions.invoke('get-vapid-key');
         if (error) {
@@ -70,6 +79,8 @@ export const usePushNotifications = () => {
       setIsLoading(true);
 
       // Ensure service worker is registered
+      const workerResponse = await fetch('/sw.js', { cache: 'no-store' });
+      if (!workerResponse.ok) throw new Error('Push notifications are unavailable on this preview.');
       let registration = await navigator.serviceWorker.getRegistration();
       if (!registration) {
         registration = await navigator.serviceWorker.register('/sw.js');
@@ -99,10 +110,15 @@ export const usePushNotifications = () => {
       const subscriptionJson = subscription.toJSON();
 
       // Save to database
+      const endpoint = subscriptionJson.endpoint;
+      const p256dh = subscriptionJson.keys?.p256dh;
+      const auth = subscriptionJson.keys?.auth;
+      if (!endpoint || !p256dh || !auth) throw new Error('Could not create a valid push subscription.');
+
       const { error } = await supabase.from('push_subscriptions').upsert({
-        endpoint: subscriptionJson.endpoint!,
-        p256dh: subscriptionJson.keys!.p256dh,
-        auth: subscriptionJson.keys!.auth,
+        endpoint,
+        p256dh,
+        auth,
       }, {
         onConflict: 'endpoint'
       });
