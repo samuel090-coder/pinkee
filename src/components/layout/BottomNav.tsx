@@ -31,7 +31,7 @@ export function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 z-[60] border-t border-border/80 bg-card/90 shadow-[0_-8px_30px_hsl(var(--background)/0.5)] backdrop-blur-2xl lg:hidden safe-area-bottom">
       <div className="flex items-center justify-around h-14 max-w-lg mx-auto pb-1">
         {NAV_ITEMS.map((item) => {
-          const isActive = location.pathname === item.path;
+          const isActive = location.pathname === item.path || (location.pathname === "/index" && item.label === "Feed");
           const Icon = item.icon;
           const href = item.path === "/settings" && user
             ? "/settings"
