@@ -15,13 +15,13 @@
     --safe-area-top: env(safe-area-inset-top, 0px);
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
     /* Dark theme with pink accents */
-    --background: 270 50% 4%;
+    --background: 270 32% 3%;
     --foreground: 300 20% 98%;
 
-    --card: 270 40% 8%;
+    --card: 270 30% 7%;
     --card-foreground: 300 20% 98%;
 
-    --popover: 270 45% 6%;
+    --popover: 270 32% 5%;
     --popover-foreground: 300 20% 98%;
 
     /* Hot pink primary */
@@ -32,7 +32,7 @@
     --secondary: 330 60% 20%;
     --secondary-foreground: 330 100% 90%;
 
-    --muted: 270 30% 15%;
+    --muted: 270 24% 13%;
     --muted-foreground: 270 20% 60%;
 
     /* Electric pink accent */
@@ -42,7 +42,7 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 330 40% 20%;
+    --border: 280 24% 17%;
     --input: 270 30% 15%;
     --ring: 330 100% 60%;
 
@@ -65,13 +65,13 @@
     --shadow-card: 0 8px 32px hsl(270 50% 4% / 0.5);
     --shadow-glow: 0 0 60px hsl(330 100% 60% / 0.4);
 
-    --sidebar-background: 270 50% 6%;
+    --sidebar-background: 270 34% 4%;
     --sidebar-foreground: 300 20% 98%;
     --sidebar-primary: 330 100% 60%;
     --sidebar-primary-foreground: 270 50% 4%;
     --sidebar-accent: 330 60% 20%;
     --sidebar-accent-foreground: 300 20% 98%;
-    --sidebar-border: 330 40% 20%;
+    --sidebar-border: 280 24% 16%;
     --sidebar-ring: 330 100% 60%;
   }
 
