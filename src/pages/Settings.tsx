@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   User,
@@ -100,7 +100,8 @@ const Settings = () => {
   }, [user]);
 
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    navigate('/auth');
+    return null;
   }
 
   const handleAvatarUpload = async (file: File) => {
