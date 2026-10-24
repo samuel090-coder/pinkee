@@ -547,6 +547,14 @@ export function ShortsPlayer({ shorts, currentIndex, setCurrentIndex }: ShortsPl
                     </>
                   )}
                 </p>
+                <p className="text-xs font-medium text-white/75 drop-shadow">
+                  {formatNumber(short.views || 0)} views
+                </p>
+                {!!short.tags?.length && (
+                  <p className="line-clamp-1 text-xs font-semibold text-white/90 drop-shadow">
+                    {short.tags.slice(0, 4).map((tag) => tag.startsWith("#") ? tag : `#${tag}`).join(" ")}
+                  </p>
+                )}
                 <div className="flex max-w-[260px] items-center gap-2 rounded-full border border-white/15 bg-background/30 px-3 py-1.5 backdrop-blur-md">
                   <Music className="w-3.5 h-3.5 text-white shrink-0" />
                   <div className="flex-1 overflow-hidden">
