@@ -25,7 +25,7 @@ export const NotificationPrompt = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="fixed left-4 right-4 top-1/2 -translate-y-1/2 md:left-1/2 md:-translate-x-1/2 md:w-[420px] z-50"
+            className="fixed left-4 right-4 top-1/2 z-[70] max-h-[calc(100dvh-2rem-var(--safe-area-top)-var(--safe-area-bottom))] -translate-y-1/2 overflow-y-auto md:left-1/2 md:right-auto md:w-[420px] md:-translate-x-1/2"
           >
             <div className="relative bg-card rounded-2xl p-6 border-2 border-primary/50 shadow-2xl shadow-primary/20 overflow-hidden">
               {/* Decorative glow */}
